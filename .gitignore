@@ -1,0 +1,12 @@
+/vendor/
+/node_modules/
+
+/uploads/
+
+/.idea/
+/.vscode/
+
+Thumbs.db
+.DS_Store
+
+.envgit
