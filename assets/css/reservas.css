@@ -98,6 +98,10 @@
 
     font-size: 30px;
 
+    text-decoration: none;
+
+    color: inherit;
+
 }
 
 .celda.reservada {
