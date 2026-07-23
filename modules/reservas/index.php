@@ -140,6 +140,8 @@ while ($fila = $resultadoReservas->fetch_assoc()) {
 
 ?>
 
+<link rel="stylesheet" href="../../assets/css/estilos.css">
+<link rel="stylesheet" href="../../assets/css/formularios.css">
 <link rel="stylesheet" href="../../assets/css/reservas.css">
 
 <div class="contenedor-reservas">

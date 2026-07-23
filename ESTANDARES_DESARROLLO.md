@@ -143,6 +143,30 @@ Estilos generales del sistema.
 
 Estilos reutilizables para todos los formularios del sistema.
 
+  ### Espaciado de formularios
+
+  Los formularios reutilizables deben mantener un margen vertical moderado.
+
+  El valor estándar será:
+
+  ```css
+  .contenedor-formulario {
+    ...
+    margin: 12px auto;
+    ...
+  }
+  ```
+  El espacio entre grupos de controles será:
+
+  ```css
+  .contenedor-formulario form {
+      ...
+      gap: 15px;
+      ...
+  }
+  ```
+Los controles deben priorizar la comodidad de uso. No se reducirá el padding para solucionar problemas de layout; si aparece scroll, primero se revisarán los márgenes y el espaciado general.
+
 ## botones.css
 
 Estilos reutilizables para todos los botones del sistema.
@@ -164,6 +188,7 @@ Los archivos CSS deben cargarse en el siguiente orden:
 3. Archivos específicos de cada módulo (`reservas.css`, `usuarios.css`, etc.).
 
 `estilos.css` debe cargarse siempre primero, ya que define las variables y estilos base utilizados por el resto del sistema.
+
 
 **No agregar estilos genéricos dentro de archivos específicos de un módulo.**
 

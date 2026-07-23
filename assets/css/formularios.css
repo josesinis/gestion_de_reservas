@@ -10,12 +10,12 @@
 =====================================================*/
 
 .contenedor-formulario {
-    max-width: 700px;
-    margin: 30px auto;
-    padding: 30px;
-    background-color: #ffffff;
-    border: 1px solid #dcdcdc;
-    border-radius: 8px;
+    max-width: var(--ancho-formulario);
+    margin: 12px auto;
+    padding: 20px;
+    background-color: var(--color-fondo);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-borde);
     box-sizing: border-box;
 }
 
@@ -25,10 +25,10 @@
 =====================================================*/
 
 .contenedor-formulario h1 {
-    margin: 0 0 30px;
+    margin: 0 0 20px;
     text-align: center;
     font-size: 1.8rem;
-    color: #333333;
+    color: var(--color-primario);
 }
 
 
@@ -39,7 +39,7 @@
 .contenedor-formulario form {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 15px;
 }
 
 
@@ -60,7 +60,7 @@
 .grupo-formulario label {
     margin-bottom: 6px;
     font-weight: 600;
-    color: #444444;
+    color: var(--color-texto);
 }
 
 
@@ -72,15 +72,18 @@
 .grupo-formulario select,
 .grupo-formulario textarea {
     width: 100%;
-    padding: 10px 12px;
-    font: inherit;
-    color: #333333;
-    background-color: #ffffff;
-    border: 1px solid #cccccc;
-    border-radius: 4px;
+    padding: 8px 12px;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    color: var(--color-texto);
+    background-color: var(--color-fondo);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-borde);
     box-sizing: border-box;
-    transition: border-color 0.2s ease,
-                box-shadow 0.2s ease;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
 /*=====================================================
@@ -90,9 +93,9 @@
 .grupo-formulario input:focus,
 .grupo-formulario select:focus,
 .grupo-formulario textarea:focus {
-    border-color: #0d6efd;
     outline: none;
-    box-shadow: 0 0 5px rgba(13, 110, 253, 0.25);
+    border-color: var(--color-primario);
+    box-shadow: 0 0 5px rgba(107, 29, 68, 0.25);
 }
 
 /*=====================================================
@@ -119,7 +122,7 @@
     gap: 10px;
     margin: 0;
     font-weight: 600;
-    color: #444444;
+    color: var(--color-texto);
     cursor: pointer;
 }
 
