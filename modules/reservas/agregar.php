@@ -131,6 +131,7 @@ while ($fila = $resultadoAsignaturas->fetch_assoc()) {
 
 <link rel="stylesheet" href="../../assets/css/estilos.css">
 <link rel="stylesheet" href="../../assets/css/formularios.css">
+<link rel="stylesheet" href="../../assets/css/botones.css">
 <link rel="stylesheet" href="../../assets/css/reservas.css">
 
 <div class="contenedor-formulario">
@@ -294,13 +295,13 @@ while ($fila = $resultadoAsignaturas->fetch_assoc()) {
 
         <div class="botones">
 
-            <button type="submit">
+            <button type="submit" class="btn btn-primario">
                 Guardar
             </button>
 
             <a
                 href="index.php"
-                class="boton">
+                class="btn btn-secundario">
                 Cancelar
             </a>
 

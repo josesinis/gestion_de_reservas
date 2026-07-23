@@ -1,0 +1,154 @@
+/*=====================================================
+  BOTONES.CSS
+  Estilos reutilizables para todos los botones del
+  Sistema de Gestión Institucional.
+=====================================================*/
+
+
+/*=====================================================
+  CONTENEDOR DE BOTONES
+=====================================================*/
+
+.botones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+
+/*=====================================================
+  BOTÓN BASE
+=====================================================*/
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    /*min-height: 38px;*/
+    padding: 8px 16px;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: 1.2;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    border: 1px solid transparent;
+    border-radius: var(--radio-borde);
+    box-sizing: border-box;
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+
+/*=====================================================
+  ESTADOS GENERALES
+=====================================================*/
+
+.btn:focus {
+    outline: none;
+    box-shadow: var(--sombra-focus);
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+
+/*=====================================================
+  BOTÓN PRIMARIO
+=====================================================*/
+
+.btn-primario {
+    color: var(--color-fondo);
+    background-color: var(--color-primario);
+    border-color: var(--color-primario);
+}
+
+.btn-primario:hover:not(:disabled) {
+    background-color: var(--color-primario-hover);
+    border-color: var(--color-primario-hover);
+}
+
+
+/*=====================================================
+  BOTÓN SECUNDARIO
+=====================================================*/
+
+.btn-secundario {
+    color: var(--color-primario);
+    background-color: var(--color-fondo);
+    border-color: var(--color-primario);
+}
+
+.btn-secundario:hover:not(:disabled) {
+    color: var(--color-fondo);
+    background-color: var(--color-primario-hover);
+    border-color: var(--color-primario-hover);
+}
+
+
+/*=====================================================
+  BOTÓN ÉXITO
+=====================================================*/
+
+.btn-exito {
+    color: var(--color-fondo);
+    background-color: var(--color-exito);
+    border-color: var(--color-exito);
+}
+
+.btn-exito:hover:not(:disabled) {
+    background-color: var(--color-exito-hover);
+    border-color: var(--color-exito-hover);
+}
+
+
+/*=====================================================
+  BOTÓN ADVERTENCIA
+=====================================================*/
+
+.btn-advertencia {
+    color: var(--color-texto);
+    background-color: var(--color-advertencia);
+    border-color: var(--color-advertencia);
+}
+
+.btn-advertencia:hover:not(:disabled) {
+    background-color: var(--color-advertencia-hover);
+    border-color: var(--color-advertencia-hover);
+}
+
+
+/*=====================================================
+  BOTÓN PELIGRO
+=====================================================*/
+
+.btn-peligro {
+    color: var(--color-fondo);
+    background-color: var(--color-error);
+    border-color: var(--color-error);
+}
+
+.btn-peligro:hover:not(:disabled) {
+    background-color: var(--color-error-hover);
+    border-color: var(--color-error-hover);
+}
+
+
+/*=====================================================
+  RESPONSIVE
+=====================================================*/
+
+@media (max-width: 768px) {
+
+    .botones {
+        flex-direction: column;
+    }
+
+}

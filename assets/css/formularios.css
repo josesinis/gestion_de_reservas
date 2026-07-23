@@ -75,7 +75,7 @@
     padding: 8px 12px;
     font-family: inherit;
     font-size: inherit;
-    line-height: inherit;
+    line-height: 1.2;
     color: var(--color-texto);
     background-color: var(--color-fondo);
     border: 1px solid var(--color-borde);
@@ -95,7 +95,7 @@
 .grupo-formulario textarea:focus {
     outline: none;
     border-color: var(--color-primario);
-    box-shadow: 0 0 5px rgba(107, 29, 68, 0.25);
+    box-shadow: var(--sombra-focus);
 }
 
 /*=====================================================
