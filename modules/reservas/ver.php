@@ -123,75 +123,90 @@ echo '</pre>';*/
     <link rel="stylesheet" href="../../assets/css/estilos.css">
     <link rel="stylesheet" href="../../assets/css/botones.css">
     <link rel="stylesheet" href="../../assets/css/reservas.css">
+    <link rel="stylesheet" href="../../assets/css/tablas.css">
 
 </head>
 
 <body>
 
-<main class="contenedor">
+    <main class="contenedor">
 
-    <h1>Detalle de la reserva</h1>
+        <section class="panel">
 
-    <table class="tabla-detalle">
+            <h1>Detalle de la reserva</h1>
 
-        <tr>
-            <th>Fecha</th>
-            <td><?= htmlspecialchars($fecha) ?></td>
-        </tr>
+            <div class="tabla-responsive">
 
-        <tr>
-            <th>Bloque</th>
-            <td>
-                Bloque <?= htmlspecialchars($reserva['numero_bloque']) ?>
-                (<?= substr($reserva['hora_inicio'], 0, 5) ?> -
-                <?= substr($reserva['hora_termino'], 0, 5) ?>)
-            </td>
-        </tr>
+                <table class="tabla-detalle">
 
-        <tr>
-            <th>Curso</th>
-            <td><?= htmlspecialchars($reserva['nombre_curso']) ?></td>
-        </tr>
+                    <tbody>
 
-        <tr>
-            <th>Asignatura</th>
-            <td><?= htmlspecialchars($reserva['asignatura_nombre']) ?></td>
-        </tr>
+                        <tr>
+                            <th>Fecha</th>
+                            <td><?= htmlspecialchars($fecha) ?></td>
+                        </tr>
 
-        <tr>
-            <th>Docente</th>
-            <td><?= htmlspecialchars($reserva['nombres'] . ' ' . $reserva['apellidos']) ?></td>
-        </tr>
+                        <tr>
+                            <th>Bloque</th>
+                            <td>
+                                Bloque <?= htmlspecialchars($reserva['numero_bloque']) ?>
+                                (<?= substr($reserva['hora_inicio'], 0, 5) ?> -
+                                <?= substr($reserva['hora_termino'], 0, 5) ?>)
+                            </td>
+                        </tr>
 
-        <tr>
-            <th>Actividad</th>
-            <td><?= nl2br(htmlspecialchars($reserva['actividad'])) ?></td>
-        </tr>
+                        <tr>
+                            <th>Curso</th>
+                            <td><?= htmlspecialchars($reserva['nombre_curso']) ?></td>
+                        </tr>
 
-        <tr>
-            <th>Permite entrega</th>
-            <td><?= $reserva['permite_entrega'] ? 'Sí' : 'No'; ?></td>
-        </tr>
+                        <tr>
+                            <th>Asignatura</th>
+                            <td><?= htmlspecialchars($reserva['asignatura_nombre']) ?></td>
+                        </tr>
 
-    </table>
+                        <tr>
+                            <th>Docente</th>
+                            <td><?= htmlspecialchars($reserva['nombres'] . ' ' . $reserva['apellidos']) ?></td>
+                        </tr>
 
-    <div class="acciones">
+                        <tr>
+                            <th>Actividad</th>
+                            <td><?= nl2br(htmlspecialchars($reserva['actividad'])) ?></td>
+                        </tr>
 
-        <a href="editar.php?id=<?= $reserva['id']; ?>" class="btn btn-primario">
-            Editar
-        </a>
+                        <tr>
+                            <th>Permite entrega</th>
+                            <td><?= $reserva['permite_entrega'] ? 'Sí' : 'No'; ?></td>
+                        </tr>
 
-        <a href="eliminar.php?id=<?= $reserva['id']; ?>" class="btn btn-peligro">
-            Eliminar
-        </a>
+                    </tbody>
 
-        <a href="index.php" class="btn btn-secundario">
-            Volver
-        </a>
+                </table>
 
-    </div>
+            </div>
 
-</main>
+            <div class="acciones">
+
+                <a href="editar.php?id=<?= $reserva['id']; ?>" class="btn btn-primario">
+                    Editar
+                </a>
+
+                <a href="eliminar.php?id=<?= $reserva['id']; ?>"
+                    class="btn btn-peligro"
+                    onclick="return confirm('¿Está seguro de eliminar esta reserva?');">
+                    Eliminar
+                </a>
+
+                <a href="index.php" class="btn btn-secundario">
+                    Volver
+                </a>
+
+            </div>
+
+        </section>
+
+    </main>
 
 </body>
 

@@ -1,0 +1,107 @@
+/*=====================================================
+  TABLAS.CSS
+
+  Sistema de Gestión Institucional
+
+  Descripción:
+  Contiene los estilos reutilizables para las tablas
+  del sistema.
+
+  Última actualización: 27-07-2026
+=====================================================*/
+
+
+/*=====================================================
+  CONTENEDOR RESPONSIVE
+=====================================================*/
+
+.tabla-responsive {
+    width: 100%;
+    overflow-x: auto;
+    margin: 20px 0;
+}
+
+
+/*=====================================================
+  TABLA DE DETALLE
+=====================================================*/
+
+.tabla-detalle {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 30px;
+}
+
+.tabla-detalle th,
+.tabla-detalle td {
+    padding: 12px 15px;
+    border: 1px solid var(--color-borde);
+    text-align: left;
+    vertical-align: top;
+}
+
+.tabla-detalle th {
+    width: 220px;
+    padding: 14px 16px;
+    text-align: left;
+    vertical-align: top;
+
+    background: var(--color-primario);
+    color: #fff;
+}
+
+.tabla-detalle td {
+    padding: 14px 16px;
+    border: 1px solid #ddd;
+}
+
+
+/*=====================================================
+  EFECTO CEBRA
+=====================================================*/
+
+.tabla-detalle tr:nth-child(even) td {
+    background-color: #f8f9fa;
+}/*
+.tabla-detalle tr:first-child th {
+    border-top-left-radius: var(--radio-borde);
+}
+
+.tabla-detalle tr:first-child td {
+    border-top-right-radius: var(--radio-borde);
+}
+
+.tabla-detalle tr:last-child th {
+    border-bottom-left-radius: var(--radio-borde);
+}
+
+.tabla-detalle tr:last-child td {
+    border-bottom-right-radius: var(--radio-borde);
+}*/
+
+/*=====================================================
+  TABLA DE LISTADO
+=====================================================*/
+
+/*
+Se implementará cuando desarrollemos los módulos de
+listado (usuarios, reservas, docentes, cursos, etc.).
+*/
+
+
+/*=====================================================
+  TABLAS COMPACTAS
+=====================================================*/
+
+/*
+Reservado para tablas pequeñas o resúmenes.
+*/
+
+
+/*=====================================================
+  TABLAS RESPONSIVE ESPECIALES
+=====================================================*/
+
+/*
+Reservado para futuras adaptaciones móviles.
+*/
