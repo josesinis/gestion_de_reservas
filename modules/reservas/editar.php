@@ -134,8 +134,9 @@ while ($fila = $resultadoAsignaturas->fetch_assoc()) {
 ?>
 
 <link rel="stylesheet" href="../../assets/css/estilos.css">
-<link rel="stylesheet" href="../../assets/css/formularios.css">
 <link rel="stylesheet" href="../../assets/css/botones.css">
+<link rel="stylesheet" href="../../assets/css/formularios.css">
+<link rel="stylesheet" href="../../assets/css/tablas.css">
 <link rel="stylesheet" href="../../assets/css/reservas.css">
 
 <div class="contenedor-formulario">
