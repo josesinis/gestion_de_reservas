@@ -194,7 +194,7 @@ echo '</pre>';*/
 
                 <a href="eliminar.php?id=<?= $reserva['id']; ?>"
                     class="btn btn-peligro"
-                    onclick="return confirm('¿Está seguro de eliminar esta reserva?');">
+                    onclick="return confirm('¿Confirma que desea eliminar esta reserva? Esta acción no se puede deshacer.');">
                     Eliminar
                 </a>
 

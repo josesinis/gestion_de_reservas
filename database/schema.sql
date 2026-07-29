@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 18-07-2026 a las 01:50:38
+-- Tiempo de generación: 29-07-2026 a las 03:24:09
 -- Versión del servidor: 10.4.28-MariaDB
 -- Versión de PHP: 8.0.28
 
@@ -31,6 +31,20 @@ CREATE TABLE `asignaturas` (
   `id` int(11) NOT NULL,
   `asignatura_nombre` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
+
+--
+-- Volcado de datos para la tabla `asignaturas`
+--
+
+INSERT INTO `asignaturas` (`id`, `asignatura_nombre`) VALUES
+(1, 'Lenguaje y Comunicación'),
+(2, 'Matemáticas'),
+(3, 'Inglés'),
+(4, 'Historia'),
+(5, 'Ciencias'),
+(6, 'Música'),
+(7, 'Tecnología'),
+(8, 'Taller IA');
 
 -- --------------------------------------------------------
 
@@ -70,6 +84,16 @@ CREATE TABLE `bloques` (
   `hora_termino` time NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
+--
+-- Volcado de datos para la tabla `bloques`
+--
+
+INSERT INTO `bloques` (`id`, `numero_bloque`, `hora_inicio`, `hora_termino`) VALUES
+(1, 1, '08:30:00', '10:00:00'),
+(2, 2, '10:20:00', '11:50:00'),
+(3, 3, '12:00:00', '13:30:00'),
+(4, 4, '14:15:00', '15:45:00');
+
 -- --------------------------------------------------------
 
 --
@@ -80,6 +104,28 @@ CREATE TABLE `cursos` (
   `id` int(11) NOT NULL,
   `nombre_curso` varchar(10) NOT NULL DEFAULT ''
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
+
+--
+-- Volcado de datos para la tabla `cursos`
+--
+
+INSERT INTO `cursos` (`id`, `nombre_curso`) VALUES
+(1, '1° A'),
+(2, '1° B'),
+(3, '2° A'),
+(4, '2° B'),
+(5, '3° A'),
+(6, '3° B'),
+(7, '4° A'),
+(8, '4° B'),
+(9, '5° A'),
+(10, '5° B'),
+(11, '6° A'),
+(12, '6° B'),
+(13, '7° A'),
+(14, '7° B'),
+(15, '8° A'),
+(16, '8° B');
 
 -- --------------------------------------------------------
 
@@ -93,6 +139,13 @@ CREATE TABLE `docentes` (
   `apellidos` varchar(50) NOT NULL,
   `correo` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
+
+--
+-- Volcado de datos para la tabla `docentes`
+--
+
+INSERT INTO `docentes` (`id`, `nombres`, `apellidos`, `correo`) VALUES
+(1, 'Esmeralda Jacqueline', 'Cabrera Saavedra', 'kellycabrera1@gmail.com');
 
 -- --------------------------------------------------------
 
@@ -137,7 +190,10 @@ CREATE TABLE `reservas` (
   `actividad` varchar(150) NOT NULL DEFAULT '',
   `permite_entrega` tinyint(1) NOT NULL,
   `fecha_cierre` date DEFAULT NULL,
-  `cierre_manual` tinyint(1) DEFAULT NULL
+  `cierre_manual` tinyint(1) DEFAULT NULL,
+  `estado` enum('reservada','utilizada','cancelada') NOT NULL DEFAULT 'reservada',
+  `fecha_creacion` datetime NOT NULL DEFAULT current_timestamp(),
+  `fecha_actualizacion` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
 -- --------------------------------------------------------
@@ -239,7 +295,7 @@ ALTER TABLE `usuarios`
 -- AUTO_INCREMENT de la tabla `asignaturas`
 --
 ALTER TABLE `asignaturas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT de la tabla `bitacora_recursos`
@@ -251,19 +307,19 @@ ALTER TABLE `bitacora_recursos`
 -- AUTO_INCREMENT de la tabla `bloques`
 --
 ALTER TABLE `bloques`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `cursos`
 --
 ALTER TABLE `cursos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT de la tabla `docentes`
 --
 ALTER TABLE `docentes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `entregas`
@@ -281,7 +337,7 @@ ALTER TABLE `recursos`
 -- AUTO_INCREMENT de la tabla `reservas`
 --
 ALTER TABLE `reservas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `usuarios`
