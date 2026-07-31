@@ -44,6 +44,9 @@
         box-shadow 0.2s ease;
 }
 
+.btn i {
+    margin-right: 6px;
+}
 
 /*=====================================================
   ESTADOS GENERALES

@@ -10,7 +10,7 @@
 .agenda-container {
     width: 95%;
     max-width: 1600px;
-    margin: 40px auto;
+    margin: 30px auto;
 }
 
 
@@ -18,110 +18,71 @@
   HEADER DE LA AGENDA
 =====================================================*/
 
-.agenda-header{
-
-    display:grid;
-
-    gap:12px;
-
-    padding-bottom:20px;
-
-    margin-bottom:20px;
-
-    border-bottom:1px solid var(--color-borde);
-
+.agenda-header {
+    display: grid;
+    gap: 12px;
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--color-borde);
 }
 
 
 /*=====================================================
-  INFORMACIÓN
+  INFORMACIÓN DEL HEADER
 =====================================================*/
 
-.agenda-header-info{
-
-    display:flex;
-
-    justify-content:center;
-
-    padding-bottom:6px;
-
-    border-bottom:1px solid var(--color-borde);
-
+.agenda-header-info {
+    display: flex;
+    justify-content: center;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--color-borde);
 }
 
-.agenda-header-titulos{
-
-    text-align:center;
-
+.agenda-header-titulos {
+    text-align: center;
 }
 
-.agenda-header h1{
-
-    margin:0;
-
-    font-size:1.8rem;
-
-    color:var(--color-primario);
-
-
+.agenda-header h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    color: var(--color-primario);
 }
 
-.agenda-subtitulo{
-
-    margin-top:2px;
-
-    font-size:.95rem;
-
-    color:var(--color-texto-secundario);
-
+.agenda-subtitulo {
+    margin-top: 2px;
+    margin-bottom: 0;
+    font-size: .95rem;
+    color: var(--color-texto-secundario);
 }
 
 
 /*=====================================================
-  NAVEGACIÓN
+  NAVEGACIÓN SEMANAL
 =====================================================*/
 
-.agenda-nav{
-
-    display:grid;
-
-    grid-template-columns:auto 1fr auto auto;
-
-    align-items:center;
-
-    gap:15px;
-
+.agenda-nav {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    align-items: center;
+    gap: 15px;
 }
 
-
-.agenda-periodo{
-
-    text-align:center;
-
+.agenda-periodo {
+    text-align: center;
 }
 
-.agenda-semana{
-
-    display:block;
-
-    font-size:1.2rem;
-
-    font-weight:700;
-
-    color:var(--color-primario);
-
+.agenda-semana {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--color-primario);
 }
 
-.agenda-fechas{
-
-    display:block;
-
-    margin-top:2px;
-
-    color:var(--color-texto-secundario);
-
-    font-size:.9rem;
-
+.agenda-fechas {
+    display: block;
+    margin-top: 2px;
+    color: var(--color-texto-secundario);
+    font-size: .9rem;
 }
 
 
@@ -129,109 +90,70 @@
   BOTONES DEL HEADER
 =====================================================*/
 
-.agenda-btn-nav{
-
-    background:none;
-
-    border:none;
-
-    padding:6px;
-
-    color:var(--color-texto);
-
-    cursor:pointer;
-
-    display:flex;
-
-    align-items:center;
-
-    gap:6px;
-
-    font-size:.95rem;
-
+.agenda-btn-nav {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px;
+    border: none;
+    background: none;
+    color: var(--color-texto);
+    font-size: .95rem;
+    cursor: pointer;
 }
 
-.agenda-btn-nav:hover{
-
-    color:var(--color-primario);
-
+.agenda-btn-nav:hover {
+    color: var(--color-primario);
 }
 
-
-.agenda-btn-hoy{
-
-    padding:6px 14px;
-
-    border:none;
-
-    border-radius:var(--radio-borde);
-
-    background:var(--color-primario);
-
-    color:#fff;
-
-    cursor:pointer;
-
+.agenda-btn-hoy {
+    padding: 6px 14px;
+    border: none;
+    border-radius: var(--radio-borde);
+    background: var(--color-primario);
+    color: #fff;
+    cursor: pointer;
 }
 
-.agenda-btn-hoy:hover{
-
-    background:var(--color-primario-hover);
-
+.agenda-btn-hoy:hover {
+    background: var(--color-primario-hover);
 }
 
 
 /*=====================================================
-  TABLA
+  TABLA DE LA AGENDA
 =====================================================*/
 
-.agenda{
-
-    width:100%;
-
-    border-collapse:collapse;
-
-    background:#fff;
-
-    border-radius:var(--radio-borde);
-
-    overflow:hidden;
-
-    box-shadow:0 4px 12px rgba(0,0,0,.08);
-
+.agenda {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: var(--radio-borde);
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .08);
 }
 
 
-.agenda th{
+/*=====================================================
+  CABECERA DE LA TABLA
+=====================================================*/
 
-    background:var(--color-primario);
-
-    color:#fff;
-
-    padding:14px;
-
-    border:1px solid rgba(255,255,255,.12);
-
+.agenda th {
+    padding: 10px 8px;
+    border: 1px solid rgba(255, 255, 255, .12);
+    background: var(--color-primario);
+    color: #fff;
+    text-align: center;
+    vertical-align: middle;
 }
 
-
-.agenda td{
-
-    border:1px solid #ececec;
-
-    height:90px;
-
-    vertical-align:top;
-
-    transition:.2s;
-
+.agenda-columna-bloque {
+    width: 80px;
 }
 
-
-.agenda td:hover{
-
-    background:#fafafa;
-
+.agenda-columna-horario {
+    width: 140px;
 }
 
 
@@ -239,145 +161,258 @@
   CABECERA DE DÍAS
 =====================================================*/
 
-.agenda-dia{
-
-    display:flex;
-
-    flex-direction:column;
-
-    align-items:center;
-
-    gap:4px;
-
+.agenda-dia {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
 }
 
-
-.agenda-dia-nombre{
-
-    font-weight:600;
-
+.agenda-dia-nombre {
+    font-weight: 600;
 }
 
-
-.agenda-dia-fecha{
-
-    font-size:.85rem;
-
-    opacity:.85;
-
+.agenda-dia-fecha {
+    font-size: .82rem;
+    opacity: .85;
 }
 
 
 /*=====================================================
-  BLOQUES
+  CELDAS GENERALES
 =====================================================*/
 
-.hora{
-
-    width:130px;
-
-    background:#fafafa;
-
-}
-
-
-.agenda-bloque{
-
-    display:flex;
-
-    flex-direction:column;
-
-    align-items:center;
-
-    justify-content:center;
-
-    height:100%;
-
-    gap:4px;
-
-    font-size:.9rem;
-
-}
-
-
-.agenda-bloque strong{
-
-    color:var(--color-primario);
-
+.agenda td {
+    height: 55px;
+    padding: 0;
+    border: 1px solid #ececec;
+    background: #fff;
+    vertical-align: middle;
 }
 
 
 /*=====================================================
-  RESERVA
+  NÚMERO DEL BLOQUE
 =====================================================*/
 
-.reserva{
-
-    display:grid;
-
-    gap:8px;
-
-    margin:8px;
-
-    padding:12px;
-
-    background:#fff;
-
-    border-left:5px solid var(--color-primario);
-
-    border-radius:var(--radio-borde);
-
-    box-shadow:0 2px 8px rgba(0,0,0,.08);
-
-}
-
-
-.reserva strong{
-
-    color:var(--color-primario);
-
-}
-
-
-.reserva span{
-
-    font-size:.9rem;
-
+.agenda-bloque-numero {
+    width: 80px;
+    background: #fafafa !important;
+    color: var(--color-primario);
+    font-size: 1rem;
+    font-weight: 700;
+    text-align: center;
+    vertical-align: middle !important;
 }
 
 
 /*=====================================================
-  ACCIONES
+  HORARIO DEL SUBBLOQUE
 =====================================================*/
 
-.acciones{
-
-    display:flex;
-
-    justify-content:flex-end;
-
-    gap:14px;
-
-    margin-top:8px;
-
+.agenda-horario {
+    width: 140px;
+    padding: 0 10px !important;
+    background: #fafafa !important;
+    color: var(--color-texto-secundario);
+    font-size: .88rem;
+    font-weight: 500;
+    text-align: center;
+    white-space: nowrap;
 }
 
 
-.acciones i{
+/*=====================================================
+  CELDAS DE LA AGENDA
+=====================================================*/
 
-    cursor:pointer;
+.agenda-celda {
+    position: relative;
+    transition: background-color .2s ease;
+}
 
-    transition:.2s;
-
-    color:var(--color-texto-secundario);
-
+.agenda-celda:hover {
+    background: #fafafa;
 }
 
 
-.acciones i:hover{
+/*=====================================================
+  SUBBLOQUES
+=====================================================*/
 
-    color:var(--color-primario);
+/*
+ * Cada bloque está compuesto por dos filas:
+ *
+ * subbloque 1
+ * ---------------- línea fina
+ * subbloque 2
+ * ================ fin del bloque
+ */
 
+
+/* Línea entre subbloque 1 y subbloque 2 */
+
+.agenda-subbloque-1 td:not(.agenda-bloque-numero) {
+    border-bottom-color: #eeeeee;
+}
+
+
+/* Separación al finalizar cada bloque */
+
+.agenda-subbloque-2.fin-bloque td {
+    border-bottom: 2px solid var(--color-borde);
+}
+
+
+/*
+ * La celda del número del bloque utiliza rowspan="2".
+ * Por eso debemos marcar también su borde inferior.
+ */
+
+.agenda-subbloque-1 .agenda-bloque-numero {
+    border-bottom: 2px solid var(--color-borde);
+}
+
+/*=====================================================
+  RESERVAS
+=====================================================*/
+
+.agenda-celda.ocupada {
+    padding: 0;
+    background: #fff;
+}
+
+/* Contenedor de la reserva */
+.agenda-reserva {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    width: 100%;
+    height: 100%;
+
+    padding: 6px 10px;
+
+    border-left: 4px solid var(--color-primario);
+
+    background: var(--color-fondo-secundario);
+
+    box-sizing: border-box;
+}
+
+/* Asignatura */
+.agenda-reserva-asignatura {
+    color: var(--color-primario);
+    font-size: .9rem;
+    font-weight: 700;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Información secundaria */
+.agenda-reserva-detalle {
+    margin-top: 2px;
+
+    color: var(--color-texto-secundario);
+    font-size: .82rem;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+/*=====================================================
+  RESERVA DE BLOQUE COMPLETO
+=====================================================*/
+
+.agenda-reserva-completa {
+    gap: 3px;
+}
+
+
+/*=====================================================
+  RESERVA DE SUBBLOQUE
+=====================================================*/
+
+.agenda-reserva-subbloque {
+    gap: 1px;
+}
+
+
+/*=====================================================
+  ACCIONES DE LA RESERVA
+=====================================================*/
+
+.agenda-reserva {
+    position: relative;
+}
+
+.agenda-reserva-acciones {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    padding: 3px 5px;
+
+    background: var(--color-fondo-neutro);
+    border-radius: var(--radio-borde);
+
+    opacity: 0;
+    visibility: hidden;
+
+    transform: translateY(-50%);
+
+    transition:
+        opacity .2s ease,
+        visibility .2s ease;
+}
+
+.agenda-reserva:hover .agenda-reserva-acciones {
+    opacity: 1;
+    visibility: visible;
+}
+
+
+/* Botones */
+
+.agenda-reserva-acciones button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 26px;
+    height: 26px;
+
+    padding: 0;
+
+    border: none;
+    border-radius: 4px;
+
+    background: transparent;
+
+    color: var(--color-texto-secundario);
+
+    cursor: pointer;
+
+    transition:
+        color .2s ease,
+        background-color .2s ease;
+}
+
+.agenda-reserva-acciones button:hover {
+    background: #fff;
+    color: var(--color-primario);
+}
+
+.agenda-reserva-acciones i {
+    font-size: .8rem;
 }
 
 
@@ -385,32 +420,201 @@
   CELDA LIBRE
 =====================================================*/
 
-.libre{
+.agenda-celda.libre {
+    text-align: center;
+    vertical-align: middle;
+    cursor: pointer;
+    transition: background-color .2s ease;
+}
 
-    text-align:center;
+.agenda-celda.libre i {
+    font-size: 1.1rem;
+    color: #b5b5b5;
+    transition:
+        color .2s ease,
+        transform .2s ease;
+}
 
-    vertical-align:middle !important;
+.agenda-celda.libre:hover {
+    background: var(--color-fondo-secundario);
+}
 
-    cursor:pointer;
+.agenda-celda.libre:hover i {
+    color: var(--color-primario);
+    transform: scale(1.15);
+}
+
+
+/*=====================================================
+  FORMULARIO DE RESERVA - MOCKUP
+=====================================================*/
+
+.agenda-form-reserva {
+    max-width: 900px;
+    margin: 25px auto 0;
+    padding: 20px;
+
+    background: var(--color-fondo);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-borde);
+}
+
+
+/*=====================================================
+  CABECERA DEL FORMULARIO
+=====================================================*/
+
+.agenda-form-header {
+    margin-bottom: 18px;
+}
+
+.agenda-form-header h2 {
+    margin: 0;
+    color: var(--color-primario);
+    font-size: 1.4rem;
+}
+
+.agenda-form-header p {
+    margin: 4px 0 0;
+    color: var(--color-texto-secundario);
+    font-size: .9rem;
+}
+
+
+/*=====================================================
+  RESUMEN DE LA SELECCIÓN
+=====================================================*/
+
+.agenda-resumen-seleccion {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 15px;
+
+    margin-bottom: 20px;
+    padding: 14px;
+
+    background: var(--color-fondo-neutro);
+    border-radius: var(--radio-borde);
+}
+
+.agenda-resumen-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.agenda-resumen-label {
+    color: var(--color-texto-secundario);
+    font-size: .8rem;
+}
+
+.agenda-resumen-item strong {
+    color: var(--color-texto);
+    font-size: .9rem;
+}
+
+
+/*=====================================================
+  TIPO DE RESERVA
+=====================================================*/
+
+.agenda-tipo-reserva {
+    display: flex;
+    gap: 25px;
+
+    margin: 0 0 18px;
+    padding: 12px 14px;
+
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-borde);
+}
+
+.agenda-tipo-reserva legend {
+    padding: 0 6px;
+    color: var(--color-texto);
+    font-weight: 600;
+}
+
+.agenda-opcion-reserva {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    cursor: pointer;
+}
+
+.agenda-opcion-reserva input {
+    margin: 0;
+    accent-color: var(--color-primario);
+}
+
+.agenda-opcion-reserva span {
+    font-weight: 600;
+}
+
+.agenda-opcion-reserva small {
+    color: var(--color-texto-secundario);
+}
+
+
+/*=====================================================
+  FORMULARIO
+=====================================================*/
+
+.agenda-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.agenda-form-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+
+/*=====================================================
+  RESPONSIVE DEL FORMULARIO
+=====================================================*/
+
+@media (max-width: 768px) {
+
+    .agenda-resumen-seleccion,
+    .agenda-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .agenda-tipo-reserva {
+        flex-direction: column;
+        gap: 10px;
+    }
 
 }
 
 
-.libre i{
+/*=====================================================
+  ENTREGA DE TRABAJOS
+=====================================================*/
 
-    font-size:1.3rem;
-
-    color:#b5b5b5;
-
-    transition:.25s;
-
+.agenda-entrega {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
+.agenda-entrega-opciones {
+    display: none;
+    max-width: 260px;
+    padding: 12px 14px;
 
-.libre:hover i{
+    background: var(--color-fondo-neutro);
 
-    color:var(--color-exito);
+    border-radius: var(--radio-borde);
+}
 
+.agenda-entrega-opciones.activo {
+    display: block;
 }
 
 
@@ -418,14 +622,15 @@
   RESPONSIVE
 =====================================================*/
 
-@media (max-width:900px){
+@media (max-width: 900px) {
 
-    .agenda-nav{
+    .agenda-container {
+        width: 98%;
+    }
 
-        grid-template-columns:1fr;
-
-        gap:15px;
-
+    .agenda-nav {
+        grid-template-columns: 1fr;
+        gap: 12px;
     }
 
 }
