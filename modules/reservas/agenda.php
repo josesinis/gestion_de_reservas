@@ -242,7 +242,7 @@ exit;*/
 
                             ?>
 
-                            <td>
+                            <td class="agenda-celda">
 
                                 <?php if ($reservaCompleta): ?>
 
@@ -305,7 +305,6 @@ exit;*/
                                             <?php endif; ?>
 
                                         </div>
-
 
                                         <!-- SUBBLOQUE 2 -->
 
