@@ -38,6 +38,8 @@ require_once '../../config/database.php';
 $fecha = $_GET['fecha'] ?? '';
 $bloqueId = isset($_GET['bloque']) ? (int) $_GET['bloque'] : 0;
 
+$tipoReserva = $_GET['tipo'] ?? 'completo';
+
 //=====================================================
 // 4. VALIDAR VARIABLES
 //=====================================================
@@ -68,6 +70,37 @@ $stmtBloque->bind_param('i', $bloqueId);
 $stmtBloque->execute();
 
 $bloque = $stmtBloque->get_result()->fetch_assoc();
+
+//-----------------------------------------------------
+// 5.1.1 HORARIO SEGÚN TIPO DE RESERVA
+//-----------------------------------------------------
+
+$horaInicio = substr($bloque['hora_inicio'], 0, 5);
+$horaTermino = substr($bloque['hora_termino'], 0, 5);
+
+// Calcular hora intermedia del bloque
+$inicio = strtotime($bloque['hora_inicio']);
+$termino = strtotime($bloque['hora_termino']);
+
+$horaMedia = date(
+    'H:i',
+    $inicio + (($termino - $inicio) / 2)
+);
+
+switch ($tipoReserva) {
+
+    case 'sub1':
+        $horario = $horaInicio . ' - ' . $horaMedia;
+        break;
+
+    case 'sub2':
+        $horario = $horaMedia . ' - ' . $horaTermino;
+        break;
+
+    default:
+        $horario = $horaInicio . ' - ' . $horaTermino;
+        break;
+}
 
 if (!$bloque) {
     die('Bloque no encontrado.');
@@ -136,7 +169,25 @@ while ($fila = $resultadoAsignaturas->fetch_assoc()) {
 
 <div class="contenedor-formulario">
 
-    <h1>Nueva Reserva</h1>
+    <h1>
+
+        Nueva Reserva
+
+        <?php if ($tipoReserva !== 'completo'): ?>
+
+            <small>
+
+                (
+                <?= $tipoReserva === 'sub1'
+                    ? 'Primer subbloque'
+                    : 'Segundo subbloque'; ?>
+                )
+
+            </small>
+
+        <?php endif; ?>
+
+    </h1>
 
     <form
         action="guardar.php"
@@ -152,6 +203,11 @@ while ($fila = $resultadoAsignaturas->fetch_assoc()) {
             type="hidden"
             name="bloque_id"
             value="<?= $bloqueId ?>">
+
+        <input
+            type="hidden"
+            name="tipo_reserva"
+            value="<?= htmlspecialchars($tipoReserva) ?>">
 
         <div class="grupo-formulario">
 
@@ -186,7 +242,7 @@ while ($fila = $resultadoAsignaturas->fetch_assoc()) {
             <input
                 type="text"
                 id="horario"
-                value="<?= substr($bloque['hora_inicio'], 0, 5) ?> - <?= substr($bloque['hora_termino'], 0, 5) ?>"
+                value="<?= htmlspecialchars($horario) ?>"
                 readonly
                 autocomplete="off">
 
@@ -215,7 +271,7 @@ while ($fila = $resultadoAsignaturas->fetch_assoc()) {
             </select>
 
         </div>
-                <div class="grupo-formulario">
+        <div class="grupo-formulario">
 
             <label for="curso_id">Curso</label>
 
