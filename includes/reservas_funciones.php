@@ -188,3 +188,46 @@ function obtenerReservaCelda(
 {
     return $reservas[$fecha][$bloqueId] ?? [];
 }
+
+
+/**
+ * Formatea una fecha YYYY-MM-DD a:
+ * Lunes 08 de junio de 2026
+ */
+function formatearFechaLarga(string $fecha): string
+{
+    $dias = [
+        'Sunday'    => 'Domingo',
+        'Monday'    => 'Lunes',
+        'Tuesday'   => 'Martes',
+        'Wednesday' => 'Miércoles',
+        'Thursday'  => 'Jueves',
+        'Friday'    => 'Viernes',
+        'Saturday'  => 'Sábado'
+    ];
+
+    $meses = [
+        1 => 'enero',
+        2 => 'febrero',
+        3 => 'marzo',
+        4 => 'abril',
+        5 => 'mayo',
+        6 => 'junio',
+        7 => 'julio',
+        8 => 'agosto',
+        9 => 'septiembre',
+        10 => 'octubre',
+        11 => 'noviembre',
+        12 => 'diciembre'
+    ];
+
+    $timestamp = strtotime($fecha);
+
+    return sprintf(
+        '%s %02d de %s de %d',
+        $dias[date('l', $timestamp)],
+        date('d', $timestamp),
+        $meses[(int)date('n', $timestamp)],
+        date('Y', $timestamp)
+    );
+}

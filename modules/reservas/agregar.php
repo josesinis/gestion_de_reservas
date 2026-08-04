@@ -30,12 +30,15 @@ if (!isset($_SESSION['usuario'])) {
 require_once '../../includes/header.php';
 require_once '../../includes/menu.php';
 require_once '../../config/database.php';
+require_once '../../includes/reservas_funciones.php';
 
 //=====================================================
 // 3. RECIBIR VARIABLES
 //=====================================================
 
 $fecha = $_GET['fecha'] ?? '';
+
+
 $bloqueId = isset($_GET['bloque']) ? (int) $_GET['bloque'] : 0;
 
 $tipoReserva = $_GET['tipo'] ?? 'completo';
@@ -192,7 +195,7 @@ while ($fila = $resultadoAsignaturas->fetch_assoc()) {
     <form
         action="guardar.php"
         method="post"
-        autocomplete="off">
+        autocomplete="off" class="agenda-form">
 
         <input
             type="hidden"
@@ -213,163 +216,257 @@ while ($fila = $resultadoAsignaturas->fetch_assoc()) {
 
             <label for="fecha_reserva">Fecha</label>
 
-            <input
-                type="text"
-                id="fecha_reserva"
-                value="<?= date('d/m/Y', strtotime($fecha)) ?>"
-                readonly
-                autocomplete="off">
+            <div class="agenda-resumen-seleccion">
 
-        </div>
+                <div class="agenda-resumen-item">
 
-        <div class="grupo-formulario">
+                    <span class="agenda-resumen-label">
+                        Fecha
+                    </span>
 
-            <label for="bloque">Bloque</label>
+                    <strong id="resumen_fecha">
+                        <?= formatearFechaLarga($fecha); ?>
+                    </strong>
 
-            <input
-                type="text"
-                id="bloque"
-                value="Bloque <?= $bloque['numero_bloque'] ?>"
-                readonly
-                autocomplete="off">
+                </div>
 
-        </div>
 
-        <div class="grupo-formulario">
+                <div class="agenda-resumen-item">
 
-            <label for="horario">Horario</label>
+                    <span class="agenda-resumen-label">
+                        Bloque
+                    </span>
 
-            <input
-                type="text"
-                id="horario"
-                value="<?= htmlspecialchars($horario) ?>"
-                readonly
-                autocomplete="off">
+                    <strong id="resumen_bloque">
+                        Bloque <?= $bloque['numero_bloque']; ?>
+                    </strong>
 
-        </div>
+                </div>
 
-        <div class="grupo-formulario">
 
-            <label for="docente_id">Docente</label>
+                <div class="agenda-resumen-item">
 
-            <select
-                id="docente_id"
-                name="docente_id"
-                required
-                autocomplete="off">
+                    <span class="agenda-resumen-label">
+                        Horario seleccionado
+                    </span>
 
-                <option value="">Seleccione...</option>
+                    <strong id="resumen_horario">
+                        <?= htmlspecialchars($horario); ?>
+                    </strong>
 
-                <?php foreach ($docentes as $docente): ?>
+                </div>
 
-                    <option value="<?= $docente['id'] ?>">
-                        <?= htmlspecialchars($docente['nombre']) ?>
-                    </option>
+            </div>
 
-                <?php endforeach; ?>
+            <fieldset class="agenda-tipo-reserva" id="tipo_reserva_opciones">
 
-            </select>
+                <legend>Tipo de reserva</legend>
 
-        </div>
-        <div class="grupo-formulario">
+                <label class="agenda-opcion-reserva">
 
-            <label for="curso_id">Curso</label>
+                    <input
+                        type="radio"
+                        name="tipo_reserva"
+                        value="sub1"
+                        data-horario="10:20 - 11:05"
+                        checked>
 
-            <select
-                id="curso_id"
-                name="curso_id"
-                required
-                autocomplete="off">
+                    <span>
+                        Primer subbloque
+                    </span>
 
-                <option value="">Seleccione...</option>
+                    <small>
+                        10:20 - 11:05
+                    </small>
 
-                <?php foreach ($cursos as $curso): ?>
+                </label>
 
-                    <option value="<?= $curso['id'] ?>">
-                        <?= htmlspecialchars($curso['nombre_curso']) ?>
-                    </option>
 
-                <?php endforeach; ?>
+                <label class="agenda-opcion-reserva">
 
-            </select>
+                    <input
+                        type="radio"
+                        name="tipo_reserva"
+                        value="completo"
+                        data-horario="10:20 - 11:50">
 
-        </div>
+                    <span>
+                        Bloque completo
+                    </span>
 
-        <div class="grupo-formulario">
+                    <small>
+                        10:20 - 11:50
+                    </small>
 
-            <label for="asignatura_id">Asignatura</label>
+                </label>
 
-            <select
-                id="asignatura_id"
-                name="asignatura_id"
-                required
-                autocomplete="off">
+            </fieldset>
 
-                <option value="">Seleccione...</option>
+            <div class="agenda-form-grid">
 
-                <?php foreach ($asignaturas as $asignatura): ?>
+                <div class="grupo-formulario">
 
-                    <option value="<?= $asignatura['id'] ?>">
-                        <?= htmlspecialchars($asignatura['asignatura_nombre']) ?>
-                    </option>
+                    <label for="docente">
+                        Docente
+                    </label>
 
-                <?php endforeach; ?>
+                    <select
+                        id="docente_id"
+                        name="docente_id"
+                        required>
 
-            </select>
+                        <option value="">
+                            Seleccionar docente
+                        </option>
 
-        </div>
+                        <?php foreach ($docentes as $docente): ?>
 
-        <div class="grupo-formulario">
+                            <option value="<?= $docente['id'] ?>">
+                                <?= htmlspecialchars($docente['nombre']) ?>
+                            </option>
 
-            <label for="actividad">Actividad</label>
+                        <?php endforeach; ?>
 
-            <textarea
-                id="actividad"
-                name="actividad"
-                rows="5"
-                maxlength="150"
-                required
-                autocomplete="off"></textarea>
+                    </select>
 
-        </div>
+                </div>
 
-        <div class="grupo-checkbox">
 
-            <label for="permite_entrega">
+                <div class="grupo-formulario">
 
-                <input
-                    type="checkbox"
-                    id="permite_entrega"
-                    name="permite_entrega"
-                    value="1">
+                    <label for="curso_id">
+                        Curso
+                    </label>
 
-                Permitir entrega de archivos
+                    <select
+                        id="curso_id"
+                        name="curso_id"
+                        required>
 
-            </label>
+                        <option value="">
+                            Seleccionar curso
+                        </option>
 
-        </div>
+                        <?php foreach ($cursos as $curso): ?>
 
-        <div class="botones">
+                            <option value="<?= $curso['id'] ?>">
+                                <?= htmlspecialchars($curso['nombre_curso']) ?>
+                            </option>
 
-            <button type="submit" class="btn btn-primario">
-                Guardar
-            </button>
+                        <?php endforeach; ?>
 
-            <a
-                href="index.php"
-                class="btn btn-secundario">
-                Cancelar
-            </a>
+                    </select>
 
-        </div>
+                </div>
 
-    </form>
 
-</div>
+                <div class="grupo-formulario">
 
-<?php require_once '../../includes/footer.php'; ?>
+                    <label for="asignatura">
+                        Asignatura
+                    </label>
 
-<?php
+                    <select
+                        id="asignatura_id"
+                        name="asignatura_id"
+                        required>
+
+                        <option value="">
+                            Seleccionar asignatura
+                        </option>
+
+                        <?php foreach ($asignaturas as $asignatura): ?>
+
+                            <option value="<?= $asignatura['id'] ?>">
+                                <?= htmlspecialchars($asignatura['asignatura_nombre']) ?>
+                            </option>
+
+                        <?php endforeach; ?>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+            <div class="agenda-entrega">
+
+                <div class="grupo-checkbox">
+
+                    <label>
+
+                        <input
+                            type="checkbox"
+                            id="permite_entrega"
+                            name="permite_entrega"
+                            value="1">
+
+                        Permitir entrega de trabajos
+
+                    </label>
+
+                </div>
+
+
+                <div
+                    class="agenda-entrega-opciones"
+                    id="opciones_entrega">
+
+                    <div class="grupo-formulario">
+
+                        <label for="fecha_entrega_oficial">
+                            Fecha oficial de entrega
+                        </label>
+
+                        <input
+                            type="date"
+                            id="fecha_entrega_oficial"
+                            name="fecha_entrega_oficial"
+                            min="2026-06-08">
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="grupo-formulario agenda-form-actividad">
+
+                <label for="actividad">
+                    Actividad
+                </label>
+
+                <textarea
+                    id="actividad"
+                    name="actividad"
+                    rows="3"
+                    maxlength="150"
+                    required
+                    placeholder="Describa brevemente la actividad a realizar"></textarea>
+
+            </div>
+
+            <div class="botones">
+
+                <button
+                    type="button"
+                    class="btn btn-secundario">
+                    Cancelar
+                </button>
+
+                <button
+                    type="submit"
+                    class="btn btn-primario">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    Guardar reserva
+                </button>
+
+            </div>
+
+
+            <?php require_once '../../includes/footer.php'; ?>
+
+            <?php
 //=====================================================
 // FIN DEL ARCHIVO
 //=====================================================
