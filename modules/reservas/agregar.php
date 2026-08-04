@@ -165,32 +165,25 @@ while ($fila = $resultadoAsignaturas->fetch_assoc()) {
 
 ?>
 
-<link rel="stylesheet" href="../../assets/css/estilos.css">
-<link rel="stylesheet" href="../../assets/css/formularios.css">
-<link rel="stylesheet" href="../../assets/css/botones.css">
-<link rel="stylesheet" href="../../assets/css/reservas.css">
+    <!-- CSS generales -->
+    <link rel="stylesheet" href="../../assets/css/estilos.css">
+    <link rel="stylesheet" href="../../assets/css/botones.css">
+    <link rel="stylesheet" href="../../assets/css/formularios.css">
+    <link rel="stylesheet" href="../../assets/css/tablas.css">
+
+    <!-- CSS módulo Reservas -->
+    <link rel="stylesheet" href="../../assets/css/reservas.css">
+
+    <!-- CSS exclusivo del prototipo -->
+    <link rel="stylesheet" href="../../assets/css/agenda_mockup.css">
 
 <div class="contenedor-formulario">
 
-    <h1>
+    <h1>Nueva reserva</h1>
 
-        Nueva Reserva
-
-        <?php if ($tipoReserva !== 'completo'): ?>
-
-            <small>
-
-                (
-                <?= $tipoReserva === 'sub1'
-                    ? 'Primer subbloque'
-                    : 'Segundo subbloque'; ?>
-                )
-
-            </small>
-
-        <?php endif; ?>
-
-    </h1>
+    <p class="agenda-subtitulo">
+        Complete los datos para registrar la reserva.
+    </p>
 
     <form
         action="guardar.php"
@@ -214,8 +207,6 @@ while ($fila = $resultadoAsignaturas->fetch_assoc()) {
 
         <div class="grupo-formulario">
 
-            <label for="fecha_reserva">Fecha</label>
-
             <div class="agenda-resumen-seleccion">
 
                 <div class="agenda-resumen-item">
@@ -224,12 +215,11 @@ while ($fila = $resultadoAsignaturas->fetch_assoc()) {
                         Fecha
                     </span>
 
-                    <strong id="resumen_fecha">
+                    <strong>
                         <?= formatearFechaLarga($fecha); ?>
                     </strong>
 
                 </div>
-
 
                 <div class="agenda-resumen-item">
 
@@ -237,12 +227,11 @@ while ($fila = $resultadoAsignaturas->fetch_assoc()) {
                         Bloque
                     </span>
 
-                    <strong id="resumen_bloque">
+                    <strong>
                         Bloque <?= $bloque['numero_bloque']; ?>
                     </strong>
 
                 </div>
-
 
                 <div class="agenda-resumen-item">
 
@@ -250,7 +239,7 @@ while ($fila = $resultadoAsignaturas->fetch_assoc()) {
                         Horario seleccionado
                     </span>
 
-                    <strong id="resumen_horario">
+                    <strong>
                         <?= htmlspecialchars($horario); ?>
                     </strong>
 
@@ -258,7 +247,7 @@ while ($fila = $resultadoAsignaturas->fetch_assoc()) {
 
             </div>
 
-            <fieldset class="agenda-tipo-reserva" id="tipo_reserva_opciones">
+            <fieldset class="agenda-tipo-reserva">
 
                 <legend>Tipo de reserva</legend>
 
@@ -267,38 +256,39 @@ while ($fila = $resultadoAsignaturas->fetch_assoc()) {
                     <input
                         type="radio"
                         name="tipo_reserva"
-                        value="sub1"
-                        data-horario="10:20 - 11:05"
+                        value="<?= htmlspecialchars($tipoReserva); ?>"
                         checked>
 
                     <span>
-                        Primer subbloque
+                        <?= $tipoReserva === 'sub1' ? 'Primer subbloque' : 'Segundo subbloque'; ?>
                     </span>
 
                     <small>
-                        10:20 - 11:05
+                        <?= htmlspecialchars($horario); ?>
                     </small>
 
                 </label>
 
+                <?php if ($tipoReserva !== 'completo'): ?>
 
-                <label class="agenda-opcion-reserva">
+                    <label class="agenda-opcion-reserva">
 
-                    <input
-                        type="radio"
-                        name="tipo_reserva"
-                        value="completo"
-                        data-horario="10:20 - 11:50">
+                        <input
+                            type="radio"
+                            name="tipo_reserva"
+                            value="completo">
 
-                    <span>
-                        Bloque completo
-                    </span>
+                        <span>
+                            Bloque completo
+                        </span>
 
-                    <small>
-                        10:20 - 11:50
-                    </small>
+                        <small>
+                            <?= $horaInicio . ' - ' . $horaTermino; ?>
+                        </small>
 
-                </label>
+                    </label>
+
+                <?php endif; ?>
 
             </fieldset>
 
@@ -321,8 +311,8 @@ while ($fila = $resultadoAsignaturas->fetch_assoc()) {
 
                         <?php foreach ($docentes as $docente): ?>
 
-                            <option value="<?= $docente['id'] ?>">
-                                <?= htmlspecialchars($docente['nombre']) ?>
+                            <option value="<?= $docente['id']; ?>">
+                                <?= htmlspecialchars($docente['nombre']); ?>
                             </option>
 
                         <?php endforeach; ?>
@@ -349,8 +339,8 @@ while ($fila = $resultadoAsignaturas->fetch_assoc()) {
 
                         <?php foreach ($cursos as $curso): ?>
 
-                            <option value="<?= $curso['id'] ?>">
-                                <?= htmlspecialchars($curso['nombre_curso']) ?>
+                            <option value="<?= $curso['id']; ?>">
+                                <?= htmlspecialchars($curso['nombre_curso']); ?>
                             </option>
 
                         <?php endforeach; ?>
@@ -377,8 +367,8 @@ while ($fila = $resultadoAsignaturas->fetch_assoc()) {
 
                         <?php foreach ($asignaturas as $asignatura): ?>
 
-                            <option value="<?= $asignatura['id'] ?>">
-                                <?= htmlspecialchars($asignatura['asignatura_nombre']) ?>
+                            <option value="<?= $asignatura['id']; ?>">
+                                <?= htmlspecialchars($asignatura['asignatura_nombre']); ?>
                             </option>
 
                         <?php endforeach; ?>
@@ -422,7 +412,7 @@ while ($fila = $resultadoAsignaturas->fetch_assoc()) {
                             type="date"
                             id="fecha_entrega_oficial"
                             name="fecha_entrega_oficial"
-                            min="2026-06-08">
+                            min="<?= htmlspecialchars($fecha); ?>">
 
                     </div>
 
@@ -448,11 +438,11 @@ while ($fila = $resultadoAsignaturas->fetch_assoc()) {
 
             <div class="botones">
 
-                <button
-                    type="button"
+                <a
+                    href="agenda.php"
                     class="btn btn-secundario">
                     Cancelar
-                </button>
+                </a>
 
                 <button
                     type="submit"
@@ -462,11 +452,12 @@ while ($fila = $resultadoAsignaturas->fetch_assoc()) {
                 </button>
 
             </div>
+    </form>
+</div>
 
+<?php require_once '../../includes/footer.php'; ?>
 
-            <?php require_once '../../includes/footer.php'; ?>
-
-            <?php
+<?php
 //=====================================================
 // FIN DEL ARCHIVO
 //=====================================================
