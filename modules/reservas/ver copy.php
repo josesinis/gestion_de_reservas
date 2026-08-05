@@ -1,8 +1,25 @@
 <?php
+
 //=====================================================
-// VER.PHP
+// SISTEMA
+// Gestión de Reservas
+//=====================================================
+
+//=====================================================
+// MÓDULO
+// Reservas
+//=====================================================
+
+//=====================================================
+// ARCHIVO
+// ver.php
+//=====================================================
+
+//=====================================================
+// DESCRIPCIÓN
 // Muestra el detalle de una reserva.
 //=====================================================
+
 /*
 session_start();
 
@@ -11,65 +28,84 @@ if (!isset($_SESSION['usuario'])) {
     exit();
 }
 */
+
+//=====================================================
+// 1. ARCHIVOS NECESARIOS
+//=====================================================
+
 require_once '../../config/database.php';
 require_once '../../includes/reservas_funciones.php';
 
+
 //=====================================================
-// VALIDAR ID
+// 2. VALIDAR ID
 //=====================================================
 
-$id = intval($_GET['id'] ?? 0);
+$idReserva = (int) ($_GET['id'] ?? 0);
 
-if ($id <= 0) {
+if ($idReserva <= 0) {
 
     $_SESSION['error'] = 'La reserva no es válida.';
 
-    header('Location: index.php');
+    header('Location: agenda.php');
 
     exit();
+
 }
 
+
 //=====================================================
-// OBTENER RESERVA
+// 3. OBTENER RESERVA
 //=====================================================
 
-$sql = "SELECT
-            r.id,
-            r.fecha,
-            r.actividad,
-            r.permite_entrega,
-            r.fecha_cierre,
-            r.cierre_manual,
+$sql = "
 
-            c.nombre_curso,
-            a.asignatura_nombre,
+SELECT
 
-            b.numero_bloque,
-            b.hora_inicio,
-            b.hora_termino,
+    r.id,
+    r.fecha,
+    r.actividad,
+    r.tipo_reserva,
+    r.estado,
+    r.permite_entrega,
+    r.fecha_entrega_oficial,
+    r.fecha_cierre,
+    r.cierre_manual,
 
-            d.nombres,
-            d.apellidos
+    c.nombre_curso,
 
-        FROM reservas r
+    a.asignatura_nombre,
 
-        INNER JOIN cursos c
-            ON c.id = r.curso_id
+    b.numero_bloque,
+    b.hora_inicio,
+    b.hora_termino,
 
-        INNER JOIN asignaturas a
-            ON a.id = r.asignatura_id
+    d.nombres,
+    d.apellidos
 
-        INNER JOIN bloques b
-            ON b.id = r.bloque_id
+FROM reservas r
 
-        INNER JOIN docentes d
-            ON d.id = r.docente_id
+INNER JOIN cursos c
+    ON c.id = r.curso_id
 
-        WHERE r.id = ?";
+INNER JOIN asignaturas a
+    ON a.id = r.asignatura_id
+
+INNER JOIN bloques b
+    ON b.id = r.bloque_id
+
+INNER JOIN docentes d
+    ON d.id = r.docente_id
+
+WHERE r.id = ?
+
+LIMIT 1
+
+";
 
 $stmt = $conexion->prepare($sql);
 
-$stmt->bind_param("i", $id);
+$stmt->bind_param("i", $idReserva);
 
 $stmt->execute();
 
@@ -81,7 +117,7 @@ $stmt->close();
 
 
 //=====================================================
-// VALIDAR RESERVA
+// 4. VALIDAR EXISTENCIA
 //=====================================================
 
 if (!$reserva) {
@@ -91,20 +127,44 @@ if (!$reserva) {
     header('Location: agenda.php');
 
     exit();
+
 }
 
 
 //=====================================================
-// FORMATEAR DATOS
+// 5. FORMATEAR DATOS
 //=====================================================
 
 $fecha = formatearFechaLarga($reserva['fecha']);
 
+switch ($reserva['tipo_reserva']) {
 
-/*****************************************************/
-/*echo '<pre>';
-print_r($reserva);
-echo '</pre>';*/
+    case 'sub1':
+        $tipoReserva = 'Primer subbloque';
+        break;
+
+    case 'sub2':
+        $tipoReserva = 'Segundo subbloque';
+        break;
+
+    default:
+        $tipoReserva = 'Bloque completo';
+        break;
+}
+
+$fechaEntrega = '-';
+
+if (
+    $reserva['permite_entrega']
+    &&
+    !empty($reserva['fecha_entrega_oficial'])
+) {
+
+    $fechaEntrega = formatearFechaLarga(
+        $reserva['fecha_entrega_oficial']
+    );
+
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">

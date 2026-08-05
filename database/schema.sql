@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 29-07-2026 a las 03:24:09
--- Versión del servidor: 10.4.28-MariaDB
--- Versión de PHP: 8.0.28
+-- Tiempo de generación: 04-08-2026 a las 22:15:53
+-- Versión del servidor: 10.4.32-MariaDB
+-- Versión de PHP: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -37,14 +37,12 @@ CREATE TABLE `asignaturas` (
 --
 
 INSERT INTO `asignaturas` (`id`, `asignatura_nombre`) VALUES
-(1, 'Lenguaje y Comunicación'),
-(2, 'Matemáticas'),
+(1, 'Matemáticas'),
+(2, 'Lenguaje'),
 (3, 'Inglés'),
-(4, 'Historia'),
+(4, 'Música'),
 (5, 'Ciencias'),
-(6, 'Música'),
-(7, 'Tecnología'),
-(8, 'Taller IA');
+(6, 'Historia');
 
 -- --------------------------------------------------------
 
@@ -90,7 +88,7 @@ CREATE TABLE `bloques` (
 
 INSERT INTO `bloques` (`id`, `numero_bloque`, `hora_inicio`, `hora_termino`) VALUES
 (1, 1, '08:30:00', '10:00:00'),
-(2, 2, '10:20:00', '11:50:00'),
+(2, 2, '10:15:00', '11:45:00'),
 (3, 3, '12:00:00', '13:30:00'),
 (4, 4, '14:15:00', '15:45:00');
 
@@ -193,7 +191,9 @@ CREATE TABLE `reservas` (
   `cierre_manual` tinyint(1) DEFAULT NULL,
   `estado` enum('reservada','utilizada','cancelada') NOT NULL DEFAULT 'reservada',
   `fecha_creacion` datetime NOT NULL DEFAULT current_timestamp(),
-  `fecha_actualizacion` datetime DEFAULT NULL
+  `fecha_actualizacion` datetime DEFAULT NULL,
+  `tipo_reserva` enum('completo','sub1','sub2') NOT NULL DEFAULT 'completo',
+  `fecha_entrega_oficial` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
 -- --------------------------------------------------------
@@ -209,7 +209,9 @@ CREATE TABLE `usuarios` (
   `correo` varchar(50) NOT NULL,
   `usuario` varchar(30) NOT NULL,
   `password` varchar(255) NOT NULL,
-  `rol` enum('usuario','Admin') NOT NULL
+  `rol` enum('usuario','admin','superdmin') NOT NULL,
+  `acceso` tinyint(1) NOT NULL DEFAULT 1,
+  `ultimo_acceso` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
 --
@@ -295,7 +297,7 @@ ALTER TABLE `usuarios`
 -- AUTO_INCREMENT de la tabla `asignaturas`
 --
 ALTER TABLE `asignaturas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `bitacora_recursos`

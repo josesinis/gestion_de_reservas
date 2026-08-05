@@ -231,3 +231,102 @@ function formatearFechaLarga(string $fecha): string
         date('Y', $timestamp)
     );
 }
+
+
+//=====================================================
+// VALIDAR CONFLICTO DE RESERVA
+//=====================================================
+
+function hayConflictoReserva(
+    mysqli $conexion,
+    string $fecha,
+    int $bloqueId,
+    string $tipoReserva
+): bool
+{
+    //-------------------------------------------------
+    // OBTENER RESERVAS EXISTENTES
+    //-------------------------------------------------
+
+    $sql = "
+        SELECT tipo_reserva
+        FROM Reservas
+        WHERE fecha = ?
+          AND bloque_id = ?
+          AND estado = 'reservada'
+    ";
+
+    $stmt = $conexion->prepare($sql);
+
+    $stmt->bind_param(
+        "si",
+        $fecha,
+        $bloqueId
+    );
+
+    $stmt->execute();
+
+    $resultado = $stmt->get_result();
+
+    $conflicto = false;
+
+    //-------------------------------------------------
+    // VALIDAR CONFLICTOS
+    //-------------------------------------------------
+
+    while ($fila = $resultado->fetch_assoc()) {
+
+        $tipoExistente = $fila['tipo_reserva'];
+
+        //---------------------------------------------
+        // QUIERE RESERVAR BLOQUE COMPLETO
+        //---------------------------------------------
+
+        if ($tipoReserva === 'completo') {
+
+            $conflicto = true;
+            break;
+        }
+
+        //---------------------------------------------
+        // QUIERE RESERVAR SUBBLOQUE 1
+        //---------------------------------------------
+
+        if (
+            $tipoReserva === 'sub1'
+            &&
+            (
+                $tipoExistente === 'sub1'
+                ||
+                $tipoExistente === 'completo'
+            )
+        ) {
+
+            $conflicto = true;
+            break;
+        }
+
+        //---------------------------------------------
+        // QUIERE RESERVAR SUBBLOQUE 2
+        //---------------------------------------------
+
+        if (
+            $tipoReserva === 'sub2'
+            &&
+            (
+                $tipoExistente === 'sub2'
+                ||
+                $tipoExistente === 'completo'
+            )
+        ) {
+
+            $conflicto = true;
+            break;
+        }
+
+    }
+
+    $stmt->close();
+
+    return $conflicto;
+}

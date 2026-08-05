@@ -12,36 +12,55 @@ if (!isset($_SESSION['usuario'])) {
 }
 */
 require_once '../../config/database.php';
+require_once '../../includes/reservas_funciones.php';
 
 //=====================================================
 // VALIDAR MÉTODO DE ENVÍO
 //=====================================================
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: index.php');
+    header('Location: agenda.php');
     exit();
 }
 
 //=====================================================
-// OBTENER DATOS DEL FORMULARIO
+// 4. RECIBIR DATOS
 //=====================================================
+
+$docenteId = (int) ($_POST['docente_id'] ?? 0);
+
+$cursoId = (int) ($_POST['curso_id'] ?? 0);
+
+$asignaturaId = (int) ($_POST['asignatura_id'] ?? 0);
+
+$bloqueId = (int) ($_POST['bloque_id'] ?? 0);
 
 $fecha = trim($_POST['fecha'] ?? '');
 
-$bloqueId = intval($_POST['bloque_id'] ?? 0);
-
-$docenteId = intval($_POST['docente_id'] ?? 0);
-
-$cursoId = intval($_POST['curso_id'] ?? 0);
-
-$asignaturaId = intval($_POST['asignatura_id'] ?? 0);
+$tipoReserva = trim($_POST['tipo_reserva'] ?? '');
 
 $actividad = trim($_POST['actividad'] ?? '');
 
 $permiteEntrega = isset($_POST['permite_entrega']) ? 1 : 0;
 
+$fechaEntregaOficial = !empty($_POST['fecha_entrega_oficial'])
+    ? $_POST['fecha_entrega_oficial']
+    : null;
+
+//-----------------------------------------------------
+// VARIABLES INTERNAS DEL SISTEMA
+//-----------------------------------------------------
+
+$usuarioId = 1;          // Temporal hasta implementar login
+
+$estado = 'reservada';
+
+$cierreManual = 0;
+
+$fechaCierre = $fechaEntregaOficial;
+
 //=====================================================
-// VALIDACIONES
+// 5. VALIDAR DATOS
 //=====================================================
 
 $errores = [];
@@ -88,36 +107,27 @@ if (!empty($errores)) {
     exit();
 }
 
-
 //=====================================================
-// VERIFICAR RESERVA EXISTENTE
+// 6. VALIDAR DISPONIBILIDAD
 //=====================================================
 
-$sql = "SELECT id
-        FROM reservas
-        WHERE fecha = ?
-        AND bloque_id = ?";
+if (
+    hayConflictoReserva(
+        $conexion,
+        $fecha,
+        $bloqueId,
+        $tipoReserva
+    )
+) {
 
-$stmt = $conexion->prepare($sql);
-
-$stmt->bind_param("si", $fecha, $bloqueId);
-
-$stmt->execute();
-
-$stmt->store_result();
-
-if ($stmt->num_rows > 0) {
-
-    $_SESSION['error'] = 'Ya existe una reserva para esa fecha y bloque.';
-
-    $stmt->close();
+    $_SESSION['error'] =
+        'El horario seleccionado ya se encuentra reservado.';
 
     header('Location: agregar.php');
 
     exit();
 }
 
-$stmt->close();
 
 
 //=====================================================
@@ -125,27 +135,41 @@ $stmt->close();
 //=====================================================
 
 $sql = "INSERT INTO reservas (
-            docente_id,
-            curso_id,
-            asignatura_id,
-            bloque_id,
-            fecha,
-            actividad,
-            permite_entrega
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+    docente_id,
+    usuario_id,
+    curso_id,
+    asignatura_id,
+    bloque_id,
+    fecha,
+    actividad,
+    permite_entrega,
+    fecha_cierre,
+    cierre_manual,
+    estado,
+    tipo_reserva,
+    fecha_entrega_oficial
+
+)
+VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
 $stmt = $conexion->prepare($sql);
 
 $stmt->bind_param(
-    "iiiissi",
+    "iiiiissisisss",
     $docenteId,
+    $usuarioId,
     $cursoId,
     $asignaturaId,
     $bloqueId,
     $fecha,
     $actividad,
-    $permiteEntrega
+    $permiteEntrega,
+    $fechaCierre,
+    $cierreManual,
+    $estado,
+    $tipoReserva,
+    $fechaEntregaOficial
 );
 
 if ($stmt->execute()) {
@@ -158,5 +182,5 @@ if ($stmt->execute()) {
 
 $stmt->close();
 
-header('Location: index.php');
+header('Location: agenda.php');
 exit();
