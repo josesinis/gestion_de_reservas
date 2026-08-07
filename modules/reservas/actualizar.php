@@ -14,7 +14,7 @@ if (!isset($_SESSION['usuario'])) {
 */
 
 require_once '../../config/database.php';
-
+require_once '../../includes/reservas_funciones.php';
 //=====================================================
 // VALIDAR MÉTODO DE ENVÍO
 //=====================================================
@@ -28,13 +28,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 // OBTENER DATOS DEL FORMULARIO
 //=====================================================
 
-$id = intval($_POST['id'] ?? 0);
+$id = (int)($_POST['id'] ?? 0);
 
-$docenteId = intval($_POST['docente_id'] ?? 0);
+$docenteId = (int)($_POST['docente_id'] ?? 0);
 
-$cursoId = intval($_POST['curso_id'] ?? 0);
+$cursoId = (int)($_POST['curso_id'] ?? 0);
 
-$asignaturaId = intval($_POST['asignatura_id'] ?? 0);
+$asignaturaId = (int)($_POST['asignatura_id'] ?? 0);
 
 $actividad = trim($_POST['actividad'] ?? '');
 
@@ -44,30 +44,15 @@ $permiteEntrega = isset($_POST['permite_entrega']) ? 1 : 0;
 // VALIDACIONES
 //=====================================================
 
-$errores = [];
+$errores = validarReserva(
+    $docenteId,
+    $cursoId,
+    $asignaturaId,
+    $actividad
+);
 
 if ($id <= 0) {
     $errores[] = 'La reserva no es válida.';
-}
-
-if ($docenteId <= 0) {
-    $errores[] = 'Debe seleccionar un docente.';
-}
-
-if ($cursoId <= 0) {
-    $errores[] = 'Debe seleccionar un curso.';
-}
-
-if ($asignaturaId <= 0) {
-    $errores[] = 'Debe seleccionar una asignatura.';
-}
-
-if ($actividad === '') {
-    $errores[] = 'Debe ingresar una actividad.';
-}
-
-if (mb_strlen($actividad) > 150) {
-    $errores[] = 'La actividad no puede superar los 150 caracteres.';
 }
 
 //=====================================================
@@ -87,39 +72,21 @@ if (!empty($errores)) {
 // VERIFICAR QUE LA RESERVA EXISTA
 //=====================================================
 
-$sql = "
-SELECT id
-FROM Reservas
-WHERE id = ?
-";
-
-$stmt = $conexion->prepare($sql);
-
-$stmt->bind_param("i", $id);
-
-$stmt->execute();
-
-$stmt->store_result();
-
-if ($stmt->num_rows === 0) {
+if (!existeReserva($conexion, $id)) {
 
     $_SESSION['error'] = 'La reserva no existe.';
 
-    $stmt->close();
-
-    header('Location: index.php');
+    header('Location: agenda.php');
 
     exit();
 }
-
-$stmt->close();
 
 //=====================================================
 // ACTUALIZAR RESERVA
 //=====================================================
 
 $sql = "
-UPDATE Reservas
+UPDATE reservas
 SET
     docente_id = ?,
     curso_id = ?,

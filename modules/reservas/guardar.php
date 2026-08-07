@@ -63,7 +63,12 @@ $fechaCierre = $fechaEntregaOficial;
 // 5. VALIDAR DATOS
 //=====================================================
 
-$errores = [];
+$errores = validarReserva(
+    $docenteId,
+    $cursoId,
+    $asignaturaId,
+    $actividad
+);
 
 if ($fecha === '') {
     $errores[] = 'La fecha es obligatoria.';
@@ -71,26 +76,6 @@ if ($fecha === '') {
 
 if ($bloqueId <= 0) {
     $errores[] = 'Debe seleccionar un bloque.';
-}
-
-if ($docenteId <= 0) {
-    $errores[] = 'Debe seleccionar un docente.';
-}
-
-if ($cursoId <= 0) {
-    $errores[] = 'Debe seleccionar un curso.';
-}
-
-if ($asignaturaId <= 0) {
-    $errores[] = 'Debe seleccionar una asignatura.';
-}
-
-if ($actividad === '') {
-    $errores[] = 'Debe ingresar una actividad.';
-}
-
-if (mb_strlen($actividad) > 150) {
-    $errores[] = 'La actividad no puede superar los 150 caracteres.';
 }
 
 

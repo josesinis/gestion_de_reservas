@@ -497,6 +497,77 @@ function obtenerReservaEditar(
     return $reserva ?: null;
 }
 
+
+//=====================================================
+// VERIFICAR SI EXISTE UNA RESERVA
+//=====================================================
+
+function existeReserva(
+    mysqli $conexion,
+    int $id
+): bool
+{
+    $sql = "
+        SELECT 1
+        FROM reservas
+        WHERE id = ?
+        LIMIT 1
+    ";
+
+    $stmt = $conexion->prepare($sql);
+
+    $stmt->bind_param(
+        "i",
+        $id
+    );
+
+    $stmt->execute();
+
+    $stmt->store_result();
+
+    $existe = $stmt->num_rows > 0;
+
+    $stmt->close();
+
+    return $existe;
+}
+
+//=====================================================
+// VALIDAR DATOS DE UNA RESERVA
+//=====================================================
+
+function validarReserva(
+    int $docenteId,
+    int $cursoId,
+    int $asignaturaId,
+    string $actividad
+): array
+{
+    $errores = [];
+
+    if ($docenteId <= 0) {
+        $errores[] = 'Debe seleccionar un docente.';
+    }
+
+    if ($cursoId <= 0) {
+        $errores[] = 'Debe seleccionar un curso.';
+    }
+
+    if ($asignaturaId <= 0) {
+        $errores[] = 'Debe seleccionar una asignatura.';
+    }
+
+    if ($actividad === '') {
+        $errores[] = 'Debe ingresar una actividad.';
+    }
+
+    if (mb_strlen($actividad) > 150) {
+        $errores[] = 'La actividad no puede superar los 150 caracteres.';
+    }
+
+    return $errores;
+}
+
 //=====================================================
 // VALIDAR CONFLICTO DE RESERVA
 //=====================================================
