@@ -248,23 +248,7 @@ exit;*/
 
                                     <?php $reserva = $reservaCompleta; ?>
 
-                                    <div class="agenda-reserva">
-
-                                        <div class="agenda-reserva-asignatura">
-                                            <?= htmlspecialchars($reserva['asignatura']); ?>
-                                        </div>
-
-                                        <div class="agenda-reserva-info">
-
-                                            <?= htmlspecialchars($reserva['curso']); ?>
-
-                                            &nbsp;•&nbsp;
-
-                                            <?= htmlspecialchars($reserva['docente']); ?>
-
-                                        </div>
-
-                                    </div>
+                                    <?= renderizarTarjetaReserva($reservaCompleta); ?>
 
                                 <?php else: ?>
 
@@ -278,23 +262,7 @@ exit;*/
 
                                                 <?php $reserva = $reservaSub1; ?>
 
-                                                <div class="agenda-reserva">
-
-                                                    <div class="agenda-reserva-asignatura">
-                                                        <?= htmlspecialchars($reserva['asignatura']); ?>
-                                                    </div>
-
-                                                    <div class="agenda-reserva-info">
-
-                                                        <?= htmlspecialchars($reserva['curso']); ?>
-
-                                                        &nbsp;•&nbsp;
-
-                                                        <?= htmlspecialchars($reserva['docente']); ?>
-
-                                                    </div>
-
-                                                </div>
+                                                <?= renderizarTarjetaReserva($reservaSub1); ?>
 
                                             <?php else: ?>
 
@@ -319,23 +287,7 @@ exit;*/
 
                                                 <?php $reserva = $reservaSub2; ?>
 
-                                                <div class="agenda-reserva">
-
-                                                    <div class="agenda-reserva-asignatura">
-                                                        <?= htmlspecialchars($reserva['asignatura']); ?>
-                                                    </div>
-
-                                                    <div class="agenda-reserva-info">
-
-                                                        <?= htmlspecialchars($reserva['curso']); ?>
-
-                                                        &nbsp;•&nbsp;
-
-                                                        <?= htmlspecialchars($reserva['docente']); ?>
-
-                                                    </div>
-
-                                                </div>
+                                                <?= renderizarTarjetaReserva($reservaSub2); ?>
 
                                             <?php else: ?>
 

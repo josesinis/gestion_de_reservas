@@ -34,14 +34,21 @@ if ($id <= 0) {
 //=====================================================
 
 $sql = "SELECT
+
             r.id,
             r.fecha,
             r.actividad,
             r.permite_entrega,
             r.fecha_cierre,
             r.cierre_manual,
+            r.tipo_reserva,
+            r.estado,
+            r.fecha_entrega_oficial,
+            r.fecha_creacion,
+            r.fecha_actualizacion,
 
             c.nombre_curso,
+
             a.asignatura_nombre,
 
             b.numero_bloque,
@@ -147,9 +154,15 @@ echo '</pre>';*/
                             <th>Bloque</th>
                             <td>
                                 Bloque <?= htmlspecialchars($reserva['numero_bloque']) ?>
-                                (<?= substr($reserva['hora_inicio'], 0, 5) ?> -
+                                (<?= substr($reserva['hora_inicio'], 0, 5) ?>
+                                -
                                 <?= substr($reserva['hora_termino'], 0, 5) ?>)
                             </td>
+                        </tr>
+
+                        <tr>
+                            <th>Tipo de reserva</th>
+                            <td><?= formatearTipoReserva($reserva['tipo_reserva']) ?></td>
                         </tr>
 
                         <tr>
@@ -164,7 +177,11 @@ echo '</pre>';*/
 
                         <tr>
                             <th>Docente</th>
-                            <td><?= htmlspecialchars($reserva['nombres'] . ' ' . $reserva['apellidos']) ?></td>
+                            <td>
+                                <?= htmlspecialchars(
+                                    $reserva['nombres'] . ' ' . $reserva['apellidos']
+                                ) ?>
+                            </td>
                         </tr>
 
                         <tr>
@@ -177,6 +194,32 @@ echo '</pre>';*/
                             <td><?= $reserva['permite_entrega'] ? 'Sí' : 'No'; ?></td>
                         </tr>
 
+                        <tr>
+                            <th>Fecha entrega oficial</th>
+                            <td>
+
+                                <?= $reserva['fecha_entrega_oficial']
+                                    ? formatearFechaLarga($reserva['fecha_entrega_oficial'])
+                                    : 'No aplica'; ?>
+
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th>Estado</th>
+                            <td><?= ucfirst(htmlspecialchars($reserva['estado'])) ?></td>
+                        </tr>
+
+                        <tr>
+                            <th>Fecha creación</th>
+                            <td><?= htmlspecialchars($reserva['fecha_creacion']) ?></td>
+                        </tr>
+
+                        <tr>
+                            <th>Última actualización</th>
+                            <td><?= htmlspecialchars($reserva['fecha_actualizacion']) ?></td>
+                        </tr>
+
                     </tbody>
 
                 </table>
@@ -185,18 +228,29 @@ echo '</pre>';*/
 
             <div class="acciones">
 
-                <a href="editar.php?id=<?= $reserva['id']; ?>" class="btn btn-primario">
+                <a
+                    href="editar.php?id=<?= $reserva['id']; ?>"
+                    class="btn btn-primario">
+
                     Editar
+
                 </a>
 
-                <a href="eliminar.php?id=<?= $reserva['id']; ?>"
+                <a
+                    href="cancelar.php?id=<?= $reserva['id']; ?>"
                     class="btn btn-peligro"
-                    onclick="return confirm('¿Confirma que desea eliminar esta reserva? Esta acción no se puede deshacer.');">
-                    Eliminar
+                    onclick="return confirm('¿Confirma cancelar esta reserva?');">
+
+                    Cancelar
+
                 </a>
 
-                <a href="agenda.php" class="btn btn-secundario">
+                <a
+                    href="agenda.php"
+                    class="btn btn-secundario">
+
                     Volver
+
                 </a>
 
             </div>

@@ -155,6 +155,10 @@ VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
 $stmt = $conexion->prepare($sql);
 
+if (!$stmt) {
+    die($conexion->error);
+}
+
 $stmt->bind_param(
     "iiiiissisisss",
     $docenteId,

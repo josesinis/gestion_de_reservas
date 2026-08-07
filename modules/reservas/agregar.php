@@ -59,123 +59,59 @@ if ($fecha === '' || $bloqueId <= 0) {
 // 5.1 OBTENER BLOQUE
 //-----------------------------------------------------
 
-$sqlBloque = "
-SELECT
-    numero_bloque,
-    hora_inicio,
-    hora_termino
-FROM Bloques
-WHERE id = ?
-";
-
-$stmtBloque = $conexion->prepare($sqlBloque);
-$stmtBloque->bind_param('i', $bloqueId);
-$stmtBloque->execute();
-
-$bloque = $stmtBloque->get_result()->fetch_assoc();
-
-//-----------------------------------------------------
-// 5.1.1 HORARIO SEGÚN TIPO DE RESERVA
-//-----------------------------------------------------
-
-$horaInicio = substr($bloque['hora_inicio'], 0, 5);
-$horaTermino = substr($bloque['hora_termino'], 0, 5);
-
-// Calcular hora intermedia del bloque
-$inicio = strtotime($bloque['hora_inicio']);
-$termino = strtotime($bloque['hora_termino']);
-
-$horaMedia = date(
-    'H:i',
-    $inicio + (($termino - $inicio) / 2)
+$bloque = obtenerBloque(
+    $conexion,
+    $bloqueId
 );
-
-switch ($tipoReserva) {
-
-    case 'sub1':
-        $horario = $horaInicio . ' - ' . $horaMedia;
-        break;
-
-    case 'sub2':
-        $horario = $horaMedia . ' - ' . $horaTermino;
-        break;
-
-    default:
-        $horario = $horaInicio . ' - ' . $horaTermino;
-        break;
-}
 
 if (!$bloque) {
     die('Bloque no encontrado.');
 }
 
 //-----------------------------------------------------
+// 5.1.1 HORARIO SEGÚN TIPO DE RESERVA
+//-----------------------------------------------------
+
+$horaInicio = substr($bloque['hora_inicio'], 0, 5);
+
+$horaTermino = substr($bloque['hora_termino'], 0, 5);
+
+$horario = obtenerHorarioReserva(
+    $bloque,
+    $tipoReserva
+);
+
+//-----------------------------------------------------
 // 5.2 DOCENTES
 //-----------------------------------------------------
 
-$docentes = [];
-
-$resultadoDocentes = $conexion->query("
-SELECT
-    id,
-    CONCAT(nombres, ' ', apellidos) AS nombre
-FROM Docentes
-ORDER BY apellidos, nombres
-");
-
-while ($fila = $resultadoDocentes->fetch_assoc()) {
-    $docentes[] = $fila;
-}
+$docentes = obtenerDocentes($conexion);
 
 //-----------------------------------------------------
 // 5.3 CURSOS
 //-----------------------------------------------------
 
-$cursos = [];
-
-$resultadoCursos = $conexion->query("
-SELECT
-    id,
-    nombre_curso
-FROM Cursos
-ORDER BY nombre_curso
-");
-
-while ($fila = $resultadoCursos->fetch_assoc()) {
-    $cursos[] = $fila;
-}
+$cursos = obtenerCursos($conexion);
 
 //-----------------------------------------------------
 // 5.4 ASIGNATURAS
 //-----------------------------------------------------
 
-$asignaturas = [];
-
-$resultadoAsignaturas = $conexion->query("
-SELECT
-    id,
-    asignatura_nombre
-FROM Asignaturas
-ORDER BY asignatura_nombre
-");
-
-while ($fila = $resultadoAsignaturas->fetch_assoc()) {
-    $asignaturas[] = $fila;
-}
+$asignaturas = obtenerAsignaturas($conexion);
 
 ?>
 
-    <!-- CSS generales -->
-    <link rel="stylesheet" href="../../assets/css/estilos.css">
-    <link rel="stylesheet" href="../../assets/css/botones.css">
-    <link rel="stylesheet" href="../../assets/css/formularios.css">
-    <link rel="stylesheet" href="../../assets/css/tablas.css">
+<!-- CSS generales -->
+<link rel="stylesheet" href="../../assets/css/estilos.css">
+<link rel="stylesheet" href="../../assets/css/botones.css">
+<link rel="stylesheet" href="../../assets/css/formularios.css">
+<link rel="stylesheet" href="../../assets/css/tablas.css">
 
-    <!-- CSS módulo Reservas -->
-    <link rel="stylesheet" href="../../assets/css/reservas.css">
+<!-- CSS módulo Reservas -->
+<link rel="stylesheet" href="../../assets/css/reservas.css">
 
-    <!-- CSS exclusivo del prototipo -->
-    <link rel="stylesheet" href="../../assets/css/agenda_mockup.css">
+<!-- CSS exclusivo del prototipo -->
+<link rel="stylesheet" href="../../assets/css/agenda_mockup.css">
 
 <div class="contenedor-formulario">
 
@@ -260,7 +196,7 @@ while ($fila = $resultadoAsignaturas->fetch_assoc()) {
                         checked>
 
                     <span>
-                        <?= $tipoReserva === 'sub1' ? 'Primer subbloque' : 'Segundo subbloque'; ?>
+                        <?= formatearTipoReserva($tipoReserva); ?>
                     </span>
 
                     <small>

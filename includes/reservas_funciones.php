@@ -89,6 +89,135 @@ function obtenerBloques(mysqli $conexion): array
     return $resultado->fetch_all(MYSQLI_ASSOC);
 }
 
+//=====================================================
+// OBTENER DOCENTES
+//=====================================================
+
+function obtenerDocentes(mysqli $conexion): array
+{
+    $sql = "
+        SELECT
+            id,
+            CONCAT(nombres, ' ', apellidos) AS nombre
+        FROM docentes
+        ORDER BY apellidos, nombres
+    ";
+
+    $resultado = $conexion->query($sql);
+
+    if (!$resultado) {
+        return [];
+    }
+
+    return $resultado->fetch_all(MYSQLI_ASSOC);
+}
+
+
+//=====================================================
+// OBTENER CURSOS
+//=====================================================
+
+function obtenerCursos(mysqli $conexion): array
+{
+    $sql = "
+        SELECT
+            id,
+            nombre_curso
+        FROM cursos
+        ORDER BY nombre_curso
+    ";
+
+    $resultado = $conexion->query($sql);
+
+    if (!$resultado) {
+        return [];
+    }
+
+    return $resultado->fetch_all(MYSQLI_ASSOC);
+}
+
+
+//=====================================================
+// OBTENER ASIGNATURAS
+//=====================================================
+
+function obtenerAsignaturas(mysqli $conexion): array
+{
+    $sql = "
+        SELECT
+            id,
+            asignatura_nombre
+        FROM asignaturas
+        ORDER BY asignatura_nombre
+    ";
+
+    $resultado = $conexion->query($sql);
+
+    if (!$resultado) {
+        return [];
+    }
+
+    return $resultado->fetch_all(MYSQLI_ASSOC);
+}
+
+//=====================================================
+// OBTENER RESERVA POR ID
+//=====================================================
+
+function obtenerReservaPorId(
+    mysqli $conexion,
+    int $id
+): ?array {
+    $sql = "
+
+        SELECT
+
+            r.*,
+
+            c.nombre_curso,
+
+            a.asignatura_nombre,
+
+            b.numero_bloque,
+            b.hora_inicio,
+            b.hora_termino,
+
+            d.nombres,
+            d.apellidos
+
+        FROM reservas r
+
+        INNER JOIN cursos c
+            ON c.id = r.curso_id
+
+        INNER JOIN asignaturas a
+            ON a.id = r.asignatura_id
+
+        INNER JOIN bloques b
+            ON b.id = r.bloque_id
+
+        INNER JOIN docentes d
+            ON d.id = r.docente_id
+
+        WHERE r.id = ?
+
+    ";
+
+    $stmt = $conexion->prepare($sql);
+
+    $stmt->bind_param("i", $id);
+
+    $stmt->execute();
+
+    $resultado = $stmt->get_result();
+
+    $reserva = $resultado->fetch_assoc();
+
+    $stmt->close();
+
+    return $reserva ?: null;
+}
+
 
 /**
  * Obtiene las reservas comprendidas entre dos fechas.
@@ -184,8 +313,7 @@ function obtenerReservaCelda(
     array $reservas,
     string $fecha,
     int $bloqueId
-): array
-{
+): array {
     return $reservas[$fecha][$bloqueId] ?? [];
 }
 
@@ -232,6 +360,96 @@ function formatearFechaLarga(string $fecha): string
     );
 }
 
+//=====================================================
+// OBTENER BLOQUE
+//=====================================================
+
+function obtenerBloque(
+    mysqli $conexion,
+    int $bloqueId
+): ?array {
+    $sql = "
+        SELECT
+            id,
+            numero_bloque,
+            hora_inicio,
+            hora_termino
+        FROM bloques
+        WHERE id = ?
+    ";
+
+    $stmt = $conexion->prepare($sql);
+
+    $stmt->bind_param(
+        "i",
+        $bloqueId
+    );
+
+    $stmt->execute();
+
+    $resultado = $stmt->get_result();
+
+    $bloque = $resultado->fetch_assoc();
+
+    $stmt->close();
+
+    return $bloque ?: null;
+}
+
+
+//=====================================================
+// OBTENER HORARIO RESERVA
+//=====================================================
+
+function obtenerHorarioReserva(
+    array $bloque,
+    string $tipoReserva
+): string {
+    $horaInicio = substr($bloque['hora_inicio'], 0, 5);
+
+    $horaTermino = substr($bloque['hora_termino'], 0, 5);
+
+    $inicio = strtotime($bloque['hora_inicio']);
+
+    $termino = strtotime($bloque['hora_termino']);
+
+    $horaMedia = date(
+        'H:i',
+        $inicio + (($termino - $inicio) / 2)
+    );
+
+    switch ($tipoReserva) {
+
+        case 'sub1':
+            return $horaInicio . ' - ' . $horaMedia;
+
+        case 'sub2':
+            return $horaMedia . ' - ' . $horaTermino;
+
+        default:
+            return $horaInicio . ' - ' . $horaTermino;
+    }
+}
+
+
+//=====================================================
+// FORMATEAR TIPO DE RESERVA
+//=====================================================
+
+function formatearTipoReserva(string $tipo): string
+{
+    return match ($tipo) {
+
+        'completo' => 'Bloque completo',
+
+        'sub1' => 'Primer bloque (45 min)',
+
+        'sub2' => 'Segundo bloque (45 min)',
+
+        default => $tipo
+    };
+}
+
 
 //=====================================================
 // VALIDAR CONFLICTO DE RESERVA
@@ -242,8 +460,7 @@ function hayConflictoReserva(
     string $fecha,
     int $bloqueId,
     string $tipoReserva
-): bool
-{
+): bool {
     //-------------------------------------------------
     // OBTENER RESERVAS EXISTENTES
     //-------------------------------------------------
@@ -323,10 +540,45 @@ function hayConflictoReserva(
             $conflicto = true;
             break;
         }
-
     }
 
     $stmt->close();
 
     return $conflicto;
 }
+
+//=====================================================
+// GENERAR TARJETA DE RESERVA
+//=====================================================
+
+function renderizarTarjetaReserva(array $reserva): string
+{
+    ob_start();
+?>
+
+    <a
+        href="ver.php?id=<?= (int)$reserva['id']; ?>"
+        class="agenda-reserva">
+
+        <div class="agenda-reserva-asignatura">
+            <?= htmlspecialchars($reserva['asignatura']); ?>
+        </div>
+
+        <div class="agenda-reserva-info">
+
+            <?= htmlspecialchars($reserva['curso']); ?>
+
+            <span>•</span>
+
+            <?= htmlspecialchars($reserva['docente']); ?>
+
+        </div>
+
+    </a>
+
+<?php
+
+    return ob_get_clean();
+}
+
+
