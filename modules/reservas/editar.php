@@ -32,6 +32,8 @@ require_once '../../includes/header.php';
 require_once '../../includes/menu.php';
 require_once '../../config/database.php';
 
+require_once '../../includes/reservas_funciones.php';
+
 //=====================================================
 // 3. RECIBIR PARÁMETROS
 //=====================================================
@@ -50,28 +52,10 @@ if ($id <= 0) {
 // 5. OBTENER RESERVA
 //=====================================================
 
-$sql = "
-SELECT
-    r.*,
-
-    b.numero_bloque,
-    b.hora_inicio,
-    b.hora_termino
-
-FROM Reservas r
-
-INNER JOIN Bloques b
-    ON b.id = r.bloque_id
-
-WHERE r.id = ?
-LIMIT 1
-";
-
-$stmt = $conexion->prepare($sql);
-$stmt->bind_param("i", $id);
-$stmt->execute();
-
-$reserva = $stmt->get_result()->fetch_assoc();
+$reserva = obtenerReservaEditar(
+    $conexion,
+    $id
+);
 
 if (!$reserva) {
     die('La reserva no existe.');
@@ -81,55 +65,18 @@ if (!$reserva) {
 // 6. OBTENER DOCENTES
 //=====================================================
 
-$docentes = [];
-
-$resultadoDocentes = $conexion->query("
-SELECT
-    id,
-    CONCAT(nombres,' ',apellidos) AS nombre
-FROM Docentes
-ORDER BY apellidos,nombres
-");
-
-while ($fila = $resultadoDocentes->fetch_assoc()) {
-    $docentes[] = $fila;
-}
-
+$docentes = obtenerDocentes($conexion);
 //=====================================================
 // 7. OBTENER CURSOS
 //=====================================================
 
-$cursos = [];
-
-$resultadoCursos = $conexion->query("
-SELECT
-    id,
-    nombre_curso
-FROM Cursos
-ORDER BY nombre_curso
-");
-
-while ($fila = $resultadoCursos->fetch_assoc()) {
-    $cursos[] = $fila;
-}
+$cursos = obtenerCursos($conexion);
 
 //=====================================================
 // 8. OBTENER ASIGNATURAS
 //=====================================================
 
-$asignaturas = [];
-
-$resultadoAsignaturas = $conexion->query("
-SELECT
-    id,
-    asignatura_nombre
-FROM Asignaturas
-ORDER BY asignatura_nombre
-");
-
-while ($fila = $resultadoAsignaturas->fetch_assoc()) {
-    $asignaturas[] = $fila;
-}
+$asignaturas = obtenerAsignaturas($conexion);
 
 ?>
 
@@ -187,7 +134,10 @@ while ($fila = $resultadoAsignaturas->fetch_assoc()) {
             <input
                 type="text"
                 id="horario"
-                value="<?= substr($reserva['hora_inicio'], 0, 5) ?> - <?= substr($reserva['hora_termino'], 0, 5) ?>"
+                value="<?= obtenerHorarioReserva(
+                            $reserva,
+                            $reserva['tipo_reserva']
+                        ); ?>"
                 readonly
                 autocomplete="off">
 

@@ -452,6 +452,52 @@ function formatearTipoReserva(string $tipo): string
 
 
 //=====================================================
+// OBTENER RESERVA PARA EDITAR
+//=====================================================
+
+function obtenerReservaEditar(
+    mysqli $conexion,
+    int $id
+): ?array
+{
+    $sql = "
+        SELECT
+
+            r.*,
+
+            b.numero_bloque,
+            b.hora_inicio,
+            b.hora_termino
+
+        FROM reservas r
+
+        INNER JOIN bloques b
+            ON b.id = r.bloque_id
+
+        WHERE r.id = ?
+
+        LIMIT 1
+    ";
+
+    $stmt = $conexion->prepare($sql);
+
+    $stmt->bind_param(
+        "i",
+        $id
+    );
+
+    $stmt->execute();
+
+    $resultado = $stmt->get_result();
+
+    $reserva = $resultado->fetch_assoc();
+
+    $stmt->close();
+
+    return $reserva ?: null;
+}
+
+//=====================================================
 // VALIDAR CONFLICTO DE RESERVA
 //=====================================================
 
