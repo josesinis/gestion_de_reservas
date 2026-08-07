@@ -52,7 +52,7 @@ if ($id <= 0) {
 // 5. OBTENER RESERVA
 //=====================================================
 
-$reserva = obtenerReservaEditar(
+$reserva = obtenerReservaPorId(
     $conexion,
     $id
 );

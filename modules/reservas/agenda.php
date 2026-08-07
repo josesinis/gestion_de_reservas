@@ -228,25 +228,48 @@ exit;*/
 
                             <?php
 
-                            $fecha = $dia['fecha'];
-
-                            $celda = obtenerReservaCelda(
-                                $reservas,
-                                $fecha,
-                                (int)$bloque['id']
+                            $tiposReservados = obtenerTiposReservados(
+                                $conexion,
+                                $dia['fecha'],
+                                $bloque['id']
                             );
 
-                            $reservaCompleta = $celda['completo'] ?? null;
-                            $reservaSub1     = $celda['sub1'] ?? null;
-                            $reservaSub2     = $celda['sub2'] ?? null;
+                            $reservaCompleta = $tiposReservados['completo'] ?? null;
+                            $reservaSub1     = $tiposReservados['sub1'] ?? null;
+                            $reservaSub2     = $tiposReservados['sub2'] ?? null;
 
                             ?>
 
                             <td class="agenda-celda">
 
-                                <?php if ($reservaCompleta): ?>
+                                <?php
 
-                                    <?php $reserva = $reservaCompleta; ?>
+                                $bloqueLibre =
+                                    !$reservaCompleta &&
+                                    !$reservaSub1 &&
+                                    !$reservaSub2;
+
+                                /*
+                                echo '<pre>';
+                                var_dump($reservaCompleta, $reservaSub1, $reservaSub2);
+                                echo '</pre>';*/
+
+                                ?>
+
+
+
+                                <?php if ($bloqueLibre): ?>
+
+                                    <button
+                                        type="button"
+                                        class="agenda-libre agenda-libre-completo"
+                                        data-url="agregar.php?fecha=<?= urlencode($dia['fecha']) ?>&bloque=<?= $bloque['id'] ?>&tipo=completo">
+
+                                        +
+
+                                    </button>
+
+                                <?php elseif ($reservaCompleta): ?>
 
                                     <?= renderizarTarjetaReserva($reservaCompleta); ?>
 
@@ -260,8 +283,6 @@ exit;*/
 
                                             <?php if ($reservaSub1): ?>
 
-                                                <?php $reserva = $reservaSub1; ?>
-
                                                 <?= renderizarTarjetaReserva($reservaSub1); ?>
 
                                             <?php else: ?>
@@ -269,7 +290,7 @@ exit;*/
                                                 <button
                                                     type="button"
                                                     class="agenda-libre"
-                                                    data-url="agregar.php?fecha=<?= urlencode($fecha) ?>&bloque=<?= $bloque['id'] ?>&tipo=sub1">
+                                                    data-url="agregar.php?fecha=<?= urlencode($dia['fecha']) ?>&bloque=<?= $bloque['id'] ?>&tipo=sub1">
 
                                                     +
 
@@ -285,8 +306,6 @@ exit;*/
 
                                             <?php if ($reservaSub2): ?>
 
-                                                <?php $reserva = $reservaSub2; ?>
-
                                                 <?= renderizarTarjetaReserva($reservaSub2); ?>
 
                                             <?php else: ?>
@@ -294,7 +313,7 @@ exit;*/
                                                 <button
                                                     type="button"
                                                     class="agenda-libre"
-                                                    data-url="agregar.php?fecha=<?= urlencode($fecha) ?>&bloque=<?= $bloque['id'] ?>&tipo=sub2">
+                                                    data-url="agregar.php?fecha=<?= urlencode($dia['fecha']) ?>&bloque=<?= $bloque['id'] ?>&tipo=sub2">
 
                                                     +
 

@@ -201,6 +201,8 @@ function obtenerReservaPorId(
 
         WHERE r.id = ?
 
+        LIMIT 1
+
     ";
 
     $stmt = $conexion->prepare($sql);
@@ -433,6 +435,87 @@ function obtenerHorarioReserva(
 
 
 //=====================================================
+// OBTENER OPCIONES DE RESERVA
+//=====================================================
+
+function obtenerOpcionesTipoReserva(
+    mysqli $conexion,
+    string $fecha,
+    int $bloqueId,
+    array $bloque
+): array {
+    $tiposReservados = obtenerTiposReservados(
+        $conexion,
+        $fecha,
+        $bloqueId
+    );
+
+    $opciones = [];
+
+    // Si existe una reserva completa,
+    // no debería llamarse al formulario.
+    if ($tiposReservados['completo']) {
+        return $opciones;
+    }
+
+    // Si el bloque está completamente libre
+    if (
+        !$tiposReservados['sub1'] &&
+        !$tiposReservados['sub2']
+    ) {
+
+        $opciones[] = [
+            'tipo' => 'completo',
+            'texto' => 'Bloque completo',
+            'horario' => obtenerHorarioReserva($bloque, 'completo')
+        ];
+
+        $opciones[] = [
+            'tipo' => 'sub1',
+            'texto' => 'Primer bloque (45 min)',
+            'horario' => obtenerHorarioReserva($bloque, 'sub1')
+        ];
+
+        $opciones[] = [
+            'tipo' => 'sub2',
+            'texto' => 'Segundo bloque (45 min)',
+            'horario' => obtenerHorarioReserva($bloque, 'sub2')
+        ];
+
+        return $opciones;
+    }
+
+    // Solo Sub2 disponible
+    if (
+        $tiposReservados['sub1'] &&
+        !$tiposReservados['sub2']
+    ) {
+
+        $opciones[] = [
+            'tipo' => 'sub2',
+            'texto' => 'Segundo bloque (45 min)',
+            'horario' => obtenerHorarioReserva($bloque, 'sub2')
+        ];
+    }
+
+    // Solo Sub1 disponible
+    if (
+        !$tiposReservados['sub1'] &&
+        $tiposReservados['sub2']
+    ) {
+
+        $opciones[] = [
+            'tipo' => 'sub1',
+            'texto' => 'Primer bloque (45 min)',
+            'horario' => obtenerHorarioReserva($bloque, 'sub1')
+        ];
+    }
+
+    return $opciones;
+}
+
+
+//=====================================================
 // FORMATEAR TIPO DE RESERVA
 //=====================================================
 
@@ -452,61 +535,13 @@ function formatearTipoReserva(string $tipo): string
 
 
 //=====================================================
-// OBTENER RESERVA PARA EDITAR
-//=====================================================
-
-function obtenerReservaEditar(
-    mysqli $conexion,
-    int $id
-): ?array
-{
-    $sql = "
-        SELECT
-
-            r.*,
-
-            b.numero_bloque,
-            b.hora_inicio,
-            b.hora_termino
-
-        FROM reservas r
-
-        INNER JOIN bloques b
-            ON b.id = r.bloque_id
-
-        WHERE r.id = ?
-
-        LIMIT 1
-    ";
-
-    $stmt = $conexion->prepare($sql);
-
-    $stmt->bind_param(
-        "i",
-        $id
-    );
-
-    $stmt->execute();
-
-    $resultado = $stmt->get_result();
-
-    $reserva = $resultado->fetch_assoc();
-
-    $stmt->close();
-
-    return $reserva ?: null;
-}
-
-
-//=====================================================
 // VERIFICAR SI EXISTE UNA RESERVA
 //=====================================================
 
 function existeReserva(
     mysqli $conexion,
     int $id
-): bool
-{
+): bool {
     $sql = "
         SELECT 1
         FROM reservas
@@ -541,8 +576,7 @@ function validarReserva(
     int $cursoId,
     int $asignaturaId,
     string $actividad
-): array
-{
+): array {
     $errores = [];
 
     if ($docenteId <= 0) {
@@ -567,6 +601,91 @@ function validarReserva(
 
     return $errores;
 }
+
+
+//=====================================================
+// PUEDE MODIFICAR UNA RESERVA
+//=====================================================
+
+function puedeModificarReserva(string $fecha): bool
+{
+    return $fecha >= date('Y-m-d');
+}
+
+
+//=====================================================
+// OBTENER TIPOS DE RESERVA OCUPADOS
+//=====================================================
+
+function obtenerTiposReservados(
+    mysqli $conexion,
+    string $fecha,
+    int $bloqueId
+): array {
+    $tipos = [
+        'completo' => null,
+        'sub1'     => null,
+        'sub2'     => null
+    ];
+
+    $sql = "
+
+        SELECT
+
+    r.*,
+
+    c.nombre_curso AS curso,
+
+    a.asignatura_nombre AS asignatura,
+
+    CONCAT(d.apellidos, ', ', d.nombres) AS docente,
+
+    b.numero_bloque,
+    b.hora_inicio,
+    b.hora_termino
+
+FROM reservas r
+
+INNER JOIN cursos c
+    ON c.id = r.curso_id
+
+INNER JOIN asignaturas a
+    ON a.id = r.asignatura_id
+
+INNER JOIN bloques b
+    ON b.id = r.bloque_id
+
+INNER JOIN docentes d
+    ON d.id = r.docente_id
+
+WHERE r.fecha = ?
+  AND r.bloque_id = ?
+  AND r.estado = 'reservada'
+
+    ";
+
+    $stmt = $conexion->prepare($sql);
+
+    $stmt->bind_param(
+        "si",
+        $fecha,
+        $bloqueId
+    );
+
+    $stmt->execute();
+
+    $resultado = $stmt->get_result();
+
+    while ($fila = $resultado->fetch_assoc()) {
+
+        $tipos[$fila['tipo_reserva']] = $fila;
+    }
+
+    $stmt->close();
+
+    return $tipos;
+}
+
 
 //=====================================================
 // VALIDAR CONFLICTO DE RESERVA
@@ -697,5 +816,3 @@ function renderizarTarjetaReserva(array $reserva): string
 
     return ob_get_clean();
 }
-
-

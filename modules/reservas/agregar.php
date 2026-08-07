@@ -43,6 +43,11 @@ $bloqueId = isset($_GET['bloque']) ? (int) $_GET['bloque'] : 0;
 
 $tipoReserva = $_GET['tipo'] ?? 'completo';
 
+/*echo '<pre>';
+var_dump($_GET);
+echo '</pre>';
+exit;*/
+
 //=====================================================
 // 4. VALIDAR VARIABLES
 //=====================================================
@@ -68,6 +73,12 @@ if (!$bloque) {
     die('Bloque no encontrado.');
 }
 
+$tiposReservados = obtenerTiposReservados(
+    $conexion,
+    $fecha,
+    $bloqueId
+);
+
 //-----------------------------------------------------
 // 5.1.1 HORARIO SEGÚN TIPO DE RESERVA
 //-----------------------------------------------------
@@ -79,6 +90,13 @@ $horaTermino = substr($bloque['hora_termino'], 0, 5);
 $horario = obtenerHorarioReserva(
     $bloque,
     $tipoReserva
+);
+
+$opcionesReserva = obtenerOpcionesTipoReserva(
+    $conexion,
+    $fecha,
+    $bloqueId,
+    $bloque
 );
 
 //-----------------------------------------------------
@@ -187,42 +205,48 @@ $asignaturas = obtenerAsignaturas($conexion);
 
                 <legend>Tipo de reserva</legend>
 
-                <label class="agenda-opcion-reserva">
+                <?php if (count($opcionesReserva) === 1): ?>
 
-                    <input
-                        type="radio"
-                        name="tipo_reserva"
-                        value="<?= htmlspecialchars($tipoReserva); ?>"
-                        checked>
+                    <div class="agenda-reserva-info">
 
-                    <span>
-                        <?= formatearTipoReserva($tipoReserva); ?>
-                    </span>
-
-                    <small>
-                        <?= htmlspecialchars($horario); ?>
-                    </small>
-
-                </label>
-
-                <?php if ($tipoReserva !== 'completo'): ?>
-
-                    <label class="agenda-opcion-reserva">
-
-                        <input
-                            type="radio"
-                            name="tipo_reserva"
-                            value="completo">
+                        <strong>
+                            <?= htmlspecialchars($opcionesReserva[0]['texto']); ?>
+                        </strong>
 
                         <span>
-                            Bloque completo
+                            <?= htmlspecialchars($opcionesReserva[0]['horario']); ?>
                         </span>
 
-                        <small>
-                            <?= $horaInicio . ' - ' . $horaTermino; ?>
-                        </small>
+                    </div>
 
-                    </label>
+                    <input
+                        type="hidden"
+                        name="tipo_reserva"
+                        value="<?= htmlspecialchars($opcionesReserva[0]['tipo']); ?>">
+
+                <?php else: ?>
+
+                    <?php foreach ($opcionesReserva as $opcion): ?>
+
+                        <label class="agenda-opcion-reserva">
+
+                            <input
+                                type="radio"
+                                name="tipo_reserva"
+                                value="<?= htmlspecialchars($opcion['tipo']); ?>"
+                                <?= $opcion['tipo'] === $tipoReserva ? 'checked' : ''; ?>>
+
+                            <span>
+                                <?= htmlspecialchars($opcion['texto']); ?>
+                            </span>
+
+                            <small>
+                                <?= htmlspecialchars($opcion['horario']); ?>
+                            </small>
+
+                        </label>
+
+                    <?php endforeach; ?>
 
                 <?php endif; ?>
 
