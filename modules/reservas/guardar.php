@@ -80,6 +80,39 @@ if ($bloqueId <= 0) {
 
 
 //=====================================================
+// 6. VALIDAR TIPO DE RESERVA
+//=====================================================
+
+$tiposPermitidos = [
+    'completo',
+    'sub1',
+    'sub2'
+];
+
+if (!in_array($tipoReserva, $tiposPermitidos, true)) {
+
+    $errores[] = 'El tipo de reserva no es válido.';
+}
+
+//=====================================================
+// VALIDAR SEMANA DE LA RESERVA
+//=====================================================
+
+$diasSemanaActual = obtenerDiasSemana();
+
+$fechaInicioSemanaActual = $diasSemanaActual[0]['fecha'];
+
+$diasSemanaReserva = obtenerDiasSemana($fecha);
+
+$fechaInicioSemanaReserva = $diasSemanaReserva[0]['fecha'];
+
+if ($fechaInicioSemanaReserva < $fechaInicioSemanaActual) {
+
+    $errores[] =
+        'No se pueden crear reservas en semanas anteriores.';
+}
+
+//=====================================================
 // VALIDAR ERRORES
 //=====================================================
 

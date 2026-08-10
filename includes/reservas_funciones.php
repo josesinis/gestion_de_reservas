@@ -362,6 +362,65 @@ function formatearFechaLarga(string $fecha): string
     );
 }
 
+
+//=====================================================
+// FORMATEAR RANGO DE FECHAS DE SEMANA
+//=====================================================
+
+function formatearRangoSemana(
+    string $fechaInicio,
+    string $fechaFin
+): string {
+
+    $meses = [
+        1  => 'enero',
+        2  => 'febrero',
+        3  => 'marzo',
+        4  => 'abril',
+        5  => 'mayo',
+        6  => 'junio',
+        7  => 'julio',
+        8  => 'agosto',
+        9  => 'septiembre',
+        10 => 'octubre',
+        11 => 'noviembre',
+        12 => 'diciembre'
+    ];
+
+    $inicio = new DateTime($fechaInicio);
+    $fin = new DateTime($fechaFin);
+
+    $diaInicio = $inicio->format('d');
+    $diaFin = $fin->format('d');
+
+    $mesInicio = $meses[(int)$inicio->format('n')];
+    $mesFin = $meses[(int)$fin->format('n')];
+
+    $anioInicio = $inicio->format('Y');
+    $anioFin = $fin->format('Y');
+
+    // Misma fecha
+    if ($fechaInicio === $fechaFin) {
+        return "{$diaInicio} de {$mesInicio} de {$anioInicio}";
+    }
+
+    // Mismo mes y mismo año
+    if (
+        $inicio->format('n') === $fin->format('n') &&
+        $anioInicio === $anioFin
+    ) {
+        return "{$diaInicio} al {$diaFin} de {$mesInicio} de {$anioInicio}";
+    }
+
+    // Mes diferente, mismo año
+    if ($anioInicio === $anioFin) {
+        return "{$diaInicio} de {$mesInicio} al {$diaFin} de {$mesFin} de {$anioInicio}";
+    }
+
+    // Año diferente
+    return "{$diaInicio} de {$mesInicio} de {$anioInicio} al {$diaFin} de {$mesFin} de {$anioFin}";
+}
+
 //=====================================================
 // OBTENER BLOQUE
 //=====================================================
@@ -514,6 +573,26 @@ function obtenerOpcionesTipoReserva(
     return $opciones;
 }
 
+
+//=====================================================
+// VALIDAR SI UNA RESERVA PUEDE SER MODIFICADA
+//=====================================================
+
+function reservaEsModificable(array $reserva): bool
+{
+    $ahora = new DateTime();
+
+    $inicioReserva = new DateTime(
+        $reserva['fecha'] . ' ' . $reserva['hora_inicio']
+    );
+
+    // La reserva ya comenzó
+    if ($ahora >= $inicioReserva) {
+        return false;
+    }
+
+    return true;
+}
 
 //=====================================================
 // FORMATEAR TIPO DE RESERVA
@@ -686,7 +765,6 @@ WHERE r.fecha = ?
     return $tipos;
 }
 
-
 //=====================================================
 // VALIDAR CONFLICTO DE RESERVA
 //=====================================================
@@ -697,19 +775,20 @@ function hayConflictoReserva(
     int $bloqueId,
     string $tipoReserva
 ): bool {
-    //-------------------------------------------------
-    // OBTENER RESERVAS EXISTENTES
-    //-------------------------------------------------
 
     $sql = "
         SELECT tipo_reserva
-        FROM Reservas
+        FROM reservas
         WHERE fecha = ?
           AND bloque_id = ?
           AND estado = 'reservada'
     ";
 
     $stmt = $conexion->prepare($sql);
+
+    if (!$stmt) {
+        return true;
+    }
 
     $stmt->bind_param(
         "si",
@@ -721,66 +800,40 @@ function hayConflictoReserva(
 
     $resultado = $stmt->get_result();
 
-    $conflicto = false;
-
-    //-------------------------------------------------
-    // VALIDAR CONFLICTOS
-    //-------------------------------------------------
-
     while ($fila = $resultado->fetch_assoc()) {
 
         $tipoExistente = $fila['tipo_reserva'];
 
-        //---------------------------------------------
-        // QUIERE RESERVAR BLOQUE COMPLETO
-        //---------------------------------------------
-
+        // Una reserva completa ocupa todo el bloque.
         if ($tipoReserva === 'completo') {
-
-            $conflicto = true;
-            break;
+            $stmt->close();
+            return true;
         }
 
-        //---------------------------------------------
-        // QUIERE RESERVAR SUBBLOQUE 1
-        //---------------------------------------------
-
+        // Una reserva de sub1 entra en conflicto
+        // con otra sub1 o con una reserva completa.
         if (
-            $tipoReserva === 'sub1'
-            &&
-            (
-                $tipoExistente === 'sub1'
-                ||
-                $tipoExistente === 'completo'
-            )
+            $tipoReserva === 'sub1' &&
+            in_array($tipoExistente, ['sub1', 'completo'], true)
         ) {
-
-            $conflicto = true;
-            break;
+            $stmt->close();
+            return true;
         }
 
-        //---------------------------------------------
-        // QUIERE RESERVAR SUBBLOQUE 2
-        //---------------------------------------------
-
+        // Una reserva de sub2 entra en conflicto
+        // con otra sub2 o con una reserva completa.
         if (
-            $tipoReserva === 'sub2'
-            &&
-            (
-                $tipoExistente === 'sub2'
-                ||
-                $tipoExistente === 'completo'
-            )
+            $tipoReserva === 'sub2' &&
+            in_array($tipoExistente, ['sub2', 'completo'], true)
         ) {
-
-            $conflicto = true;
-            break;
+            $stmt->close();
+            return true;
         }
     }
 
     $stmt->close();
 
-    return $conflicto;
+    return false;
 }
 
 //=====================================================

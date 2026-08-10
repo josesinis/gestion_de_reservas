@@ -69,14 +69,59 @@ if (!empty($errores)) {
 }
 
 //=====================================================
-// VERIFICAR QUE LA RESERVA EXISTA
+// OBTENER RESERVA
 //=====================================================
 
-if (!existeReserva($conexion, $id)) {
+$reserva = obtenerReservaPorId(
+    $conexion,
+    $id
+);
+
+if (!$reserva) {
 
     $_SESSION['error'] = 'La reserva no existe.';
 
     header('Location: agenda.php');
+
+    exit();
+}
+
+
+//=====================================================
+// VALIDAR SI LA RESERVA PUEDE SER MODIFICADA
+//=====================================================
+
+if (!reservaEsModificable($reserva)) {
+
+    $_SESSION['error'] =
+        'La reserva ya no puede ser modificada porque su horario ya comenzó.';
+
+    header("Location: ver.php?id=$id");
+
+    exit();
+}
+
+//=====================================================
+// VALIDAR SEMANA DE LA RESERVA
+//=====================================================
+
+$diasSemanaActual = obtenerDiasSemana();
+
+$fechaInicioSemanaActual = $diasSemanaActual[0]['fecha'];
+
+$diasSemanaReserva = obtenerDiasSemana(
+    $reserva['fecha']
+);
+
+$fechaInicioSemanaReserva =
+    $diasSemanaReserva[0]['fecha'];
+
+if ($fechaInicioSemanaReserva < $fechaInicioSemanaActual) {
+
+    $_SESSION['error'] =
+        'No se pueden modificar reservas de semanas anteriores.';
+
+    header("Location: ver.php?id=$id");
 
     exit();
 }

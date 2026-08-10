@@ -108,10 +108,24 @@ if (!$reserva) {
 $fecha = formatearFechaLarga($reserva['fecha']);
 
 
-/*****************************************************/
-/*echo '<pre>';
-print_r($reserva);
-echo '</pre>';*/
+/*
+
+echo '<pre>';
+
+echo 'Archivo php.ini cargado: ';
+var_dump(php_ini_loaded_file());
+
+echo 'Zona horaria configurada en ini: ';
+var_dump(ini_get('date.timezone'));
+
+echo 'Zona horaria PHP: ';
+var_dump(date_default_timezone_get());
+
+echo '</pre>';
+
+exit;*/
+
+var_dump(reservaEsModificable($reserva));
 ?>
 <!DOCTYPE html>
 <html lang="es">

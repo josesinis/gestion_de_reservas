@@ -21,7 +21,47 @@
 require '../../config/database.php';
 require '../../includes/reservas_funciones.php';
 
-$diasSemana = obtenerDiasSemana();
+//=====================================================
+// DETERMINAR SEMANA MOSTRADA
+//=====================================================
+
+$semanaActual = obtenerDiasSemana();
+
+$fechaInicioActual = $semanaActual[0]['fecha'];
+
+$fechaReferencia = $_GET['semana'] ?? null;
+
+
+//-----------------------------------------------------
+// VALIDAR SEMANA SOLICITADA
+//-----------------------------------------------------
+
+if ($fechaReferencia !== null) {
+
+    $diasSemanaSolicitada = obtenerDiasSemana($fechaReferencia);
+
+    $fechaInicioSolicitada =
+        $diasSemanaSolicitada[0]['fecha'];
+
+    // No permitir semanas anteriores
+    if ($fechaInicioSolicitada < $fechaInicioActual) {
+
+        header(
+            'Location: agenda.php'
+        );
+
+        exit();
+    }
+
+    $diasSemana = $diasSemanaSolicitada;
+} else {
+
+    $diasSemana = $semanaActual;
+}
+
+//=====================================================
+// BLOQUES MOSTRADOS
+//=====================================================
 
 $bloques = obtenerBloques($conexion);
 
@@ -43,7 +83,10 @@ print_r($reservas);
 echo "</pre>";
 
 exit;*/
+
 ?>
+
+
 
 <!DOCTYPE html>
 <html lang="es">
@@ -101,50 +144,111 @@ exit;*/
 
             </div>
 
+            <?php
 
+            $numeroSemana = (int) (new DateTime(
+                $diasSemana[0]['fecha']
+            ))->format('W');
+
+            $fechaSemanaMostrada = $diasSemana[0]['fecha'];
+
+            $fechaSemanaAnterior = (new DateTime($fechaSemanaMostrada))
+                ->modify('-7 days')
+                ->format('Y-m-d');
+
+            $fechaSemanaSiguiente = (new DateTime($fechaSemanaMostrada))
+                ->modify('+7 days')
+                ->format('Y-m-d');
+
+            $puedeRetroceder = $fechaSemanaMostrada > $fechaInicioActual;
+
+            ?>
             <!-- =================================================
                  NAVEGACIÓN SEMANAL
             ================================================== -->
 
             <div class="agenda-nav">
 
-                <button
-                    type="button"
-                    class="agenda-btn-nav"
-                    title="Semana anterior">
+                <?php if ($puedeRetroceder): ?>
 
-                    <i class="fa-solid fa-chevron-left"></i>
+                    <a
+                        href="agenda.php?semana=<?= urlencode($fechaSemanaAnterior); ?>"
+                        class="agenda-btn-nav"
+                        title="Semana anterior">
 
-                    <span>
-                        Semana anterior
-                    </span>
+                        <i class="fa-solid fa-chevron-left"></i>
 
-                </button>
+                        <span>
+                            Semana anterior
+                        </span>
+
+                    </a>
+
+                <?php else: ?>
+
+                    <button
+                        type="button"
+                        class="agenda-btn-nav"
+                        disabled
+                        title="No se pueden consultar semanas anteriores">
+
+                        <i class="fa-solid fa-chevron-left"></i>
+
+                        <span>
+                            Semana anterior
+                        </span>
+
+                    </button>
+
+                <?php endif; ?>
 
 
                 <div class="agenda-periodo">
 
                     <span class="agenda-semana">
-                        Semana 24
+                        Semana <?= $numeroSemana; ?>
                     </span>
 
                     <span class="agenda-fechas">
-                        08 al 12 de junio de 2026
+
+                        <?= formatearRangoSemana(
+                            $diasSemana[0]['fecha'],
+                            $diasSemana[4]['fecha']
+                        ); ?>
+
                     </span>
 
                 </div>
 
 
-                <button
-                    type="button"
-                    class="agenda-btn-hoy"
-                    title="Ir a la semana actual">
-                    Hoy
-                </button>
+                <?php if ($fechaSemanaMostrada === $fechaInicioActual): ?>
+
+                    <button
+                        type="button"
+                        class="agenda-btn-hoy"
+                        disabled
+                        title="Ya estás en la semana actual">
+
+                        Hoy
+
+                    </button>
+
+                <?php else: ?>
+
+                    <a
+                        href="agenda.php"
+                        class="agenda-btn-hoy"
+                        title="Ir a la semana actual">
+
+                        Hoy
+
+                    </a>
+
+                <?php endif; ?>
 
 
-                <button
-                    type="button"
+                <a
+                    href="agenda.php?semana=<?= urlencode($fechaSemanaSiguiente); ?>"
                     class="agenda-btn-nav"
                     title="Semana siguiente">
 
@@ -154,7 +258,7 @@ exit;*/
 
                     <i class="fa-solid fa-chevron-right"></i>
 
-                </button>
+                </a>
 
             </div>
 
@@ -341,7 +445,7 @@ exit;*/
 
         <!-- =====================================================
      FORMULARIO - NUEVA RESERVA
-====================================================== -->
+======================================================
 
         <section class="agenda-form-reserva">
 
@@ -355,12 +459,12 @@ exit;*/
                     </p>
                 </div>
 
-            </div>
+            </div> -->
 
 
-            <!-- =================================================
+        <!-- =================================================
          RESUMEN DEL HORARIO SELECCIONADO
-    ================================================== -->
+    ==================================================
 
             <div class="agenda-resumen-seleccion">
 
@@ -407,7 +511,7 @@ exit;*/
 
 
 
-        </section>
+        </section> -->
 
     </div>
 
