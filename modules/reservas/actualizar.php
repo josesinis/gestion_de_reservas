@@ -36,6 +36,8 @@ $cursoId = (int)($_POST['curso_id'] ?? 0);
 
 $asignaturaId = (int)($_POST['asignatura_id'] ?? 0);
 
+$objetivo_clase = trim($_POST['objetivo_clase'] ?? '');
+
 $actividad = trim($_POST['actividad'] ?? '');
 
 $permiteEntrega = isset($_POST['permite_entrega']) ? 1 : 0;
@@ -136,6 +138,7 @@ SET
     docente_id = ?,
     curso_id = ?,
     asignatura_id = ?,
+    objetivo_clase = ?,
     actividad = ?,
     permite_entrega = ?
 WHERE id = ?
@@ -144,10 +147,11 @@ WHERE id = ?
 $stmt = $conexion->prepare($sql);
 
 $stmt->bind_param(
-    "iiisii",
+    "iiissii",
     $docenteId,
     $cursoId,
     $asignaturaId,
+    $objetivo_clase,
     $actividad,
     $permiteEntrega,
     $id

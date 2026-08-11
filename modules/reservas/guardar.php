@@ -41,11 +41,36 @@ $tipoReserva = trim($_POST['tipo_reserva'] ?? '');
 
 $actividad = trim($_POST['actividad'] ?? '');
 
+$objetivo_clase = trim($_POST['objetivo_clase'] ?? '');
+
 $permiteEntrega = isset($_POST['permite_entrega']) ? 1 : 0;
 
 $fechaEntregaOficial = !empty($_POST['fecha_entrega_oficial'])
     ? $_POST['fecha_entrega_oficial']
     : null;
+
+//=====================================================
+// PRUEBA TEMPORAL
+//=====================================================
+/*
+echo '<pre>';
+
+var_dump([
+    'docente_id' => $docenteId,
+    'curso_id' => $cursoId,
+    'asignatura_id' => $asignaturaId,
+    'bloque_id' => $bloqueId,
+    'fecha' => $fecha,
+    'tipo_reserva' => $tipoReserva,
+    'actividad' => $actividad,
+    'objetivo_clase' => $objetivo_clase,
+    'permite_entrega' => $permiteEntrega,
+    'fecha_entrega_oficial' => $fechaEntregaOficial
+]);
+
+echo '</pre>';
+
+exit;*/
 
 //-----------------------------------------------------
 // VARIABLES INTERNAS DEL SISTEMA
@@ -160,6 +185,7 @@ $sql = "INSERT INTO reservas (
     asignatura_id,
     bloque_id,
     fecha,
+    objetivo_clase,
     actividad,
     permite_entrega,
     fecha_cierre,
@@ -169,7 +195,7 @@ $sql = "INSERT INTO reservas (
     fecha_entrega_oficial
 
 )
-VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)";
+VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
 $stmt = $conexion->prepare($sql);
 
@@ -178,7 +204,7 @@ if (!$stmt) {
 }
 
 $stmt->bind_param(
-    "iiiiissisisss",
+    "iiiiisssisisss",
     $docenteId,
     $usuarioId,
     $cursoId,
@@ -186,6 +212,7 @@ $stmt->bind_param(
     $bloqueId,
     $fecha,
     $actividad,
+    $objetivo_clase,
     $permiteEntrega,
     $fechaCierre,
     $cierreManual,

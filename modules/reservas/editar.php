@@ -228,9 +228,26 @@ $asignaturas = obtenerAsignaturas($conexion);
                 id="actividad"
                 name="actividad"
                 rows="5"
-                maxlength="150"
-                required><?= htmlspecialchars($reserva['actividad']) ?>
+                maxlength="150"><?= htmlspecialchars($reserva['actividad']) ?>
             </textarea>
+
+        </div>
+
+        <div class="grupo-formulario">
+
+            <label for="objetivo_clase">
+                Objetivo de la clase
+            </label>
+
+            <textarea
+                id="objetivo_clase"
+                name="objetivo_clase"
+                rows="3"
+                placeholder="Indique el objetivo de la clase"><?= htmlspecialchars(
+                                                                    $reserva['objetivo_clase'] ?? '',
+                                                                    ENT_QUOTES,
+                                                                    'UTF-8'
+                                                                ) ?></textarea>
 
         </div>
 

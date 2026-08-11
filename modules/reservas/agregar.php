@@ -391,8 +391,21 @@ $asignaturas = obtenerAsignaturas($conexion);
                     name="actividad"
                     rows="3"
                     maxlength="150"
-                    required
                     placeholder="Describa brevemente la actividad a realizar"></textarea>
+
+            </div>
+
+            <div class="grupo-formulario agenda-form-objetivo">
+
+                <label for="objetivo_clase">
+                    Objetivo de la clase
+                </label>
+
+                <textarea
+                    id="objetivo_clase"
+                    name="objetivo_clase"
+                    rows="3"
+                    placeholder="Indique el objetivo de la clase"></textarea>
 
             </div>
 

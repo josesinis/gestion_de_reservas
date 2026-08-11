@@ -582,12 +582,12 @@ function reservaEsModificable(array $reserva): bool
 {
     $ahora = new DateTime();
 
-    $inicioReserva = new DateTime(
-        $reserva['fecha'] . ' ' . $reserva['hora_inicio']
+    $finReserva = new DateTime(
+        $reserva['fecha'] . ' ' . $reserva['hora_termino']
     );
 
-    // La reserva ya comenzó
-    if ($ahora >= $inicioReserva) {
+    // La reserva ya terminó
+    if ($ahora >= $finReserva) {
         return false;
     }
 
@@ -668,10 +668,6 @@ function validarReserva(
 
     if ($asignaturaId <= 0) {
         $errores[] = 'Debe seleccionar una asignatura.';
-    }
-
-    if ($actividad === '') {
-        $errores[] = 'Debe ingresar una actividad.';
     }
 
     if (mb_strlen($actividad) > 150) {

@@ -37,6 +37,7 @@ $sql = "SELECT
 
             r.id,
             r.fecha,
+            r.objetivo_clase,
             r.actividad,
             r.permite_entrega,
             r.fecha_cierre,
@@ -125,7 +126,7 @@ echo '</pre>';
 
 exit;*/
 
-var_dump(reservaEsModificable($reserva));
+//var_dump(reservaEsModificable($reserva));
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -201,6 +202,15 @@ var_dump(reservaEsModificable($reserva));
                         <tr>
                             <th>Actividad</th>
                             <td><?= nl2br(htmlspecialchars($reserva['actividad'])) ?></td>
+                        </tr>
+
+                        <tr>
+                            <th>Objetivo de la clase</th>
+                            <td>
+                                <?= $reserva['objetivo_clase'] !== null && $reserva['objetivo_clase'] !== ''
+                                    ? nl2br(htmlspecialchars($reserva['objetivo_clase']))
+                                    : 'No registrado'; ?>
+                            </td>
                         </tr>
 
                         <tr>
