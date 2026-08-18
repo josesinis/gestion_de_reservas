@@ -162,3 +162,41 @@
     background: #0D47A1;
 
 }
+
+/*=====================================================
+  FORMULARIO DE CONFIRMACIÓN DE USO
+=====================================================*/
+
+.formulario-confirmacion {
+    margin-top: 30px;
+}
+
+.campo-formulario {
+    margin-bottom: 20px;
+}
+
+.campo-formulario label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.campo-formulario textarea {
+    width: 100%;
+    max-width: 700px;
+    min-height: 90px;
+    padding: 10px;
+    box-sizing: border-box;
+    resize: vertical;
+}
+
+.lista-recursos {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.lista-recursos label {
+    font-weight: normal;
+}

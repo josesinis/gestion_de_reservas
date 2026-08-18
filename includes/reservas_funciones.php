@@ -2,6 +2,14 @@
 
 declare(strict_types=1);
 
+//=====================================================
+// CONFIGURACIÓN DE RESERVAS
+//=====================================================
+
+// Tiempo permitido para realizar una reserva
+// después del inicio del bloque o subbloque.
+const MINUTOS_GRACIA_RESERVA = 10;
+
 /**
  * =====================================================
  * MÓDULO RESERVAS
@@ -592,6 +600,110 @@ function reservaEsModificable(array $reserva): bool
     }
 
     return true;
+}
+
+
+//=====================================================
+// VALIDAR SI UNA RESERVA PUEDE SER CREADA
+//=====================================================
+
+function reservaPuedeCrearse(
+    string $fecha,
+    array $bloque,
+    string $tipoReserva
+): bool {
+
+    $hoy = new DateTime('today');
+    $fechaReserva = new DateTime($fecha);
+
+    // No se permiten fechas anteriores a hoy.
+    if ($fechaReserva < $hoy) {
+        return false;
+    }
+
+    // Obtener inicio del bloque.
+    $inicio = new DateTime(
+        $fecha . ' ' . $bloque['hora_inicio']
+    );
+
+    // Para sub2, el inicio efectivo es la mitad del bloque.
+    if ($tipoReserva === 'sub2') {
+
+        $inicioBloque = strtotime($bloque['hora_inicio']);
+        $terminoBloque = strtotime($bloque['hora_termino']);
+
+        $horaMedia = date(
+            'H:i:s',
+            $inicioBloque + (($terminoBloque - $inicioBloque) / 2)
+        );
+
+        $inicio = new DateTime(
+            $fecha . ' ' . $horaMedia
+        );
+    }
+
+    // Si el horario ya comenzó, no se puede crear.
+    if (new DateTime() >= $inicio) {
+        return false;
+    }
+
+    return true;
+}
+
+//=====================================================
+// VALIDAR SI UN HORARIO PUEDE SER RESERVADO
+//=====================================================
+
+function horarioPuedeReservarse(
+    string $fecha,
+    array $bloque,
+    string $tipoReserva
+): bool {
+
+    $ahora = new DateTime();
+
+    $inicioBloque = new DateTime(
+        $fecha . ' ' . $bloque['hora_inicio']
+    );
+
+    $terminoBloque = new DateTime(
+        $fecha . ' ' . $bloque['hora_termino']
+    );
+
+    // Calcular duración del bloque
+    $duracion = $terminoBloque->getTimestamp()
+        - $inicioBloque->getTimestamp();
+
+    // Calcular mitad del bloque
+    $horaMedia = clone $inicioBloque;
+
+    $horaMedia->modify(
+        '+' . ($duracion / 2) . ' seconds'
+    );
+
+    // Determinar inicio efectivo de la reserva
+    switch ($tipoReserva) {
+
+        case 'sub2':
+            $inicioReserva = $horaMedia;
+            break;
+
+        case 'sub1':
+        case 'completo':
+        default:
+            $inicioReserva = $inicioBloque;
+            break;
+    }
+
+    // Agregar el período de gracia
+    $limiteReserva = clone $inicioReserva;
+
+    $limiteReserva->modify(
+        '+' . MINUTOS_GRACIA_RESERVA . ' minutes'
+    );
+
+    // Se puede reservar hasta el límite de gracia.
+    return $ahora <= $limiteReserva;
 }
 
 //=====================================================

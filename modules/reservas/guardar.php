@@ -120,6 +120,31 @@ if (!in_array($tipoReserva, $tiposPermitidos, true)) {
 }
 
 //=====================================================
+// VALIDAR SI LA RESERVA PUEDE SER CREADA
+//=====================================================
+
+$bloque = obtenerBloque(
+    $conexion,
+    $bloqueId
+);
+
+if (!$bloque) {
+
+    $errores[] = 'El bloque seleccionado no existe.';
+
+} elseif (
+    !horarioPuedeReservarse(
+        $fecha,
+        $bloque,
+        $tipoReserva
+    )
+) {
+
+    $errores[] =
+        'Ya pasó el tiempo permitido para reservar este horario.';
+}
+
+//=====================================================
 // VALIDAR SEMANA DE LA RESERVA
 //=====================================================
 
@@ -145,7 +170,14 @@ if (!empty($errores)) {
 
     $_SESSION['error'] = implode('<br>', $errores);
 
-    header('Location: agregar.php');
+    header(
+        'Location: agregar.php?' . http_build_query([
+            'fecha'  => $fecha,
+            'bloque' => $bloqueId,
+            'tipo'   => $tipoReserva
+        ])
+    );
+    exit();
 
     exit();
 }

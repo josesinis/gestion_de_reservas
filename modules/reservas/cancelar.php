@@ -1,7 +1,7 @@
 <?php
 //=====================================================
-// ELIMINAR.PHP
-// Elimina una reserva.
+// CANCELAR.PHP
+// Cancela una reserva sin eliminarla de la base de datos.
 //=====================================================
 
 /*
@@ -63,13 +63,13 @@ if (!$reserva) {
 }
 
 //=====================================================
-// VALIDAR FECHA
+// VALIDAR SI SE PUEDE MODIFICAR
 //=====================================================
 
-if (!puedeModificarReserva($reserva['fecha'])) {
+if (!reservaEsModificable($reserva)) {
 
     $_SESSION['error'] =
-        'No es posible eliminar reservas de fechas pasadas.';
+        'No es posible cancelar una reserva cuyo bloque ya terminó.';
 
     header('Location: ver.php?id=' . $id);
 
@@ -83,7 +83,7 @@ if (!puedeModificarReserva($reserva['fecha'])) {
 if ($reserva['estado'] !== 'reservada') {
 
     $_SESSION['error'] =
-        'Solo se pueden eliminar reservas activas.';
+        'Solo se pueden cancelar reservas activas.';
 
     header('Location: ver.php?id=' . $id);
 
@@ -91,15 +91,26 @@ if ($reserva['estado'] !== 'reservada') {
 }
 
 //=====================================================
-// ELIMINAR RESERVA
+// CANCELAR RESERVA
 //=====================================================
 
 $sql = "
-    DELETE FROM reservas
+    UPDATE reservas
+    SET estado = 'cancelada'
     WHERE id = ?
 ";
 
 $stmt = $conexion->prepare($sql);
+
+if (!$stmt) {
+
+    $_SESSION['error'] =
+        'Ocurrió un error al preparar la cancelación.';
+
+    header('Location: ver.php?id=' . $id);
+
+    exit();
+}
 
 $stmt->bind_param(
     "i",
@@ -109,12 +120,12 @@ $stmt->bind_param(
 if ($stmt->execute()) {
 
     $_SESSION['exito'] =
-        'La reserva fue eliminada correctamente.';
+        'La reserva fue cancelada correctamente.';
 
 } else {
 
     $_SESSION['error'] =
-        'Ocurrió un error al eliminar la reserva.';
+        'Ocurrió un error al cancelar la reserva.';
 }
 
 $stmt->close();

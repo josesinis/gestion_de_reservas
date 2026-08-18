@@ -364,14 +364,41 @@ exit;*/
 
                                 <?php if ($bloqueLibre): ?>
 
-                                    <button
-                                        type="button"
-                                        class="agenda-libre agenda-libre-completo"
-                                        data-url="agregar.php?fecha=<?= urlencode($dia['fecha']) ?>&bloque=<?= $bloque['id'] ?>&tipo=completo">
+                                    <?php if (
+                                        horarioPuedeReservarse(
+                                            $dia['fecha'],
+                                            $bloque,
+                                            'completo'
+                                        )
+                                    ): ?>
 
-                                        +
+                                        <button
+                                            type="button"
+                                            class="agenda-libre agenda-libre-completo"
+                                            data-url="agregar.php?fecha=<?= urlencode($dia['fecha']) ?>&bloque=<?= $bloque['id'] ?>&tipo=completo">
 
-                                    </button>
+                                            +
+
+                                        </button>
+
+                                    <?php elseif (
+                                        horarioPuedeReservarse(
+                                            $dia['fecha'],
+                                            $bloque,
+                                            'sub2'
+                                        )
+                                    ): ?>
+
+                                        <button
+                                            type="button"
+                                            class="agenda-libre"
+                                            data-url="agregar.php?fecha=<?= urlencode($dia['fecha']) ?>&bloque=<?= $bloque['id'] ?>&tipo=sub2">
+
+                                            +
+
+                                        </button>
+
+                                    <?php endif; ?>
 
                                 <?php elseif ($reservaCompleta): ?>
 
@@ -391,14 +418,24 @@ exit;*/
 
                                             <?php else: ?>
 
-                                                <button
-                                                    type="button"
-                                                    class="agenda-libre"
-                                                    data-url="agregar.php?fecha=<?= urlencode($dia['fecha']) ?>&bloque=<?= $bloque['id'] ?>&tipo=sub1">
+                                                <?php if (
+                                                    horarioPuedeReservarse(
+                                                        $dia['fecha'],
+                                                        $bloque,
+                                                        'sub1'
+                                                    )
+                                                ): ?>
 
-                                                    +
+                                                    <button
+                                                        type="button"
+                                                        class="agenda-libre"
+                                                        data-url="agregar.php?fecha=<?= urlencode($dia['fecha']) ?>&bloque=<?= $bloque['id'] ?>&tipo=sub1">
 
-                                                </button>
+                                                        +
+
+                                                    </button>
+
+                                                <?php endif; ?>
 
                                             <?php endif; ?>
 
@@ -414,14 +451,24 @@ exit;*/
 
                                             <?php else: ?>
 
-                                                <button
-                                                    type="button"
-                                                    class="agenda-libre"
-                                                    data-url="agregar.php?fecha=<?= urlencode($dia['fecha']) ?>&bloque=<?= $bloque['id'] ?>&tipo=sub2">
+                                                <?php if (
+                                                    horarioPuedeReservarse(
+                                                        $dia['fecha'],
+                                                        $bloque,
+                                                        'sub2'
+                                                    )
+                                                ): ?>
 
-                                                    +
+                                                    <button
+                                                        type="button"
+                                                        class="agenda-libre"
+                                                        data-url="agregar.php?fecha=<?= urlencode($dia['fecha']) ?>&bloque=<?= $bloque['id'] ?>&tipo=sub2">
 
-                                                </button>
+                                                        +
+
+                                                    </button>
+
+                                                <?php endif; ?>
 
                                             <?php endif; ?>
 
