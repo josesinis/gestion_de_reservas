@@ -55,6 +55,20 @@ if ($reserva['estado'] !== 'reservada') {
 }
 
 //=====================================================
+// VALIDAR INICIO DEL HORARIO
+//=====================================================
+
+if (!reservaPuedeConfirmarse($reserva)) {
+
+    $_SESSION['error'] =
+        'El uso de la sala todavía no puede ser confirmado porque el horario aún no comienza.';
+
+    header('Location: ver.php?id=' . $id);
+
+    exit();
+}
+
+//=====================================================
 // OBTENER RECURSOS DISPONIBLES
 //=====================================================
 

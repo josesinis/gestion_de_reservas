@@ -260,6 +260,21 @@ exit;*/
 
                 </a>
 
+                <?php if (
+                    $reserva['estado'] === 'reservada'
+                    && reservaPuedeConfirmarse($reserva)
+                ): ?>
+
+                    <a
+                        href="confirmar.php?id=<?= $reserva['id']; ?>"
+                        class="btn btn-primario">
+
+                        Confirmar uso
+
+                    </a>
+
+                <?php endif; ?>
+
                 <a
                     href="cancelar.php?id=<?= $reserva['id']; ?>"
                     class="btn btn-peligro"

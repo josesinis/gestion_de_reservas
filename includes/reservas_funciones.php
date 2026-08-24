@@ -228,6 +228,41 @@ function obtenerReservaPorId(
     return $reserva ?: null;
 }
 
+//=====================================================
+// VALIDAR SI UNA RESERVA PUEDE SER CONFIRMADA
+//=====================================================
+
+function reservaPuedeConfirmarse(array $reserva): bool
+{
+    $ahora = new DateTime();
+
+    $inicioBloque = new DateTime(
+        $reserva['fecha'] . ' ' . $reserva['hora_inicio']
+    );
+
+    // Para sub2, el inicio efectivo es la mitad del bloque.
+    if ($reserva['tipo_reserva'] === 'sub2') {
+
+        $terminoBloque = new DateTime(
+            $reserva['fecha'] . ' ' . $reserva['hora_termino']
+        );
+
+        $duracion = $terminoBloque->getTimestamp()
+            - $inicioBloque->getTimestamp();
+
+        $inicioReserva = clone $inicioBloque;
+
+        $inicioReserva->modify(
+            '+' . ($duracion / 2) . ' seconds'
+        );
+    } else {
+
+        $inicioReserva = $inicioBloque;
+    }
+
+    return $ahora >= $inicioReserva;
+}
+
 
 /**
  * Obtiene las reservas comprendidas entre dos fechas.
@@ -278,7 +313,7 @@ function obtenerReservas(
 
             r.fecha BETWEEN ? AND ?
 
-
+            AND r.estado <> 'cancelada'
 
         ORDER BY
 
