@@ -275,7 +275,7 @@ $asignaturas = obtenerAsignaturas($conexion);
             </button>
 
             <a
-                href="index.php"
+                href="agenda.php"
                 class="btn btn-secundario">
                 Cancelar
             </a>
