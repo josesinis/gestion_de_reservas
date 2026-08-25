@@ -169,6 +169,53 @@ function obtenerAsignaturas(mysqli $conexion): array
 }
 
 //=====================================================
+// OBTENER ASIGNATURAS DE UN DOCENTE
+//=====================================================
+
+function obtenerAsignaturasPorDocente(
+    mysqli $conexion,
+    int $docenteId
+): array {
+
+    $sql = "
+        SELECT
+            a.id,
+            a.asignatura_nombre
+        FROM docentes_asignaturas da
+
+        INNER JOIN asignaturas a
+            ON a.id = da.asignatura_id
+
+        WHERE da.docente_id = ?
+
+        ORDER BY a.asignatura_nombre
+    ";
+
+    $stmt = $conexion->prepare($sql);
+
+    if (!$stmt) {
+        return [];
+    }
+
+    $stmt->bind_param(
+        "i",
+        $docenteId
+    );
+
+    $stmt->execute();
+
+    $resultado = $stmt->get_result();
+
+    $asignaturas = $resultado->fetch_all(
+        MYSQLI_ASSOC
+    );
+
+    $stmt->close();
+
+    return $asignaturas;
+}
+
+//=====================================================
 // OBTENER RESERVA POR ID
 //=====================================================
 
@@ -1011,4 +1058,195 @@ function renderizarTarjetaReserva(array $reserva): string
 <?php
 
     return ob_get_clean();
+}
+
+
+//=====================================================
+// OBTENER HORARIOS FIJOS
+//
+// Obtiene la planificación fija vigente entre
+// dos fechas.
+//=====================================================
+
+function obtenerHorariosFijos(
+    mysqli $conexion,
+    string $fechaInicio,
+    string $fechaFin
+): array {
+
+    $horarios = [];
+
+    $sql = "
+        SELECT
+
+            hf.id,
+            hf.dia_semana,
+            hf.bloque_id,
+            hf.tipo,
+
+            hf.docente_id,
+            hf.curso_id,
+            hf.asignatura_id,
+
+            hf.activo,
+            hf.fecha_inicio,
+            hf.fecha_fin,
+
+            c.nombre_curso AS curso,
+
+            a.asignatura_nombre AS asignatura,
+
+            CONCAT(
+                SUBSTRING_INDEX(d.nombres, ' ', 1),
+                ' ',
+                SUBSTRING_INDEX(d.apellidos, ' ', 1)
+            ) AS docente,
+
+            b.numero_bloque,
+            b.hora_inicio,
+            b.hora_termino
+
+        FROM horarios_fijos hf
+
+        INNER JOIN docentes d
+            ON d.id = hf.docente_id
+
+        INNER JOIN cursos c
+            ON c.id = hf.curso_id
+
+        INNER JOIN asignaturas a
+            ON a.id = hf.asignatura_id
+
+        INNER JOIN bloques b
+            ON b.id = hf.bloque_id
+
+        WHERE hf.activo = 1
+
+          AND hf.fecha_inicio <= ?
+
+          AND (
+                hf.fecha_fin IS NULL
+                OR hf.fecha_fin >= ?
+              )
+
+        ORDER BY
+            hf.dia_semana,
+            hf.bloque_id,
+            hf.tipo
+    ";
+
+    $stmt = $conexion->prepare($sql);
+
+    if (!$stmt) {
+        return [];
+    }
+
+    $stmt->bind_param(
+        "ss",
+        $fechaFin,
+        $fechaInicio
+    );
+
+    $stmt->execute();
+
+    $resultado = $stmt->get_result();
+
+    while ($fila = $resultado->fetch_assoc()) {
+
+        $horarios[] = $fila;
+    }
+
+    $stmt->close();
+
+    return $horarios;
+}
+
+//=====================================================
+// CREAR OCURRENCIAS DE HORARIOS FIJOS
+//
+// Crea una ocurrencia pendiente para cada horario fijo
+// que corresponda a una fecha determinada.
+//
+// No duplica ocurrencias existentes.
+//=====================================================
+
+function crearOcurrenciasHorariosFijos(
+    mysqli $conexion,
+    string $fechaInicio,
+    string $fechaFin
+): int {
+
+    $horariosFijos = obtenerHorariosFijos(
+        $conexion,
+        $fechaInicio,
+        $fechaFin
+    );
+
+    if (empty($horariosFijos)) {
+        return 0;
+    }
+
+    $creadas = 0;
+
+    $stmt = $conexion->prepare("
+        INSERT IGNORE INTO horarios_fijos_ocurrencias (
+            horario_fijo_id,
+            fecha,
+            estado
+        )
+        VALUES (?, ?, 'pendiente')
+    ");
+
+    if (!$stmt) {
+        return 0;
+    }
+
+    foreach ($horariosFijos as $horario) {
+
+        $fecha = new DateTime($fechaInicio);
+        $fin = new DateTime($fechaFin);
+
+        while ($fecha <= $fin) {
+
+            $diaSemana = (int) $fecha->format('N');
+
+            if (
+                $diaSemana === (int) $horario['dia_semana']
+            ) {
+
+                $fechaActual = $fecha->format('Y-m-d');
+
+                if (
+                    $fechaActual >= $horario['fecha_inicio']
+                    &&
+                    (
+                        $horario['fecha_fin'] === null
+                        ||
+                        $fechaActual <= $horario['fecha_fin']
+                    )
+                ) {
+
+                    $horarioFijoId = (int) $horario['id'];
+
+                    $stmt->bind_param(
+                        "is",
+                        $horarioFijoId,
+                        $fechaActual
+                    );
+
+                    $stmt->execute();
+
+                    if ($stmt->affected_rows > 0) {
+                        $creadas++;
+                    }
+                }
+            }
+
+            $fecha->modify('+1 day');
+        }
+    }
+
+    $stmt->close();
+
+    return $creadas;
 }

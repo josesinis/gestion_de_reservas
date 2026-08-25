@@ -115,7 +115,7 @@ $cursos = obtenerCursos($conexion);
 // 5.4 ASIGNATURAS
 //-----------------------------------------------------
 
-$asignaturas = obtenerAsignaturas($conexion);
+/*$asignaturas = obtenerAsignaturas($conexion);*/
 
 ?>
 
@@ -319,19 +319,12 @@ $asignaturas = obtenerAsignaturas($conexion);
                     <select
                         id="asignatura_id"
                         name="asignatura_id"
-                        required>
+                        required
+                        disabled>
 
                         <option value="">
-                            Seleccionar asignatura
+                            Seleccionar docente primero
                         </option>
-
-                        <?php foreach ($asignaturas as $asignatura): ?>
-
-                            <option value="<?= $asignatura['id']; ?>">
-                                <?= htmlspecialchars($asignatura['asignatura_nombre']); ?>
-                            </option>
-
-                        <?php endforeach; ?>
 
                     </select>
 
@@ -425,6 +418,7 @@ $asignaturas = obtenerAsignaturas($conexion);
                 </button>
 
             </div>
+            <script src="../../assets/js/reservas.js"></script>
     </form>
 </div>
 
