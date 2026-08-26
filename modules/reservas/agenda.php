@@ -76,13 +76,18 @@ $reservas = obtenerReservas(
     $fechaFin
 );
 
-/*echo "<pre>";
+$horariosFijosPorFecha = obtenerHorariosFijosPorFecha(
+    $conexion,
+    $fechaInicio,
+    $fechaFin
+);
 
-print_r($reservas);
-
-echo "</pre>";
-
-exit;*/
+$ocurrenciasHorariosFijosPorFecha =
+    obtenerOcurrenciasHorariosFijosPorFecha(
+        $conexion,
+        $fechaInicio,
+        $fechaFin
+    );
 
 ?>
 
@@ -342,6 +347,67 @@ exit;*/
                             $reservaSub1     = $tiposReservados['sub1'] ?? null;
                             $reservaSub2     = $tiposReservados['sub2'] ?? null;
 
+                            $horariosFijosBloque =
+                                $horariosFijosPorFecha[$dia['fecha']][$bloque['id']]
+                                ?? [];
+
+                            $ocurrenciasFijasBloque =
+                                $ocurrenciasHorariosFijosPorFecha[$dia['fecha']][$bloque['id']]
+                                ?? [];
+
+                            $ocurrenciaFijaCompleta =
+                                $ocurrenciasFijasBloque['completo']
+                                ?? null;
+
+                            $ocurrenciaFijaSub1 =
+                                $ocurrenciasFijasBloque['sub1']
+                                ?? null;
+
+                            $ocurrenciaFijaSub2 =
+                                $ocurrenciasFijasBloque['sub2']
+                                ?? null;
+
+                            $horarioFijoCompleto =
+                                $horariosFijosBloque['completo']
+                                ?? null;
+
+                            $horarioFijoSub1 =
+                                $horariosFijosBloque['sub1']
+                                ?? null;
+
+                            $horarioFijoSub2 =
+                                $horariosFijosBloque['sub2']
+                                ?? null;
+
+                            //=====================================================
+                            // OCULTAR HORARIO FIJO REASIGNADO
+                            //
+                            // Si la ocurrencia fue reasignada, el horario fijo
+                            // original deja de mostrarse y la agenda mostrará
+                            // la reserva que lo reemplazó.
+                            //=====================================================
+
+                            if (
+                                $ocurrenciaFijaCompleta !== null &&
+                                $ocurrenciaFijaCompleta['estado'] === 'reasignada'
+                            ) {
+                                $horarioFijoCompleto = null;
+                            }
+
+                            if (
+                                $ocurrenciaFijaSub1 !== null &&
+                                $ocurrenciaFijaSub1['estado'] === 'reasignada'
+                            ) {
+                                $horarioFijoSub1 = null;
+                            }
+
+                            if (
+                                $ocurrenciaFijaSub2 !== null &&
+                                $ocurrenciaFijaSub2['estado'] === 'reasignada'
+                            ) {
+                                $horarioFijoSub2 = null;
+                            }
+
                             ?>
 
                             <td class="agenda-celda">
@@ -351,7 +417,10 @@ exit;*/
                                 $bloqueLibre =
                                     !$reservaCompleta &&
                                     !$reservaSub1 &&
-                                    !$reservaSub2;
+                                    !$reservaSub2 &&
+                                    !$horarioFijoCompleto &&
+                                    !$horarioFijoSub1 &&
+                                    !$horarioFijoSub2;
 
                                 /*
                                 echo '<pre>';
@@ -400,97 +469,120 @@ exit;*/
 
                                     <?php endif; ?>
 
+                                <?php elseif ($horarioFijoCompleto): ?>
+
+                                    <?= renderizarTarjetaHorarioFijo(
+                                        $horarioFijoCompleto,
+                                        $ocurrenciaFijaCompleta
+                                    ); ?>
+
                                 <?php elseif ($reservaCompleta): ?>
 
                                     <?= renderizarTarjetaReserva($reservaCompleta); ?>
 
                                 <?php else: ?>
 
-                                    <div class="agenda-subbloques">
+                                    <div class="agenda-subbloque">
 
                                         <!-- SUBBLOQUE 1 -->
 
-                                        <div class="agenda-subbloque">
+                                        <?php if ($horarioFijoSub1): ?>
 
-                                            <?php if ($reservaSub1): ?>
+                                            <?= renderizarTarjetaHorarioFijo(
+                                                $horarioFijoSub1,
+                                                $ocurrenciaFijaSub1
+                                            ); ?>
 
-                                                <?= renderizarTarjetaReserva($reservaSub1); ?>
+                                        <?php elseif ($reservaSub1): ?>
 
-                                            <?php else: ?>
+                                            <?= renderizarTarjetaReserva(
+                                                $reservaSub1
+                                            ); ?>
 
-                                                <?php if (
-                                                    horarioPuedeReservarse(
-                                                        $dia['fecha'],
-                                                        $bloque,
-                                                        'sub1'
-                                                    )
-                                                ): ?>
+                                        <?php else: ?>
 
-                                                    <button
-                                                        type="button"
-                                                        class="agenda-libre"
-                                                        data-url="agregar.php?fecha=<?= urlencode($dia['fecha']) ?>&bloque=<?= $bloque['id'] ?>&tipo=sub1">
+                                            <?php if (
+                                                horarioPuedeReservarse(
+                                                    $dia['fecha'],
+                                                    $bloque,
+                                                    'sub1'
+                                                )
+                                            ): ?>
 
-                                                        +
+                                                <button
+                                                    type="button"
+                                                    class="agenda-libre"
+                                                    data-url="agregar.php?fecha=<?= urlencode($dia['fecha']) ?>&bloque=<?= $bloque['id'] ?>&tipo=sub1">
 
-                                                    </button>
+                                                    +
 
-                                                <?php endif; ?>
-
-                                            <?php endif; ?>
-
-                                        </div>
-
-                                        <!-- SUBBLOQUE 2 -->
-
-                                        <div class="agenda-subbloque">
-
-                                            <?php if ($reservaSub2): ?>
-
-                                                <?= renderizarTarjetaReserva($reservaSub2); ?>
-
-                                            <?php else: ?>
-
-                                                <?php if (
-                                                    horarioPuedeReservarse(
-                                                        $dia['fecha'],
-                                                        $bloque,
-                                                        'sub2'
-                                                    )
-                                                ): ?>
-
-                                                    <button
-                                                        type="button"
-                                                        class="agenda-libre"
-                                                        data-url="agregar.php?fecha=<?= urlencode($dia['fecha']) ?>&bloque=<?= $bloque['id'] ?>&tipo=sub2">
-
-                                                        +
-
-                                                    </button>
-
-                                                <?php endif; ?>
+                                                </button>
 
                                             <?php endif; ?>
 
-                                        </div>
+                                        <?php endif; ?>
 
                                     </div>
 
-                                <?php endif; ?>
+                                    <!-- SUBBLOQUE 2 -->
 
-                            </td>
+                                    <div class="agenda-subbloque">
 
-                        <?php endforeach; ?>
+                                        <?php if ($horarioFijoSub2): ?>
 
-                    </tr>
+                                            <?= renderizarTarjetaHorarioFijo(
+                                                $horarioFijoSub2,
+                                                $ocurrenciaFijaSub2
+                                            ); ?>
 
-                <?php endforeach; ?>
+                                        <?php elseif ($reservaSub2): ?>
 
-            </tbody>
+                                            <?= renderizarTarjetaReserva(
+                                                $reservaSub2
+                                            ); ?>
 
-        </table>
+                                        <?php else: ?>
 
-        <!-- =====================================================
+                                            <?php if (
+                                                horarioPuedeReservarse(
+                                                    $dia['fecha'],
+                                                    $bloque,
+                                                    'sub2'
+                                                )
+                                            ): ?>
+
+                                                <button
+                                                    type="button"
+                                                    class="agenda-libre"
+                                                    data-url="agregar.php?fecha=<?= urlencode($dia['fecha']) ?>&bloque=<?= $bloque['id'] ?>&tipo=sub2">
+
+                                                    +
+
+                                                </button>
+
+                                            <?php endif; ?>
+
+                                        <?php endif; ?>
+
+                                    </div>
+
+    </div>
+
+<?php endif; ?>
+
+</td>
+
+<?php endforeach; ?>
+
+</tr>
+
+<?php endforeach; ?>
+
+</tbody>
+
+</table>
+
+<!-- =====================================================
      FORMULARIO - NUEVA RESERVA
 ======================================================
 
@@ -509,7 +601,7 @@ exit;*/
             </div> -->
 
 
-        <!-- =================================================
+<!-- =================================================
          RESUMEN DEL HORARIO SELECCIONADO
     ==================================================
 
@@ -560,9 +652,9 @@ exit;*/
 
         </section> -->
 
-    </div>
+</div>
 
-    <script src="../../assets/js/reservas.js"></script>
+<script src="../../assets/js/reservas.js"></script>
 
 </body>
 

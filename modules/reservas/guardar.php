@@ -22,7 +22,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: agenda.php');
     exit();
 }
-
 //=====================================================
 // 4. RECIBIR DATOS
 //=====================================================
@@ -48,6 +47,42 @@ $permiteEntrega = isset($_POST['permite_entrega']) ? 1 : 0;
 $fechaEntregaOficial = !empty($_POST['fecha_entrega_oficial'])
     ? $_POST['fecha_entrega_oficial']
     : null;
+
+$modo = $_POST['modo'] ?? 'normal';
+
+$ocurrenciaId = isset($_POST['horario_fijo_ocurrencia_id'])
+    ? (int) $_POST['horario_fijo_ocurrencia_id']
+    : 0;
+
+$ocurrenciaHorarioFijo = null;
+
+if ($modo === 'reasignar') {
+
+    if ($ocurrenciaId <= 0) {
+
+        $_SESSION['error'] =
+            'La ocurrencia del horario fijo no es válida.';
+
+        header('Location: agenda.php');
+        exit();
+    }
+
+    $ocurrenciaHorarioFijo =
+        obtenerOcurrenciaHorarioFijo(
+            $conexion,
+            $ocurrenciaId
+        );
+
+
+    if (!$ocurrenciaHorarioFijo) {
+
+        $_SESSION['error'] =
+            'La ocurrencia del horario fijo no existe.';
+
+        header('Location: agenda.php');
+        exit();
+    }
+}
 
 //=====================================================
 // PRUEBA TEMPORAL
@@ -120,6 +155,70 @@ if (!in_array($tipoReserva, $tiposPermitidos, true)) {
 }
 
 //=====================================================
+// VALIDAR REASIGNACIÓN DE HORARIO FIJO
+//=====================================================
+
+if ($modo === 'reasignar') {
+
+    // La ocurrencia debe estar pendiente.
+
+    if (
+        $ocurrenciaHorarioFijo['estado']
+        !== 'pendiente'
+    ) {
+
+        $errores[] =
+            'Esta ocurrencia de horario fijo ya no está disponible para reasignación.';
+    }
+
+    // Solo los horarios fijos de tipo asignatura
+    // pueden ser reasignados.
+
+    if (
+        $ocurrenciaHorarioFijo['modalidad']
+        !== 'asignatura'
+    ) {
+
+        $errores[] =
+            'Este horario fijo no puede ser reasignado.';
+    }
+
+    // El tipo de reserva debe ser exactamente
+    // el mismo que tenía el horario fijo.
+
+    if (
+        $tipoReserva
+        !== $ocurrenciaHorarioFijo['tipo']
+    ) {
+
+        $errores[] =
+            'El tipo de reserva no coincide con el horario fijo.';
+    }
+
+    // La fecha debe corresponder a la ocurrencia.
+
+    if (
+        $fecha
+        !== $ocurrenciaHorarioFijo['fecha']
+    ) {
+
+        $errores[] =
+            'La fecha no coincide con la ocurrencia del horario fijo.';
+    }
+
+    // El bloque debe corresponder a la ocurrencia.
+
+    if (
+        $bloqueId
+        !== (int) $ocurrenciaHorarioFijo['bloque_id']
+    ) {
+
+        $errores[] =
+            'El bloque no coincide con la ocurrencia del horario fijo.';
+    }
+}
+
+//=====================================================
 // VALIDAR SI LA RESERVA PUEDE SER CREADA
 //=====================================================
 
@@ -131,7 +230,6 @@ $bloque = obtenerBloque(
 if (!$bloque) {
 
     $errores[] = 'El bloque seleccionado no existe.';
-
 } elseif (
     !horarioPuedeReservarse(
         $fecha,
@@ -168,16 +266,28 @@ if ($fechaInicioSemanaReserva < $fechaInicioSemanaActual) {
 
 if (!empty($errores)) {
 
-    $_SESSION['error'] = implode('<br>', $errores);
+    $_SESSION['error'] =
+        implode('<br>', $errores);
+
+    $paramsError = [
+        'fecha'  => $fecha,
+        'bloque' => $bloqueId,
+        'tipo'   => $tipoReserva
+    ];
+
+    if ($modo === 'reasignar') {
+
+        $paramsError['modo'] =
+            'reasignar';
+
+        $paramsError['horario_fijo_ocurrencia_id'] =
+            $ocurrenciaId;
+    }
 
     header(
-        'Location: agregar.php?' . http_build_query([
-            'fecha'  => $fecha,
-            'bloque' => $bloqueId,
-            'tipo'   => $tipoReserva
-        ])
+        'Location: agregar.php?'
+            . http_build_query($paramsError)
     );
-    exit();
 
     exit();
 }
@@ -202,7 +312,6 @@ if (
 
     exit();
 }
-
 
 
 //=====================================================
@@ -232,7 +341,13 @@ VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 $stmt = $conexion->prepare($sql);
 
 if (!$stmt) {
-    die($conexion->error);
+
+    $_SESSION['error'] =
+        'No fue posible preparar el registro de la reserva.';
+
+    header('Location: agregar.php');
+
+    exit();
 }
 
 $stmt->bind_param(
@@ -253,15 +368,191 @@ $stmt->bind_param(
     $fechaEntregaOficial
 );
 
-if ($stmt->execute()) {
+//=====================================================
+// RESERVA NORMAL
+//=====================================================
 
-    $_SESSION['exito'] = 'La reserva fue creada correctamente.';
-} else {
+if ($modo !== 'reasignar') {
 
-    $_SESSION['error'] = 'Ocurrió un error al guardar la reserva.';
+    if ($stmt->execute()) {
+
+        $_SESSION['exito'] =
+            'La reserva fue creada correctamente.';
+    } else {
+
+        $_SESSION['error'] =
+            'Ocurrió un error al guardar la reserva.';
+    }
+
+    $stmt->close();
+
+    header('Location: agenda.php');
+    exit();
 }
 
-$stmt->close();
+//=====================================================
+// REASIGNACIÓN DE HORARIO FIJO
+//=====================================================
+
+/*
+ * Desde aquí comienza una operación que afecta
+ * tres elementos:
+ *
+ * 1. nueva reserva
+ * 2. ocurrencia del horario fijo
+ * 3. bitácora
+ *
+ * Las tres operaciones deben completarse juntas.
+ */
+
+
+$conexion->begin_transaction();
+
+try {
+
+    //=================================================
+    // 1. CREAR LA NUEVA RESERVA
+    //=================================================
+
+    if (!$stmt->execute()) {
+
+        throw new Exception(
+            'No fue posible crear la reserva.'
+        );
+    }
+
+    $reservaId = $conexion->insert_id;
+
+    $stmt->close();
+
+
+    //=================================================
+    // 2. ACTUALIZAR LA OCURRENCIA
+    //=================================================
+
+    $sqlOcurrencia = "
+        UPDATE horarios_fijos_ocurrencias
+        SET
+            estado = 'reasignada',
+            reserva_id = ?,
+            usuario_id = ?,
+            fecha_confirmacion = NOW()
+        WHERE id = ?
+          AND estado = 'pendiente'
+    ";
+
+    $stmtOcurrencia =
+        $conexion->prepare($sqlOcurrencia);
+
+    if (!$stmtOcurrencia) {
+
+        throw new Exception(
+            'No fue posible preparar la actualización de la ocurrencia.'
+        );
+    }
+
+    $stmtOcurrencia->bind_param(
+        "iii",
+        $reservaId,
+        $usuarioId,
+        $ocurrenciaId
+    );
+
+    if (!$stmtOcurrencia->execute()) {
+
+        throw new Exception(
+            'No fue posible actualizar la ocurrencia del horario fijo.'
+        );
+    }
+
+    /*
+     * Si no se actualizó ninguna fila significa que,
+     * entre la validación anterior y este momento,
+     * la ocurrencia dejó de estar pendiente.
+     */
+
+    if ($stmtOcurrencia->affected_rows !== 1) {
+
+        throw new Exception(
+            'La ocurrencia del horario fijo ya no está disponible para reasignación.'
+        );
+    }
+
+    $stmtOcurrencia->close();
+
+
+    //=================================================
+    // 3. CREAR BITÁCORA
+    //=================================================
+
+    $observaciones =
+        'Reasignación de horario fijo. '
+        . 'El horario original fue reasignado a la nueva reserva.';
+
+    $sqlBitacora = "
+        INSERT INTO bitacoras (
+            reserva_id,
+            horario_fijo_ocurrencia_id,
+            observaciones
+        )
+        VALUES (?, ?, ?)
+    ";
+
+    $stmtBitacora =
+        $conexion->prepare($sqlBitacora);
+
+    if (!$stmtBitacora) {
+
+        throw new Exception(
+            'No fue posible preparar la bitácora.'
+        );
+    }
+
+    $stmtBitacora->bind_param(
+        "iis",
+        $reservaId,
+        $ocurrenciaId,
+        $observaciones
+    );
+
+    if (!$stmtBitacora->execute()) {
+
+        throw new Exception(
+            'No fue posible registrar la bitácora.'
+        );
+    }
+
+    $stmtBitacora->close();
+
+
+    //=================================================
+    // 4. CONFIRMAR TRANSACCIÓN
+    //=================================================
+
+    $conexion->commit();
+
+    $_SESSION['exito'] =
+        'La reserva fue creada y el horario fijo fue reasignado correctamente.';
+} catch (Throwable $e) {
+
+    //=================================================
+    // ERROR → DESHACER TODO
+    //=================================================
+
+    $conexion->rollback();
+
+    if (isset($stmt) && $stmt) {
+        $stmt->close();
+    }
+
+    $_SESSION['error'] =
+        'No fue posible realizar la reasignación: '
+        . $e->getMessage();
+}
+
+//=====================================================
+// VOLVER A LA AGENDA
+//=====================================================
 
 header('Location: agenda.php');
 exit();

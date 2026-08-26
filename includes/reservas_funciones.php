@@ -1083,6 +1083,7 @@ function obtenerHorariosFijos(
             hf.dia_semana,
             hf.bloque_id,
             hf.tipo,
+            hf.modalidad,
 
             hf.docente_id,
             hf.curso_id,
@@ -1189,13 +1190,16 @@ function crearOcurrenciasHorariosFijos(
     $creadas = 0;
 
     $stmt = $conexion->prepare("
-        INSERT IGNORE INTO horarios_fijos_ocurrencias (
-            horario_fijo_id,
-            fecha,
-            estado
-        )
-        VALUES (?, ?, 'pendiente')
-    ");
+    INSERT IGNORE INTO horarios_fijos_ocurrencias (
+        horario_fijo_id,
+        fecha,
+        estado,
+        docente_id,
+        curso_id,
+        asignatura_id
+    )
+    VALUES (?, ?, 'pendiente', ?, ?, ?)
+");
 
     if (!$stmt) {
         return 0;
@@ -1228,10 +1232,17 @@ function crearOcurrenciasHorariosFijos(
 
                     $horarioFijoId = (int) $horario['id'];
 
+                    $docenteId = (int) $horario['docente_id'];
+                    $cursoId = (int) $horario['curso_id'];
+                    $asignaturaId = (int) $horario['asignatura_id'];
+
                     $stmt->bind_param(
-                        "is",
+                        "isiii",
                         $horarioFijoId,
-                        $fechaActual
+                        $fechaActual,
+                        $docenteId,
+                        $cursoId,
+                        $asignaturaId
                     );
 
                     $stmt->execute();
@@ -1249,4 +1260,298 @@ function crearOcurrenciasHorariosFijos(
     $stmt->close();
 
     return $creadas;
+}
+
+//=====================================================
+// OBTENER HORARIOS FIJOS POR FECHA
+//
+// Organiza los horarios fijos de una semana usando:
+//
+// fecha → bloque → tipo
+//
+// Ejemplo:
+//
+// $horarios['2026-08-24'][2]['sub1']
+//=====================================================
+
+function obtenerHorariosFijosPorFecha(
+    mysqli $conexion,
+    string $fechaInicio,
+    string $fechaFin
+): array {
+
+    $horarios = [];
+
+    $horariosFijos = obtenerHorariosFijos(
+        $conexion,
+        $fechaInicio,
+        $fechaFin
+    );
+
+    foreach ($horariosFijos as $horario) {
+
+        $fecha = new DateTime($fechaInicio);
+        $fin = new DateTime($fechaFin);
+
+        while ($fecha <= $fin) {
+
+            $diaSemana = (int) $fecha->format('N');
+
+            if (
+                $diaSemana === (int) $horario['dia_semana']
+            ) {
+
+                $fechaActual = $fecha->format('Y-m-d');
+
+                if (
+                    $fechaActual >= $horario['fecha_inicio']
+                    &&
+                    (
+                        $horario['fecha_fin'] === null
+                        ||
+                        $fechaActual <= $horario['fecha_fin']
+                    )
+                ) {
+
+                    $bloqueId = (int) $horario['bloque_id'];
+
+                    $tipo = $horario['tipo'];
+
+                    $horarios[$fechaActual][$bloqueId][$tipo]
+                        = $horario;
+                }
+            }
+
+            $fecha->modify('+1 day');
+        }
+    }
+
+    return $horarios;
+}
+
+//=====================================================
+// RENDERIZAR TARJETA DE HORARIO FIJO
+//
+// Muestra la información básica de un horario fijo
+// dentro de la agenda.
+//=====================================================
+
+function renderizarTarjetaHorarioFijo(
+    array $horario,
+    ?array $ocurrencia = null
+): string {
+
+    $curso = htmlspecialchars(
+        $horario['curso'],
+        ENT_QUOTES,
+        'UTF-8'
+    );
+
+    $asignatura = htmlspecialchars(
+        $horario['asignatura'],
+        ENT_QUOTES,
+        'UTF-8'
+    );
+
+    $docente = htmlspecialchars(
+        $horario['docente'],
+        ENT_QUOTES,
+        'UTF-8'
+    );
+
+    $botonReasignar = '';
+
+    if (
+        $ocurrencia !== null &&
+        $ocurrencia['estado'] === 'pendiente' &&
+        $horario['modalidad'] === 'asignatura'
+    ) {
+
+        $botonReasignar = '
+        <a
+            href="agregar.php?modo=reasignar&horario_fijo_ocurrencia_id='
+            . (int) $ocurrencia['id'] . '"
+            class="agenda-btn-reasignar">
+
+            Reasignar
+
+        </a>
+    ';
+    }
+
+    return '
+        <div class="agenda-tarjeta agenda-tarjeta-fijo">
+
+            <div class="agenda-tarjeta-curso">
+                ' . $curso . '
+            </div>
+
+            <div class="agenda-tarjeta-asignatura">
+                ' . $asignatura . '
+            </div>
+
+            <div class="agenda-tarjeta-docente">
+                ' . $docente . '
+            </div>
+
+            <div class="agenda-tarjeta-tipo">
+                Horario fijo
+            </div>
+
+            ' . $botonReasignar . '
+
+        </div>
+    ';
+}
+
+//=====================================================
+// OBTENER OCURRENCIAS DE HORARIOS FIJOS POR FECHA
+//
+// Organiza las ocurrencias usando:
+//
+// fecha → bloque → tipo
+//
+// Permite conocer el ID y estado de la ocurrencia
+// correspondiente a cada horario fijo.
+//=====================================================
+
+function obtenerOcurrenciasHorariosFijosPorFecha(
+    mysqli $conexion,
+    string $fechaInicio,
+    string $fechaFin
+): array {
+
+    $ocurrencias = [];
+
+    $sql = "
+        SELECT
+            hfo.id,
+            hfo.horario_fijo_id,
+            hfo.fecha,
+            hfo.estado,
+            hfo.docente_id,
+            hfo.curso_id,
+            hfo.asignatura_id,
+            hfo.usuario_id,
+            hfo.reserva_id,
+            hfo.observaciones,
+            hfo.fecha_confirmacion,
+            hf.bloque_id,
+            hf.tipo
+        FROM horarios_fijos_ocurrencias hfo
+        INNER JOIN horarios_fijos hf
+            ON hf.id = hfo.horario_fijo_id
+        WHERE hfo.fecha BETWEEN ? AND ?
+        ORDER BY hfo.fecha, hf.bloque_id, hf.tipo
+    ";
+
+    $stmt = $conexion->prepare($sql);
+
+    if (!$stmt) {
+        return [];
+    }
+
+    $stmt->bind_param(
+        "ss",
+        $fechaInicio,
+        $fechaFin
+    );
+
+    $stmt->execute();
+
+    $resultado = $stmt->get_result();
+
+    while ($fila = $resultado->fetch_assoc()) {
+
+        $fecha = $fila['fecha'];
+        $bloqueId = (int) $fila['bloque_id'];
+        $tipo = $fila['tipo'];
+
+        $ocurrencias[$fecha][$bloqueId][$tipo] = $fila;
+    }
+
+    $stmt->close();
+
+    return $ocurrencias;
+}
+
+//=====================================================
+// OBTENER UNA OCURRENCIA DE HORARIO FIJO
+//
+// Se utiliza para iniciar una reasignación.
+//=====================================================
+
+function obtenerOcurrenciaHorarioFijo(
+    mysqli $conexion,
+    int $ocurrenciaId
+): ?array {
+
+    $sql = "
+        SELECT
+            hfo.id,
+            hfo.horario_fijo_id,
+            hfo.fecha,
+            hfo.estado,
+            hfo.docente_id,
+            hfo.curso_id,
+            hfo.asignatura_id,
+            hfo.usuario_id,
+            hfo.reserva_id,
+            hfo.observaciones,
+            hfo.fecha_confirmacion,
+
+            hf.bloque_id,
+            hf.tipo,
+            hf.modalidad,
+
+            b.numero_bloque,
+            b.hora_inicio,
+            b.hora_termino,
+
+            CONCAT(d.nombres, ' ', d.apellidos) AS docente,
+            c.nombre_curso,
+            a.asignatura_nombre
+
+        FROM horarios_fijos_ocurrencias hfo
+
+        INNER JOIN horarios_fijos hf
+            ON hf.id = hfo.horario_fijo_id
+
+        INNER JOIN bloques b
+            ON b.id = hf.bloque_id
+
+        INNER JOIN docentes d
+            ON d.id = hfo.docente_id
+
+        INNER JOIN cursos c
+            ON c.id = hfo.curso_id
+
+        INNER JOIN asignaturas a
+            ON a.id = hfo.asignatura_id
+
+        WHERE hfo.id = ?
+
+        LIMIT 1
+    ";
+
+    $stmt = $conexion->prepare($sql);
+
+    if (!$stmt) {
+        return null;
+    }
+
+    $stmt->bind_param(
+        "i",
+        $ocurrenciaId
+    );
+
+    $stmt->execute();
+
+    $resultado = $stmt->get_result();
+
+    $ocurrencia = $resultado->fetch_assoc();
+
+    $stmt->close();
+
+    return $ocurrencia ?: null;
 }

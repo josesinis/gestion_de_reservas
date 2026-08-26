@@ -36,10 +36,17 @@ require_once '../../includes/reservas_funciones.php';
 // 3. RECIBIR VARIABLES
 //=====================================================
 
+$modo = $_GET['modo'] ?? 'normal';
+
+$ocurrenciaId = isset($_GET['horario_fijo_ocurrencia_id'])
+    ? (int) $_GET['horario_fijo_ocurrencia_id']
+    : 0;
+
 $fecha = $_GET['fecha'] ?? '';
 
-
-$bloqueId = isset($_GET['bloque']) ? (int) $_GET['bloque'] : 0;
+$bloqueId = isset($_GET['bloque'])
+    ? (int) $_GET['bloque']
+    : 0;
 
 $tipoReserva = $_GET['tipo'] ?? 'completo';
 
@@ -52,8 +59,64 @@ exit;*/
 // 4. VALIDAR VARIABLES
 //=====================================================
 
-if ($fecha === '' || $bloqueId <= 0) {
-    die('Parámetros inválidos.');
+//=====================================================
+// MODO REASIGNACIÓN DE HORARIO FIJO
+//=====================================================
+
+$ocurrenciaHorarioFijo = null;
+
+if ($modo === 'reasignar') {
+
+    if ($ocurrenciaId <= 0) {
+        die('Ocurrencia de horario fijo no válida.');
+    }
+
+    $ocurrenciaHorarioFijo =
+        obtenerOcurrenciaHorarioFijo(
+            $conexion,
+            $ocurrenciaId
+        );
+
+    if (!$ocurrenciaHorarioFijo) {
+        die('La ocurrencia del horario fijo no existe.');
+    }
+
+    // La información real se obtiene desde la BD.
+
+    $fecha = $ocurrenciaHorarioFijo['fecha'];
+
+    $bloqueId =
+        (int) $ocurrenciaHorarioFijo['bloque_id'];
+
+    $tipoReserva =
+        $ocurrenciaHorarioFijo['tipo'];
+
+    // Solo se pueden reasignar horarios de asignatura.
+
+    if (
+        $ocurrenciaHorarioFijo['modalidad']
+        !== 'asignatura'
+    ) {
+        die('Este horario fijo no puede ser reasignado.');
+    }
+
+    // Solo una ocurrencia pendiente puede ser reasignada.
+
+    if (
+        $ocurrenciaHorarioFijo['estado']
+        !== 'pendiente'
+    ) {
+        die('Esta ocurrencia ya no está disponible para reasignación.');
+    }
+} else {
+
+    //=================================================
+    // RESERVA NORMAL
+    //=================================================
+
+    if ($fecha === '' || $bloqueId <= 0) {
+        die('Parámetros inválidos.');
+    }
 }
 
 //=====================================================
@@ -135,6 +198,49 @@ $cursos = obtenerCursos($conexion);
 
     <h1>Nueva reserva</h1>
 
+    <?php if ($modo === 'reasignar'): ?>
+
+        <div class="agenda-reasignacion">
+
+            <h2>Reasignación de horario fijo</h2>
+
+            <p>
+                Esta reserva reemplazará temporalmente
+                el horario fijo planificado.
+            </p>
+
+            <div class="agenda-reasignacion-datos">
+
+                <div>
+                    <strong>Docente original:</strong>
+
+                    <?= htmlspecialchars(
+                        $ocurrenciaHorarioFijo['docente']
+                    ); ?>
+                </div>
+
+                <div>
+                    <strong>Curso original:</strong>
+
+                    <?= htmlspecialchars(
+                        $ocurrenciaHorarioFijo['nombre_curso']
+                    ); ?>
+                </div>
+
+                <div>
+                    <strong>Asignatura original:</strong>
+
+                    <?= htmlspecialchars(
+                        $ocurrenciaHorarioFijo['asignatura_nombre']
+                    ); ?>
+                </div>
+
+            </div>
+
+        </div>
+
+    <?php endif; ?>
+
     <p class="agenda-subtitulo">
         Complete los datos para registrar la reserva.
     </p>
@@ -158,6 +264,20 @@ $cursos = obtenerCursos($conexion);
             type="hidden"
             name="tipo_reserva"
             value="<?= htmlspecialchars($tipoReserva) ?>">
+
+        <?php if ($modo === 'reasignar'): ?>
+
+            <input
+                type="hidden"
+                name="modo"
+                value="reasignar">
+
+            <input
+                type="hidden"
+                name="horario_fijo_ocurrencia_id"
+                value="<?= $ocurrenciaId; ?>">
+
+        <?php endif; ?>
 
         <div class="grupo-formulario">
 
@@ -205,16 +325,26 @@ $cursos = obtenerCursos($conexion);
 
                 <legend>Tipo de reserva</legend>
 
-                <?php if (count($opcionesReserva) === 1): ?>
+                <?php if ($modo === 'reasignar'): ?>
 
                     <div class="agenda-reserva-info">
 
                         <strong>
-                            <?= htmlspecialchars($opcionesReserva[0]['texto']); ?>
+                            <?php
+                            if ($tipoReserva === 'completo') {
+                                echo 'Bloque completo';
+                            } elseif ($tipoReserva === 'sub1') {
+                                echo 'Primer bloque (45 min)';
+                            } elseif ($tipoReserva === 'sub2') {
+                                echo 'Segundo bloque (45 min)';
+                            }
+                            ?>
                         </strong>
 
                         <span>
-                            <?= htmlspecialchars($opcionesReserva[0]['horario']); ?>
+                            <?= htmlspecialchars($horaInicio); ?>
+                            -
+                            <?= htmlspecialchars($horaTermino); ?>
                         </span>
 
                     </div>
@@ -222,7 +352,32 @@ $cursos = obtenerCursos($conexion);
                     <input
                         type="hidden"
                         name="tipo_reserva"
-                        value="<?= htmlspecialchars($opcionesReserva[0]['tipo']); ?>">
+                        value="<?= htmlspecialchars($tipoReserva); ?>">
+
+                <?php elseif (count($opcionesReserva) === 1): ?>
+
+                    <div class="agenda-reserva-info">
+
+                        <strong>
+                            <?= htmlspecialchars(
+                                $opcionesReserva[0]['texto']
+                            ); ?>
+                        </strong>
+
+                        <span>
+                            <?= htmlspecialchars(
+                                $opcionesReserva[0]['horario']
+                            ); ?>
+                        </span>
+
+                    </div>
+
+                    <input
+                        type="hidden"
+                        name="tipo_reserva"
+                        value="<?= htmlspecialchars(
+                                    $opcionesReserva[0]['tipo']
+                                ); ?>">
 
                 <?php else: ?>
 
@@ -233,15 +388,23 @@ $cursos = obtenerCursos($conexion);
                             <input
                                 type="radio"
                                 name="tipo_reserva"
-                                value="<?= htmlspecialchars($opcion['tipo']); ?>"
-                                <?= $opcion['tipo'] === $tipoReserva ? 'checked' : ''; ?>>
+                                value="<?= htmlspecialchars(
+                                            $opcion['tipo']
+                                        ); ?>"
+                                <?= $opcion['tipo'] === $tipoReserva
+                                    ? 'checked'
+                                    : ''; ?>>
 
                             <span>
-                                <?= htmlspecialchars($opcion['texto']); ?>
+                                <?= htmlspecialchars(
+                                    $opcion['texto']
+                                ); ?>
                             </span>
 
                             <small>
-                                <?= htmlspecialchars($opcion['horario']); ?>
+                                <?= htmlspecialchars(
+                                    $opcion['horario']
+                                ); ?>
                             </small>
 
                         </label>
