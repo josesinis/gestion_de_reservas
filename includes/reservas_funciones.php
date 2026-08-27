@@ -168,13 +168,14 @@ function obtenerAsignaturas(mysqli $conexion): array
     return $resultado->fetch_all(MYSQLI_ASSOC);
 }
 
-//=====================================================
+///=====================================================
 // OBTENER ASIGNATURAS DE UN DOCENTE
 //=====================================================
 
 function obtenerAsignaturasPorDocente(
     mysqli $conexion,
-    int $docenteId
+    int $docenteId,
+    string $modalidad = 'asignatura'
 ): array {
 
     $sql = "
@@ -186,7 +187,9 @@ function obtenerAsignaturasPorDocente(
         INNER JOIN asignaturas a
             ON a.id = da.asignatura_id
 
-        WHERE da.docente_id = ?
+        WHERE
+            da.docente_id = ?
+            AND a.modalidad = ?
 
         ORDER BY a.asignatura_nombre
     ";
@@ -198,8 +201,9 @@ function obtenerAsignaturasPorDocente(
     }
 
     $stmt->bind_param(
-        "i",
-        $docenteId
+        "is",
+        $docenteId,
+        $modalidad
     );
 
     $stmt->execute();

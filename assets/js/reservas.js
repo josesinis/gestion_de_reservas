@@ -1,27 +1,10 @@
-
-
 //=====================================================
 // ABRIR FORMULARIO DE RESERVA
 //=====================================================
 
-/*document.querySelectorAll('.agenda-libre').forEach(boton => {
-
-    boton.addEventListener('click', function () {
-
-        window.location.href = this.dataset.url;
-
-    });
-
-});*/
-
-/*console.log("reservas.js cargado");*/
-
 document.querySelectorAll('.agenda-libre').forEach(boton => {
 
     boton.addEventListener('click', function () {
-
-       /* console.log("CLICK");
-        console.log(this.dataset.url);*/
 
         window.location.href = this.dataset.url;
 
@@ -31,118 +14,248 @@ document.querySelectorAll('.agenda-libre').forEach(boton => {
 
 
 //=====================================================
-// FILTRAR ASIGNATURAS SEGÚN DOCENTE
+// FILTRAR ASIGNATURAS SEGÚN DOCENTE Y MODALIDAD
 //=====================================================
 
-const docenteSelect = document.getElementById('docente_id');
-const asignaturaSelect = document.getElementById('asignatura_id');
+const docenteSelect =
+    document.getElementById('docente_id');
+
+const asignaturaSelect =
+    document.getElementById('asignatura_id');
+
+const modalidadSelect =
+    document.getElementById('modalidad');
+
 
 if (docenteSelect && asignaturaSelect) {
 
-    docenteSelect.addEventListener('change', function () {
+    docenteSelect.addEventListener(
+        'change',
+        cargarAsignaturas
+    );
 
-        const docenteId = this.value;
+}
 
-        asignaturaSelect.innerHTML = '';
 
-        if (!docenteId) {
+//=====================================================
+// CARGAR ASIGNATURAS
+//=====================================================
 
-            const opcion = document.createElement('option');
+function cargarAsignaturas() {
 
-            opcion.value = '';
-            opcion.textContent = 'Seleccionar docente primero';
+    const docenteId =
+        docenteSelect.value;
 
-            asignaturaSelect.appendChild(opcion);
+    const modalidad =
+        modalidadSelect
+            ? modalidadSelect.value
+            : 'asignatura';
 
-            asignaturaSelect.disabled = true;
 
-            return;
-        }
+    //=================================================
+    // LIMPIAR ASIGNATURAS
+    //=================================================
+
+    asignaturaSelect.innerHTML = '';
+
+
+    //=================================================
+    // VALIDAR DOCENTE
+    //=================================================
+
+    if (!docenteId) {
+
+        const opcion =
+            document.createElement('option');
+
+        opcion.value = '';
+
+        opcion.textContent =
+            'Seleccionar docente primero';
+
+        asignaturaSelect.appendChild(
+            opcion
+        );
 
         asignaturaSelect.disabled = true;
 
-        const cargando = document.createElement('option');
+        return;
+    }
 
-        cargando.value = '';
-        cargando.textContent = 'Cargando asignaturas...';
 
-        asignaturaSelect.appendChild(cargando);
+    //=================================================
+    // VALIDAR MODALIDAD
+    //=================================================
 
-        fetch(
-            'asignaturas_docente.php?docente_id='
-            + encodeURIComponent(docenteId)
-        )
-            .then(response => {
+    if (
+        modalidad !== 'asignatura' &&
+        modalidad !== 'taller'
+    ) {
 
-                if (!response.ok) {
-                    throw new Error(
-                        'Error al consultar las asignaturas.'
-                    );
-                }
+        const opcion =
+            document.createElement('option');
 
-                return response.json();
-            })
+        opcion.value = '';
 
-            .then(asignaturas => {
+        opcion.textContent =
+            'Seleccionar modalidad primero';
 
-                asignaturaSelect.innerHTML = '';
+        asignaturaSelect.appendChild(
+            opcion
+        );
 
-                const inicial = document.createElement('option');
+        asignaturaSelect.disabled = true;
 
-                inicial.value = '';
-                inicial.textContent =
-                    'Seleccionar asignatura';
+        return;
+    }
 
-                asignaturaSelect.appendChild(inicial);
 
-                if (asignaturas.length === 0) {
+    //=================================================
+    // MOSTRAR CARGANDO
+    //=================================================
 
-                    const sinAsignaturas =
-                        document.createElement('option');
+    asignaturaSelect.disabled = true;
 
-                    sinAsignaturas.value = '';
+    const cargando =
+        document.createElement('option');
 
-                    sinAsignaturas.textContent =
-                        'El docente no tiene asignaturas asignadas';
+    cargando.value = '';
 
-                    asignaturaSelect.appendChild(
-                        sinAsignaturas
-                    );
+    cargando.textContent =
+        'Cargando...';
 
-                    return;
-                }
+    asignaturaSelect.appendChild(
+        cargando
+    );
 
-                asignaturas.forEach(asignatura => {
+
+    //=================================================
+    // CONSULTAR SERVIDOR
+    //=================================================
+
+    fetch(
+        'asignaturas_docente.php?docente_id='
+        + encodeURIComponent(docenteId)
+        + '&modalidad='
+        + encodeURIComponent(modalidad)
+    )
+
+        .then(response => {
+
+            if (!response.ok) {
+
+                throw new Error(
+                    'Error al consultar las asignaturas.'
+                );
+            }
+
+            return response.json();
+
+        })
+
+
+        //=================================================
+        // PROCESAR RESULTADO
+        //=================================================
+
+        .then(asignaturas => {
+
+            asignaturaSelect.innerHTML = '';
+
+
+            const inicial =
+                document.createElement('option');
+
+            inicial.value = '';
+
+            inicial.textContent =
+                modalidad === 'taller'
+                    ? 'Seleccionar taller'
+                    : 'Seleccionar asignatura';
+
+            asignaturaSelect.appendChild(
+                inicial
+            );
+
+
+            //=================================================
+            // SIN RESULTADOS
+            //=================================================
+
+            if (asignaturas.length === 0) {
+
+                const sinResultados =
+                    document.createElement('option');
+
+                sinResultados.value = '';
+
+                sinResultados.textContent =
+                    modalidad === 'taller'
+                        ? 'El docente no tiene talleres asignados'
+                        : 'El docente no tiene asignaturas asignadas';
+
+                asignaturaSelect.appendChild(
+                    sinResultados
+                );
+
+                asignaturaSelect.disabled = true;
+
+                return;
+            }
+
+
+            //=================================================
+            // CARGAR RESULTADOS
+            //=================================================
+
+            asignaturas.forEach(
+                asignatura => {
 
                     const opcion =
                         document.createElement('option');
 
-                    opcion.value = asignatura.id;
+                    opcion.value =
+                        asignatura.id;
 
                     opcion.textContent =
                         asignatura.asignatura_nombre;
 
-                    asignaturaSelect.appendChild(opcion);
-                });
+                    asignaturaSelect.appendChild(
+                        opcion
+                    );
 
-                asignaturaSelect.disabled = false;
-            })
+                }
+            );
 
-            .catch(error => {
 
-                console.error(error);
+            asignaturaSelect.disabled = false;
 
-                asignaturaSelect.innerHTML = '';
+        })
 
-                const opcion =
-                    document.createElement('option');
 
-                opcion.value = '';
+        //=================================================
+        // ERROR
+        //=================================================
 
-                opcion.textContent =
-                    'No fue posible cargar las asignaturas';
+        .catch(error => {
 
-                asignaturaSelect.appendChild(opcion);
-            });
-    });
+            console.error(error);
+
+            asignaturaSelect.innerHTML = '';
+
+            const opcion =
+                document.createElement('option');
+
+            opcion.value = '';
+
+            opcion.textContent =
+                'No fue posible cargar las opciones';
+
+            asignaturaSelect.appendChild(
+                opcion
+            );
+
+            asignaturaSelect.disabled = true;
+
+        });
 }
