@@ -65,6 +65,227 @@
     background-color: #f8f9fa;
 }
 
+/*=====================================================
+  TABLA DE LISTADO
+=====================================================*/
+
+.tabla-contenedor {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    margin: 25px 0;
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-borde);
+    background-color: #fff;
+    box-sizing: border-box;
+}
+
+/*=====================================================
+  DESPLAZAMIENTO HORIZONTAL
+=====================================================*/
+
+.tabla-contenedor {
+    scrollbar-width: thin;
+}
+
+.tabla-contenedor::-webkit-scrollbar {
+    height: 10px;
+}
+
+.tabla-contenedor::-webkit-scrollbar-track {
+    background-color: #f1f1f1;
+}
+
+.tabla-contenedor::-webkit-scrollbar-thumb {
+    background-color: #bbb;
+    border-radius: 5px;
+}
+
+.tabla-contenedor::-webkit-scrollbar-thumb:hover {
+    background-color: #999;
+}
+
+.tabla {
+    width: 100%;
+    min-width: 1350px;
+    border-collapse: collapse;
+}
+
+/*=====================================================
+  ENCABEZADO
+=====================================================*/
+
+.tabla thead th {
+    padding: 13px 14px;
+    background-color: var(--color-primario);
+    color: #fff;
+    font-weight: 600;
+    text-align: left;
+    white-space: nowrap;
+}
+
+
+/*=====================================================
+  CELDAS
+=====================================================*/
+
+.tabla tbody td {
+    padding: 12px 14px;
+    border-top: 1px solid #e5e5e5;
+    color: var(--color-texto);
+    vertical-align: middle;
+}
+
+
+/*=====================================================
+  EFECTO CEBRA
+=====================================================*/
+
+.tabla tbody tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+
+
+/*=====================================================
+  EFECTO AL PASAR EL CURSOR
+=====================================================*/
+
+.tabla tbody tr:hover {
+    background-color: #f1f5f9;
+}
+
+
+/*=====================================================
+  ACCIONES
+=====================================================*/
+
+.tabla .acciones {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    white-space: nowrap;
+}
+
+
+/*=====================================================
+  ESTADOS
+=====================================================*/
+
+.tabla .estado {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.tabla .estado-activo {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.tabla .estado-inactivo {
+    background-color: #eeeeee;
+    color: #616161;
+}
+
+/*=====================================================
+  COLUMNA DE ACCIONES FIJA
+=====================================================*/
+
+.tabla th:last-child,
+.tabla td:last-child {
+    position: sticky;
+    right: 0;
+    z-index: 2;
+    background-color: #fff;
+    box-shadow: -4px 0 8px rgba(0, 0, 0, 0.08);
+}
+
+.tabla thead th:last-child {
+    z-index: 3;
+    background-color: var(--color-primario);
+}
+
+.tabla tbody tr:nth-child(even) td:last-child {
+    background-color: #f8f9fa;
+}
+
+.tabla tbody tr:hover td:last-child {
+    background-color: #f1f5f9;
+}
+
+/*=====================================================
+  ANCHOS DE COLUMNAS - TABLAS DE LISTADO
+=====================================================*/
+
+.tabla th:nth-child(1),
+.tabla td:nth-child(1) {
+    width: 90px;
+}
+
+.tabla th:nth-child(2),
+.tabla td:nth-child(2) {
+    width: 70px;
+    text-align: center;
+}
+
+.tabla th:nth-child(3),
+.tabla td:nth-child(3) {
+    width: 110px;
+    white-space: nowrap;
+}
+
+.tabla th:nth-child(4),
+.tabla td:nth-child(4) {
+    width: 130px;
+}
+
+.tabla th:nth-child(5),
+.tabla td:nth-child(5) {
+    width: 110px;
+}
+
+.tabla th:nth-child(6),
+.tabla td:nth-child(6) {
+    width: 140px;
+}
+
+.tabla th:nth-child(7),
+.tabla td:nth-child(7) {
+    width: 90px;
+}
+
+.tabla th:nth-child(8),
+.tabla td:nth-child(8) {
+    width: 160px;
+}
+
+.tabla th:nth-child(9),
+.tabla td:nth-child(9) {
+    width: 110px;
+    white-space: nowrap;
+}
+
+.tabla th:nth-child(10),
+.tabla td:nth-child(10) {
+    width: 110px;
+    white-space: nowrap;
+}
+
+.tabla th:nth-child(11),
+.tabla td:nth-child(11) {
+    width: 90px;
+    text-align: center;
+}
+
+.tabla th:nth-child(12),
+.tabla td:nth-child(12) {
+    width: 190px;
+    min-width: 190px;
+}
+
 /*
 .tabla-detalle tr:first-child th {
     border-top-left-radius: var(--radio-borde);

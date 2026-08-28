@@ -6,6 +6,7 @@
 require_once '../../config/database.php';
 require_once '../../includes/reservas_funciones.php';
 
+
 //=====================================================
 // FILTRO DE ESTADO
 //=====================================================
@@ -38,9 +39,8 @@ if (!in_array(
 // - Inactivos
 // - Todos
 //
-// Se utilizan fechas amplias porque este listado
-// administrativo debe permitir consultar también
-// horarios históricos.
+// Se utilizan fechas amplias para permitir consultar
+// también horarios históricos.
 //=====================================================
 
 $horariosFijos = obtenerHorariosFijos(
@@ -49,6 +49,7 @@ $horariosFijos = obtenerHorariosFijos(
     '2999-12-31',
     $estado
 );
+
 
 //=====================================================
 // NOMBRES DE LOS DÍAS
@@ -61,6 +62,7 @@ $nombresDias = [
     4 => 'Jueves',
     5 => 'Viernes'
 ];
+
 
 //=====================================================
 // FORMATEAR TIPO
@@ -79,6 +81,7 @@ function textoTipoHorarioFijo(string $tipo): string
         default => $tipo
     };
 }
+
 
 //=====================================================
 // FORMATEAR MODALIDAD
@@ -99,6 +102,7 @@ function textoModalidadHorarioFijo(string $modalidad): string
 ?>
 
 <!DOCTYPE html>
+
 <html lang="es">
 
 <head>
@@ -111,7 +115,10 @@ function textoModalidadHorarioFijo(string $modalidad): string
 
     <title>Horarios fijos</title>
 
-    <!-- CSS generales -->
+
+    <!--=================================================
+        CSS GENERALES
+    ==================================================-->
 
     <link
         rel="stylesheet"
@@ -129,17 +136,17 @@ function textoModalidadHorarioFijo(string $modalidad): string
         rel="stylesheet"
         href="../../assets/css/tablas.css">
 
-    <!-- CSS del módulo de reservas -->
-
     <link
         rel="stylesheet"
         href="../../assets/css/reservas.css">
 
 </head>
 
+
 <body>
 
     <div class="contenedor">
+
 
         <!--=================================================
         ENCABEZADO
@@ -159,6 +166,7 @@ function textoModalidadHorarioFijo(string $modalidad): string
 
             </div>
 
+
             <div>
 
                 <a
@@ -173,8 +181,8 @@ function textoModalidadHorarioFijo(string $modalidad): string
 
 
         <!--=================================================
-    FILTRO DE ESTADO
-==================================================-->
+        FILTROS
+    ==================================================-->
 
         <div class="filtros">
 
@@ -183,10 +191,15 @@ function textoModalidadHorarioFijo(string $modalidad): string
                 action="index.php"
                 class="formulario-filtros">
 
+
+                <!--=========================================
+                ESTADO
+            ==========================================-->
+
                 <div class="campo">
 
                     <label for="estado">
-                        Estado
+                        Mostrar
                     </label>
 
                     <select
@@ -198,7 +211,7 @@ function textoModalidadHorarioFijo(string $modalidad): string
                             <?= $estado === 'activos'
                                 ? 'selected'
                                 : ''; ?>>
-                            Activos
+                            Horarios activos
                         </option>
 
                         <option
@@ -206,7 +219,7 @@ function textoModalidadHorarioFijo(string $modalidad): string
                             <?= $estado === 'inactivos'
                                 ? 'selected'
                                 : ''; ?>>
-                            Inactivos
+                            Horarios inactivos
                         </option>
 
                         <option
@@ -214,12 +227,17 @@ function textoModalidadHorarioFijo(string $modalidad): string
                             <?= $estado === 'todos'
                                 ? 'selected'
                                 : ''; ?>>
-                            Todos
+                            Todos los horarios
                         </option>
 
                     </select>
 
                 </div>
+
+
+                <!--=========================================
+                BOTÓN
+            ==========================================-->
 
                 <div class="campo">
 
@@ -234,6 +252,7 @@ function textoModalidadHorarioFijo(string $modalidad): string
             </form>
 
         </div>
+
 
         <!--=================================================
         TABLA
@@ -261,7 +280,7 @@ function textoModalidadHorarioFijo(string $modalidad): string
 
                         <th>Curso</th>
 
-                        <th>Asignatura</th>
+                        <th>Asignatura / Taller</th>
 
                         <th>Fecha inicio</th>
 
@@ -275,6 +294,7 @@ function textoModalidadHorarioFijo(string $modalidad): string
 
                 </thead>
 
+
                 <tbody>
 
                     <?php if (empty($horariosFijos)): ?>
@@ -283,19 +303,27 @@ function textoModalidadHorarioFijo(string $modalidad): string
 
                             <td
                                 colspan="12"
-                                style="text-align:center;">
-                                No existen horarios fijos registrados.
+                                style="text-align: center;">
+                                No existen horarios fijos
+                                para el filtro seleccionado.
                             </td>
 
                         </tr>
 
                     <?php else: ?>
 
-                        <?php foreach ($horariosFijos as $horario): ?>
+
+                        <?php foreach (
+                            $horariosFijos
+                            as $horario
+                        ): ?>
 
                             <tr>
 
-                                <!-- DÍA -->
+
+                                <!--=================================
+                                DÍA
+                            ==================================-->
 
                                 <td>
 
@@ -306,16 +334,21 @@ function textoModalidadHorarioFijo(string $modalidad): string
                                 </td>
 
 
-                                <!-- BLOQUE -->
+                                <!--=================================
+                                BLOQUE
+                            ==================================-->
 
                                 <td>
 
-                                    <?= (int)$horario['numero_bloque']; ?>
+                                    <?= (int)
+                                    $horario['numero_bloque']; ?>
 
                                 </td>
 
 
-                                <!-- HORARIO -->
+                                <!--=================================
+                                HORARIO
+                            ==================================-->
 
                                 <td>
 
@@ -336,7 +369,9 @@ function textoModalidadHorarioFijo(string $modalidad): string
                                 </td>
 
 
-                                <!-- TIPO -->
+                                <!--=================================
+                                TIPO
+                            ==================================-->
 
                                 <td>
 
@@ -349,7 +384,9 @@ function textoModalidadHorarioFijo(string $modalidad): string
                                 </td>
 
 
-                                <!-- MODALIDAD -->
+                                <!--=================================
+                                MODALIDAD
+                            ==================================-->
 
                                 <td>
 
@@ -362,7 +399,9 @@ function textoModalidadHorarioFijo(string $modalidad): string
                                 </td>
 
 
-                                <!-- DOCENTE -->
+                                <!--=================================
+                                DOCENTE
+                            ==================================-->
 
                                 <td>
 
@@ -373,7 +412,9 @@ function textoModalidadHorarioFijo(string $modalidad): string
                                 </td>
 
 
-                                <!-- CURSO -->
+                                <!--=================================
+                                CURSO
+                            ==================================-->
 
                                 <td>
 
@@ -384,7 +425,9 @@ function textoModalidadHorarioFijo(string $modalidad): string
                                 </td>
 
 
-                                <!-- ASIGNATURA -->
+                                <!--=================================
+                                ASIGNATURA / TALLER
+                            ==================================-->
 
                                 <td>
 
@@ -395,7 +438,9 @@ function textoModalidadHorarioFijo(string $modalidad): string
                                 </td>
 
 
-                                <!-- FECHA INICIO -->
+                                <!--=================================
+                                FECHA INICIO
+                            ==================================-->
 
                                 <td>
 
@@ -409,7 +454,9 @@ function textoModalidadHorarioFijo(string $modalidad): string
                                 </td>
 
 
-                                <!-- FECHA TÉRMINO -->
+                                <!--=================================
+                                FECHA TÉRMINO
+                            ==================================-->
 
                                 <td>
 
@@ -435,7 +482,9 @@ function textoModalidadHorarioFijo(string $modalidad): string
                                 </td>
 
 
-                                <!-- ESTADO -->
+                                <!--=================================
+                                ESTADO
+                            ==================================-->
 
                                 <td>
 
@@ -443,45 +492,59 @@ function textoModalidadHorarioFijo(string $modalidad): string
                                         (int)$horario['activo'] === 1
                                     ): ?>
 
-                                        Activo
+                                        <span
+                                            class="estado estado-activo">
+                                            Activo
+                                        </span>
 
                                     <?php else: ?>
 
-                                        Inactivo
+                                        <span
+                                            class="estado estado-inactivo">
+                                            Inactivo
+                                        </span>
 
                                     <?php endif; ?>
 
                                 </td>
 
-                                <!-- ACCIONES -->
+
+                                <!--=================================
+                                ACCIONES
+                            ==================================-->
 
                                 <td>
 
-                                    <a
-                                        href="editar.php?id=<?= (int)$horario['id']; ?>"
-                                        class="btn btn-secundario">
-                                        Editar
-                                    </a>
-
-                                    <?php if (
-                                        (int)$horario['activo'] === 1
-                                    ): ?>
+                                    <div class="acciones">
 
                                         <a
-                                            href="desactivar.php?id=<?= (int)$horario['id']; ?>"
-                                            class="btn btn-advertencia">
-                                            Desactivar
+                                            href="editar.php?id=<?= (int)$horario['id']; ?>"
+                                            class="btn btn-secundario">
+                                            Editar
                                         </a>
 
-                                    <?php else: ?>
 
-                                        <a
-                                            href="activar.php?id=<?= (int)$horario['id']; ?>"
-                                            class="btn btn-exito">
-                                            Activar
-                                        </a>
+                                        <?php if (
+                                            (int)$horario['activo'] === 1
+                                        ): ?>
 
-                                    <?php endif; ?>
+                                            <a
+                                                href="desactivar.php?id=<?= (int)$horario['id']; ?>"
+                                                class="btn btn-advertencia">
+                                                Desactivar
+                                            </a>
+
+                                        <?php else: ?>
+
+                                            <a
+                                                href="activar.php?id=<?= (int)$horario['id']; ?>"
+                                                class="btn btn-exito">
+                                                Activar
+                                            </a>
+
+                                        <?php endif; ?>
+
+                                    </div>
 
                                 </td>
 
