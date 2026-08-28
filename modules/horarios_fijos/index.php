@@ -7,18 +7,47 @@ require_once '../../config/database.php';
 require_once '../../includes/reservas_funciones.php';
 
 //=====================================================
+// FILTRO DE ESTADO
+//=====================================================
+
+$estado = $_GET['estado'] ?? 'activos';
+
+$estadosPermitidos = [
+    'activos',
+    'inactivos',
+    'todos'
+];
+
+if (!in_array(
+    $estado,
+    $estadosPermitidos,
+    true
+)) {
+
+    $estado = 'activos';
+}
+
+
+//=====================================================
 // OBTENER HORARIOS FIJOS
 //=====================================================
 //
-// El listado administrativo debe mostrar todos los
-// horarios fijos registrados, incluidos los históricos.
+// El listado administrativo puede mostrar:
 //
+// - Activos
+// - Inactivos
+// - Todos
+//
+// Se utilizan fechas amplias porque este listado
+// administrativo debe permitir consultar también
+// horarios históricos.
 //=====================================================
 
 $horariosFijos = obtenerHorariosFijos(
     $conexion,
     '1900-01-01',
-    '2999-12-31'
+    '2999-12-31',
+    $estado
 );
 
 //=====================================================
@@ -142,6 +171,69 @@ function textoModalidadHorarioFijo(string $modalidad): string
 
         </div>
 
+
+        <!--=================================================
+    FILTRO DE ESTADO
+==================================================-->
+
+        <div class="filtros">
+
+            <form
+                method="GET"
+                action="index.php"
+                class="formulario-filtros">
+
+                <div class="campo">
+
+                    <label for="estado">
+                        Estado
+                    </label>
+
+                    <select
+                        name="estado"
+                        id="estado">
+
+                        <option
+                            value="activos"
+                            <?= $estado === 'activos'
+                                ? 'selected'
+                                : ''; ?>>
+                            Activos
+                        </option>
+
+                        <option
+                            value="inactivos"
+                            <?= $estado === 'inactivos'
+                                ? 'selected'
+                                : ''; ?>>
+                            Inactivos
+                        </option>
+
+                        <option
+                            value="todos"
+                            <?= $estado === 'todos'
+                                ? 'selected'
+                                : ''; ?>>
+                            Todos
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div class="campo">
+
+                    <button
+                        type="submit"
+                        class="btn btn-secundario">
+                        Filtrar
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
 
         <!--=================================================
         TABLA

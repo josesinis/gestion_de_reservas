@@ -1068,17 +1068,65 @@ function renderizarTarjetaReserva(array $reserva): string
 //=====================================================
 // OBTENER HORARIOS FIJOS
 //
-// Obtiene la planificación fija vigente entre
-// dos fechas.
+// Obtiene horarios fijos según:
+//
+// - período de vigencia
+// - estado: activos, inactivos o todos
+//
+// Por defecto devuelve solamente los activos.
+// Esto mantiene el comportamiento actual de la agenda
+// y de las demás llamadas existentes.
 //=====================================================
 
 function obtenerHorariosFijos(
     mysqli $conexion,
     string $fechaInicio,
-    string $fechaFin
+    string $fechaFin,
+    string $estado = 'activos'
 ): array {
 
     $horarios = [];
+
+    //=================================================
+    // VALIDAR ESTADO
+    //=================================================
+
+    $estadosPermitidos = [
+        'activos',
+        'inactivos',
+        'todos'
+    ];
+
+    if (!in_array(
+        $estado,
+        $estadosPermitidos,
+        true
+    )) {
+
+        $estado = 'activos';
+    }
+
+
+    //=================================================
+    // CONDICIÓN DE ESTADO
+    //=================================================
+
+    $condicionEstado = '';
+
+    if ($estado === 'activos') {
+
+        $condicionEstado =
+            'AND hf.activo = 1';
+    } elseif ($estado === 'inactivos') {
+
+        $condicionEstado =
+            'AND hf.activo = 0';
+    }
+
+
+    //=================================================
+    // CONSULTA
+    //=================================================
 
     $sql = "
         SELECT
@@ -1125,14 +1173,14 @@ function obtenerHorariosFijos(
         INNER JOIN bloques b
             ON b.id = hf.bloque_id
 
-        WHERE hf.activo = 1
-
-          AND hf.fecha_inicio <= ?
-
-          AND (
+        WHERE
+            hf.fecha_inicio <= ?
+            AND (
                 hf.fecha_fin IS NULL
                 OR hf.fecha_fin >= ?
-              )
+            )
+
+            $condicionEstado
 
         ORDER BY
             hf.dia_semana,
@@ -1165,7 +1213,6 @@ function obtenerHorariosFijos(
 
     return $horarios;
 }
-
 
 //=====================================================
 // OBTENER HORARIO FIJO POR ID
