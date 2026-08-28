@@ -9,14 +9,16 @@ require_once '../../includes/reservas_funciones.php';
 //=====================================================
 // OBTENER HORARIOS FIJOS
 //=====================================================
-
-$fechaInicio = date('Y-m-d');
-$fechaFin = date('Y-m-d');
+//
+// El listado administrativo debe mostrar todos los
+// horarios fijos registrados, incluidos los históricos.
+//
+//=====================================================
 
 $horariosFijos = obtenerHorariosFijos(
     $conexion,
-    $fechaInicio,
-    $fechaFin
+    '1900-01-01',
+    '2999-12-31'
 );
 
 //=====================================================
@@ -76,8 +78,7 @@ function textoModalidadHorarioFijo(string $modalidad): string
 
     <meta
         name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+        content="width=device-width, initial-scale=1.0">
 
     <title>Horarios fijos</title>
 
@@ -85,301 +86,326 @@ function textoModalidadHorarioFijo(string $modalidad): string
 
     <link
         rel="stylesheet"
-        href="../../assets/css/estilos.css"
-    >
+        href="../../assets/css/estilos.css">
 
     <link
         rel="stylesheet"
-        href="../../assets/css/botones.css"
-    >
+        href="../../assets/css/botones.css">
 
     <link
         rel="stylesheet"
-        href="../../assets/css/formularios.css"
-    >
+        href="../../assets/css/formularios.css">
 
     <link
         rel="stylesheet"
-        href="../../assets/css/tablas.css"
-    >
+        href="../../assets/css/tablas.css">
 
     <!-- CSS del módulo de reservas -->
 
     <link
         rel="stylesheet"
-        href="../../assets/css/reservas.css"
-    >
+        href="../../assets/css/reservas.css">
 
 </head>
 
 <body>
 
-<div class="contenedor">
+    <div class="contenedor">
 
-    <!--=================================================
+        <!--=================================================
         ENCABEZADO
     ==================================================-->
 
-    <div class="encabezado-pagina">
+        <div class="encabezado-pagina">
 
-        <div>
+            <div>
 
-            <h1>
-                Horarios fijos
-            </h1>
+                <h1>
+                    Horarios fijos
+                </h1>
 
-            <p>
-                Planificación oficial de la Sala de Computación
-            </p>
+                <p>
+                    Planificación oficial de la Sala de Computación
+                </p>
+
+            </div>
+
+            <div>
+
+                <a
+                    href="agregar.php"
+                    class="btn btn-primary">
+                    + Nuevo horario fijo
+                </a>
+
+            </div>
 
         </div>
 
-        <div>
 
-            <a
-                href="agregar.php"
-                class="btn btn-primary"
-            >
-                + Nuevo horario fijo
-            </a>
-
-        </div>
-
-    </div>
-
-
-    <!--=================================================
+        <!--=================================================
         TABLA
     ==================================================-->
 
-    <div class="tabla-contenedor">
+        <div class="tabla-contenedor">
 
-        <table class="tabla">
+            <table class="tabla">
 
-            <thead>
-
-                <tr>
-
-                    <th>Día</th>
-
-                    <th>Bloque</th>
-
-                    <th>Horario</th>
-
-                    <th>Tipo</th>
-
-                    <th>Modalidad</th>
-
-                    <th>Docente</th>
-
-                    <th>Curso</th>
-
-                    <th>Asignatura</th>
-
-                    <th>Fecha inicio</th>
-
-                    <th>Fecha término</th>
-
-                    <th>Estado</th>
-
-                </tr>
-
-            </thead>
-
-            <tbody>
-
-                <?php if (empty($horariosFijos)): ?>
+                <thead>
 
                     <tr>
 
-                        <td
-                            colspan="11"
-                            style="text-align:center;"
-                        >
-                            No existen horarios fijos registrados.
-                        </td>
+                        <th>Día</th>
+
+                        <th>Bloque</th>
+
+                        <th>Horario</th>
+
+                        <th>Tipo</th>
+
+                        <th>Modalidad</th>
+
+                        <th>Docente</th>
+
+                        <th>Curso</th>
+
+                        <th>Asignatura</th>
+
+                        <th>Fecha inicio</th>
+
+                        <th>Fecha término</th>
+
+                        <th>Estado</th>
+
+                        <th>Acciones</th>
 
                     </tr>
 
-                <?php else: ?>
+                </thead>
 
-                    <?php foreach ($horariosFijos as $horario): ?>
+                <tbody>
+
+                    <?php if (empty($horariosFijos)): ?>
 
                         <tr>
 
-                            <!-- DÍA -->
-
-                            <td>
-
-                                <?= htmlspecialchars(
-                                    $nombresDias[
-                                        (int)$horario['dia_semana']
-                                    ] ?? 'Desconocido'
-                                ); ?>
-
-                            </td>
-
-
-                            <!-- BLOQUE -->
-
-                            <td>
-
-                                <?= (int)$horario['numero_bloque']; ?>
-
-                            </td>
-
-
-                            <!-- HORARIO -->
-
-                            <td>
-
-                                <?= substr(
-                                    $horario['hora_inicio'],
-                                    0,
-                                    5
-                                ); ?>
-
-                                -
-
-                                <?= substr(
-                                    $horario['hora_termino'],
-                                    0,
-                                    5
-                                ); ?>
-
-                            </td>
-
-
-                            <!-- TIPO -->
-
-                            <td>
-
-                                <?= htmlspecialchars(
-                                    textoTipoHorarioFijo(
-                                        $horario['tipo']
-                                    )
-                                ); ?>
-
-                            </td>
-
-
-                            <!-- MODALIDAD -->
-
-                            <td>
-
-                                <?= htmlspecialchars(
-                                    textoModalidadHorarioFijo(
-                                        $horario['modalidad']
-                                    )
-                                ); ?>
-
-                            </td>
-
-
-                            <!-- DOCENTE -->
-
-                            <td>
-
-                                <?= htmlspecialchars(
-                                    $horario['docente']
-                                ); ?>
-
-                            </td>
-
-
-                            <!-- CURSO -->
-
-                            <td>
-
-                                <?= htmlspecialchars(
-                                    $horario['curso']
-                                ); ?>
-
-                            </td>
-
-
-                            <!-- ASIGNATURA -->
-
-                            <td>
-
-                                <?= htmlspecialchars(
-                                    $horario['asignatura']
-                                ); ?>
-
-                            </td>
-
-
-                            <!-- FECHA INICIO -->
-
-                            <td>
-
-                                <?= date(
-                                    'd/m/Y',
-                                    strtotime(
-                                        $horario['fecha_inicio']
-                                    )
-                                ); ?>
-
-                            </td>
-
-
-                            <!-- FECHA TÉRMINO -->
-
-                            <td>
-
-                                <?php if (
-                                    $horario['fecha_fin'] !== null
-                                    &&
-                                    $horario['fecha_fin'] !== ''
-                                ): ?>
-
-                                    <?= date(
-                                        'd/m/Y',
-                                        strtotime(
-                                            $horario['fecha_fin']
-                                        )
-                                    ); ?>
-
-                                <?php else: ?>
-
-                                    Sin término
-
-                                <?php endif; ?>
-
-                            </td>
-
-
-                            <!-- ESTADO -->
-
-                            <td>
-
-                                <?php if (
-                                    (int)$horario['activo'] === 1
-                                ): ?>
-
-                                    Activo
-
-                                <?php else: ?>
-
-                                    Inactivo
-
-                                <?php endif; ?>
-
+                            <td
+                                colspan="12"
+                                style="text-align:center;">
+                                No existen horarios fijos registrados.
                             </td>
 
                         </tr>
 
-                    <?php endforeach; ?>
+                    <?php else: ?>
 
-                <?php endif; ?>
+                        <?php foreach ($horariosFijos as $horario): ?>
 
-            </tbody>
+                            <tr>
 
-        </table>
+                                <!-- DÍA -->
+
+                                <td>
+
+                                    <?= htmlspecialchars(
+                                        $nombresDias[(int)$horario['dia_semana']] ?? 'Desconocido'
+                                    ); ?>
+
+                                </td>
+
+
+                                <!-- BLOQUE -->
+
+                                <td>
+
+                                    <?= (int)$horario['numero_bloque']; ?>
+
+                                </td>
+
+
+                                <!-- HORARIO -->
+
+                                <td>
+
+                                    <?= substr(
+                                        $horario['hora_inicio'],
+                                        0,
+                                        5
+                                    ); ?>
+
+                                    -
+
+                                    <?= substr(
+                                        $horario['hora_termino'],
+                                        0,
+                                        5
+                                    ); ?>
+
+                                </td>
+
+
+                                <!-- TIPO -->
+
+                                <td>
+
+                                    <?= htmlspecialchars(
+                                        textoTipoHorarioFijo(
+                                            $horario['tipo']
+                                        )
+                                    ); ?>
+
+                                </td>
+
+
+                                <!-- MODALIDAD -->
+
+                                <td>
+
+                                    <?= htmlspecialchars(
+                                        textoModalidadHorarioFijo(
+                                            $horario['modalidad']
+                                        )
+                                    ); ?>
+
+                                </td>
+
+
+                                <!-- DOCENTE -->
+
+                                <td>
+
+                                    <?= htmlspecialchars(
+                                        $horario['docente']
+                                    ); ?>
+
+                                </td>
+
+
+                                <!-- CURSO -->
+
+                                <td>
+
+                                    <?= htmlspecialchars(
+                                        $horario['curso']
+                                    ); ?>
+
+                                </td>
+
+
+                                <!-- ASIGNATURA -->
+
+                                <td>
+
+                                    <?= htmlspecialchars(
+                                        $horario['asignatura']
+                                    ); ?>
+
+                                </td>
+
+
+                                <!-- FECHA INICIO -->
+
+                                <td>
+
+                                    <?= date(
+                                        'd/m/Y',
+                                        strtotime(
+                                            $horario['fecha_inicio']
+                                        )
+                                    ); ?>
+
+                                </td>
+
+
+                                <!-- FECHA TÉRMINO -->
+
+                                <td>
+
+                                    <?php if (
+                                        $horario['fecha_fin'] !== null
+                                        &&
+                                        $horario['fecha_fin'] !== ''
+                                    ): ?>
+
+                                        <?= date(
+                                            'd/m/Y',
+                                            strtotime(
+                                                $horario['fecha_fin']
+                                            )
+                                        ); ?>
+
+                                    <?php else: ?>
+
+                                        Sin término
+
+                                    <?php endif; ?>
+
+                                </td>
+
+
+                                <!-- ESTADO -->
+
+                                <td>
+
+                                    <?php if (
+                                        (int)$horario['activo'] === 1
+                                    ): ?>
+
+                                        Activo
+
+                                    <?php else: ?>
+
+                                        Inactivo
+
+                                    <?php endif; ?>
+
+                                </td>
+
+                                <!-- ACCIONES -->
+
+                                <td>
+
+                                    <a
+                                        href="editar.php?id=<?= (int)$horario['id']; ?>"
+                                        class="btn btn-secundario">
+                                        Editar
+                                    </a>
+
+                                    <?php if (
+                                        (int)$horario['activo'] === 1
+                                    ): ?>
+
+                                        <a
+                                            href="desactivar.php?id=<?= (int)$horario['id']; ?>"
+                                            class="btn btn-advertencia">
+                                            Desactivar
+                                        </a>
+
+                                    <?php else: ?>
+
+                                        <a
+                                            href="activar.php?id=<?= (int)$horario['id']; ?>"
+                                            class="btn btn-exito">
+                                            Activar
+                                        </a>
+
+                                    <?php endif; ?>
+
+                                </td>
+
+                            </tr>
+
+                        <?php endforeach; ?>
+
+                    <?php endif; ?>
+
+                </tbody>
+
+            </table>
+
+        </div>
 
     </div>
-
-</div>
 
 </body>
 

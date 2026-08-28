@@ -1166,6 +1166,92 @@ function obtenerHorariosFijos(
     return $horarios;
 }
 
+
+//=====================================================
+// OBTENER HORARIO FIJO POR ID
+//
+// Obtiene un horario fijo específico para su edición
+// o consulta.
+//=====================================================
+
+function obtenerHorarioFijoPorId(
+    mysqli $conexion,
+    int $horarioFijoId
+): ?array {
+
+    $sql = "
+        SELECT
+
+            hf.id,
+            hf.dia_semana,
+            hf.bloque_id,
+            hf.tipo,
+            hf.modalidad,
+
+            hf.docente_id,
+            hf.curso_id,
+            hf.asignatura_id,
+
+            hf.activo,
+            hf.fecha_inicio,
+            hf.fecha_fin,
+            hf.observaciones,
+
+            c.nombre_curso AS curso,
+
+            a.asignatura_nombre AS asignatura,
+
+            CONCAT(
+                SUBSTRING_INDEX(d.nombres, ' ', 1),
+                ' ',
+                SUBSTRING_INDEX(d.apellidos, ' ', 1)
+            ) AS docente,
+
+            b.numero_bloque,
+            b.hora_inicio,
+            b.hora_termino
+
+        FROM horarios_fijos hf
+
+        INNER JOIN docentes d
+            ON d.id = hf.docente_id
+
+        INNER JOIN cursos c
+            ON c.id = hf.curso_id
+
+        INNER JOIN asignaturas a
+            ON a.id = hf.asignatura_id
+
+        INNER JOIN bloques b
+            ON b.id = hf.bloque_id
+
+        WHERE hf.id = ?
+
+        LIMIT 1
+    ";
+
+    $stmt = $conexion->prepare($sql);
+
+    if (!$stmt) {
+        return null;
+    }
+
+    $stmt->bind_param(
+        "i",
+        $horarioFijoId
+    );
+
+    $stmt->execute();
+
+    $resultado = $stmt->get_result();
+
+    $horario = $resultado->fetch_assoc();
+
+    $stmt->close();
+
+    return $horario ?: null;
+}
+
 //=====================================================
 // CREAR OCURRENCIAS DE HORARIOS FIJOS
 //
@@ -1264,6 +1350,206 @@ function crearOcurrenciasHorariosFijos(
     $stmt->close();
 
     return $creadas;
+}
+
+//=====================================================
+// CREAR OCURRENCIAS DE UN HORARIO FIJO
+//
+// Genera las ocurrencias únicamente del horario fijo
+// indicado.
+//
+// Se utiliza principalmente al editar un horario fijo,
+// después de eliminar sus ocurrencias pendientes futuras.
+//
+// No modifica ocurrencias existentes.
+//=====================================================
+
+function crearOcurrenciasHorarioFijo(
+    mysqli $conexion,
+    int $horarioFijoId,
+    string $fechaInicio,
+    ?string $fechaFin
+): int {
+
+    //=================================================
+    // OBTENER HORARIO FIJO
+    //=================================================
+
+    $stmt = $conexion->prepare("
+        SELECT
+            id,
+            dia_semana,
+            docente_id,
+            curso_id,
+            asignatura_id,
+            fecha_inicio,
+            fecha_fin
+        FROM horarios_fijos
+        WHERE id = ?
+        LIMIT 1
+    ");
+
+    if (!$stmt) {
+        return 0;
+    }
+
+    $stmt->bind_param(
+        "i",
+        $horarioFijoId
+    );
+
+    $stmt->execute();
+
+    $resultado = $stmt->get_result();
+
+    $horario = $resultado->fetch_assoc();
+
+    $stmt->close();
+
+    if (!$horario) {
+        return 0;
+    }
+
+
+    //=================================================
+    // DETERMINAR FECHA FINAL
+    //=================================================
+
+    if (
+        $fechaFin === null ||
+        $fechaFin === ''
+    ) {
+
+        // Si no existe fecha de término, utilizamos
+        // el 15 de diciembre como término automático.
+
+        $fechaFin = date(
+            'Y-12-15',
+            strtotime($fechaInicio)
+        );
+    }
+
+
+    //=================================================
+    // PREPARAR INSERT
+    //=================================================
+
+    $stmt = $conexion->prepare("
+        INSERT IGNORE INTO horarios_fijos_ocurrencias (
+            horario_fijo_id,
+            fecha,
+            estado,
+            docente_id,
+            curso_id,
+            asignatura_id
+        )
+        VALUES (?, ?, 'pendiente', ?, ?, ?)
+    ");
+
+    if (!$stmt) {
+        return 0;
+    }
+
+
+    //=================================================
+    // GENERAR FECHAS
+    //=================================================
+
+    $fecha = new DateTime($fechaInicio);
+
+    $fin = new DateTime($fechaFin);
+
+    $creadas = 0;
+
+    while ($fecha <= $fin) {
+
+        $diaSemana =
+            (int) $fecha->format('N');
+
+        if (
+            $diaSemana ===
+            (int) $horario['dia_semana']
+        ) {
+
+            $fechaActual =
+                $fecha->format('Y-m-d');
+
+            $docenteId =
+                (int) $horario['docente_id'];
+
+            $cursoId =
+                (int) $horario['curso_id'];
+
+            $asignaturaId =
+                (int) $horario['asignatura_id'];
+
+            $stmt->bind_param(
+                "isiii",
+                $horarioFijoId,
+                $fechaActual,
+                $docenteId,
+                $cursoId,
+                $asignaturaId
+            );
+
+            $stmt->execute();
+
+            if ($stmt->affected_rows > 0) {
+                $creadas++;
+            }
+        }
+
+        $fecha->modify('+1 day');
+    }
+
+    $stmt->close();
+
+    return $creadas;
+}
+
+
+//=====================================================
+// ELIMINAR OCURRENCIAS PENDIENTES FUTURAS
+//
+// Elimina únicamente las ocurrencias:
+//
+// - Del horario fijo indicado.
+// - Con estado "pendiente".
+// - Cuya fecha sea igual o posterior a la fecha indicada.
+//
+// Las ocurrencias utilizadas, no utilizadas o reasignadas
+// permanecen intactas.
+//=====================================================
+
+function eliminarOcurrenciasPendientesFuturas(
+    mysqli $conexion,
+    int $horarioFijoId,
+    string $fechaDesde
+): bool {
+
+    $stmt = $conexion->prepare("
+        DELETE FROM horarios_fijos_ocurrencias
+        WHERE
+            horario_fijo_id = ?
+            AND estado = 'pendiente'
+            AND fecha >= ?
+    ");
+
+    if (!$stmt) {
+        return false;
+    }
+
+    $stmt->bind_param(
+        "is",
+        $horarioFijoId,
+        $fechaDesde
+    );
+
+    $resultado = $stmt->execute();
+
+    $stmt->close();
+
+    return $resultado;
 }
 
 //=====================================================
