@@ -10,73 +10,73 @@
 
 :root {
 
-/*-----------------------------------------------------
+  /*-----------------------------------------------------
   COLORES INSTITUCIONALES
 -----------------------------------------------------*/
 
---color-primario: #6b1d44;
---color-primario-hover: #5b1739;
---color-primario-original: #4e0227;
+  --color-primario: #6b1d44;
+  --color-primario-hover: #5b1739;
+  --color-primario-original: #4e0227;
 
-/*-----------------------------------------------------
+  /*-----------------------------------------------------
       ESTADOS
  -----------------------------------------------------*/
 
---color-exito: #198754;
---color-exito-hover: #157347;
+  --color-exito: #198754;
+  --color-exito-hover: #157347;
 
---color-advertencia: #ffc107;
---color-advertencia-hover: #e0a800;
+  --color-advertencia: #ffc107;
+  --color-advertencia-hover: #e0a800;
 
---color-error: #dc3545;
---color-error-hover: #bb2d3b;
+  --color-error: #dc3545;
+  --color-error-hover: #bb2d3b;
 
-/*-----------------------------------------------------
+  /*-----------------------------------------------------
   FONDOS
 -----------------------------------------------------*/
 
---color-fondo: #ffffff;
---color-fondo-secundario: #f5f5f5;
---color-fondo-neutro: #eeeeee;
+  --color-fondo: #ffffff;
+  --color-fondo-secundario: #f5f5f5;
+  --color-fondo-neutro: #eeeeee;
 
 
-/*-----------------------------------------------------
+  /*-----------------------------------------------------
   TEXTOS
 -----------------------------------------------------*/
 
---color-texto: #333333;
---color-texto-secundario: #666666;
+  --color-texto: #333333;
+  --color-texto-secundario: #666666;
 
 
-/*-----------------------------------------------------
+  /*-----------------------------------------------------
   BORDES
 -----------------------------------------------------*/
 
---color-borde: #d9c5cf;
---radio-borde: 6px;
+  --color-borde: #d9c5cf;
+  --radio-borde: 6px;
 
 
-/*-----------------------------------------------------
+  /*-----------------------------------------------------
  FORMULARIOS
   -----------------------------------------------------*/
 
---ancho-formulario: 700px;
+  --ancho-formulario: 700px;
 
-/*-----------------------------------------------------
+  /*-----------------------------------------------------
   BOTONES
 -----------------------------------------------------*/
 
---btn-padding-y: 8px;
---btn-padding-x: 16px;
+  --btn-padding-y: 8px;
+  --btn-padding-x: 16px;
 
 
---btn-transicion: .2s ease;
+  --btn-transicion: .2s ease;
 
-/*-----------------------------------------------------
+  /*-----------------------------------------------------
   SOMBRAS
 -----------------------------------------------------*/
 
---sombra-focus: 0 0 5px rgba(107, 29, 68, 0.25);
+  --sombra-focus: 0 0 5px rgba(107, 29, 68, 0.25);
 }
 
 
@@ -85,9 +85,9 @@
 =====================================================*/
 
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 
@@ -96,15 +96,15 @@
 =====================================================*/
 
 html {
-    font-size: 16px;
+  font-size: 16px;
 }
 
 body {
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    font-size: 1rem;
-    line-height: 1.5;
-    color: var(--color-texto);
-    background-color: var(--color-fondo-secundario);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--color-texto);
+  background-color: var(--color-fondo-secundario);
 }
 
 /*=====================================================
@@ -112,7 +112,7 @@ body {
 =====================================================*/
 
 main {
-    padding: 30px 0;
+  padding: 30px 0;
 }
 
 
@@ -126,12 +126,12 @@ h3,
 h4,
 h5,
 h6 {
-    color: var(--color-primario);
-    font-weight: 600;
+  color: var(--color-primario);
+  font-weight: 600;
 }
 
 p {
-    margin-bottom: 1rem;
+  margin-bottom: 1rem;
 }
 
 
@@ -140,13 +140,13 @@ p {
 =====================================================*/
 
 a {
-    color: var(--color-primario);
-    text-decoration: none;
-    transition: color 0.2s ease;
+  color: var(--color-primario);
+  text-decoration: none;
+  transition: color 0.2s ease;
 }
 
 a:hover {
-    color: var(--color-primario-hover);
+  color: var(--color-primario-hover);
 }
 
 
@@ -156,7 +156,7 @@ a:hover {
 
 ul,
 ol {
-    padding-left: 2rem;
+  padding-left: 2rem;
 }
 
 
@@ -165,8 +165,8 @@ ol {
 =====================================================*/
 
 img {
-    max-width: 100%;
-    height: auto;
+  max-width: 100%;
+  height: auto;
 }
 
 
@@ -175,34 +175,42 @@ img {
 =====================================================*/
 
 .contenedor {
-    width: 90%;
-    max-width: 1200px;
-    margin: 0 auto;
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
+/*=====================================================
+  CONTENEDOR - HORARIOS FIJOS
+=====================================================*/
+
+.contenedor-horarios-fijos {
+  width: 96%;
+  max-width: 1600px;
+}
 
 /*=====================================================
   UTILIDADES
 =====================================================*/
 
 .texto-centro {
-    text-align: center;
+  text-align: center;
 }
 
 .texto-derecha {
-    text-align: right;
+  text-align: right;
 }
 
 .texto-izquierda {
-    text-align: left;
+  text-align: left;
 }
 
 .oculto {
-    display: none;
+  display: none;
 }
 
 .visible {
-    display: block;
+  display: block;
 }
 
 
@@ -212,9 +220,9 @@ img {
 
 @media (max-width: 768px) {
 
-    .contenedor {
-        width: 95%;
-    }
+  .contenedor {
+    width: 95%;
+  }
 
 }
 
@@ -223,29 +231,110 @@ img {
 =====================================================*/
 
 .panel {
-    max-width: 900px;
-    margin: 30px auto;
-    padding: 25px;
-    background: #ffffff;
-    border: 1px solid var(--color-borde);
-    border-radius: var(--radio-borde);
-    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+  max-width: 900px;
+  margin: 30px auto;
+  padding: 25px;
+  background: #ffffff;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-borde);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
 }
 
 .panel h1 {
-    margin: 0 0 25px;
-    padding-bottom: 12px;
-    border-bottom: 2px solid var(--color-primario);
-    color: var(--color-primario);
-    font-size: 1.8rem;
-    background: #fff;
-    padding: 30px;
-    border-radius: var(--radio-borde);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    margin-top: 0;
-    margin-bottom: 25px;
+  margin: 0 0 25px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--color-primario);
+  color: var(--color-primario);
+  font-size: 1.8rem;
+  background: #fff;
+  padding: 30px;
+  border-radius: var(--radio-borde);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-top: 0;
+  margin-bottom: 25px;
 }
 
+/*=====================================================
+  ENCABEZADO DE PÁGINA
+=====================================================*/
+
+.encabezado-pagina {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.encabezado-pagina h1 {
+  margin: 0;
+}
+
+.encabezado-pagina p {
+  margin: 6px 0 0;
+}
+
+/*=====================================================
+  ACCIÓN PRINCIPAL DEL ENCABEZADO
+=====================================================*/
+
+.encabezado-pagina .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 9px 16px;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+
+/*=====================================================
+  RESPONSIVE
+=====================================================*/
+
+@media (max-width: 768px) {
+
+  .encabezado-pagina {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+}
+
+/*=====================================================
+  ENCABEZADO DE PÁGINA
+=====================================================*/
+
+.encabezado-pagina {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.encabezado-pagina h1 {
+  margin: 0;
+}
+
+.encabezado-pagina p {
+  margin: 6px 0 0;
+}
+
+
+/*=====================================================
+  RESPONSIVE
+=====================================================*/
+
+@media (max-width: 768px) {
+
+  .encabezado-pagina {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+}
 
 /*
 * {

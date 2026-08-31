@@ -7,7 +7,7 @@
   Contiene los estilos reutilizables para las tablas
   del sistema.
 
-  Última actualización: 27-07-2026
+  Última actualización: 31-08-2026
 =====================================================*/
 
 
@@ -58,19 +58,12 @@
 
 
 /*=====================================================
-  EFECTO CEBRA
-=====================================================*/
-
-.tabla-detalle tr:nth-child(even) td {
-    background-color: #f8f9fa;
-}
-
-/*=====================================================
   TABLA DE LISTADO
 =====================================================*/
 
 .tabla-contenedor {
     width: 100%;
+    max-width: none;
     overflow-x: auto;
     overflow-y: hidden;
     margin: 25px 0;
@@ -78,15 +71,14 @@
     border-radius: var(--radio-borde);
     background-color: #fff;
     box-sizing: border-box;
-}
 
-/*=====================================================
-  DESPLAZAMIENTO HORIZONTAL
-=====================================================*/
-
-.tabla-contenedor {
     scrollbar-width: thin;
 }
+
+
+/*=====================================================
+  BARRA DE DESPLAZAMIENTO
+=====================================================*/
 
 .tabla-contenedor::-webkit-scrollbar {
     height: 10px;
@@ -105,9 +97,14 @@
     background-color: #999;
 }
 
+
+/*=====================================================
+  TABLA
+=====================================================*/
+
 .tabla {
     width: 100%;
-    min-width: 1350px;
+    min-width: 1400px;
     border-collapse: collapse;
 }
 
@@ -190,127 +187,127 @@
     color: #616161;
 }
 
-/*=====================================================
-  COLUMNA DE ACCIONES FIJA
-=====================================================*/
-
-.tabla th:last-child,
-.tabla td:last-child {
-    position: sticky;
-    right: 0;
-    z-index: 2;
-    background-color: #fff;
-    box-shadow: -4px 0 8px rgba(0, 0, 0, 0.08);
-}
-
-.tabla thead th:last-child {
-    z-index: 3;
-    background-color: var(--color-primario);
-}
-
-.tabla tbody tr:nth-child(even) td:last-child {
-    background-color: #f8f9fa;
-}
-
-.tabla tbody tr:hover td:last-child {
-    background-color: #f1f5f9;
-}
 
 /*=====================================================
-  ANCHOS DE COLUMNAS - TABLAS DE LISTADO
+  FILTROS DE LISTADOS
 =====================================================*/
 
-.tabla th:nth-child(1),
-.tabla td:nth-child(1) {
-    width: 90px;
+.filtros {
+    width: 100%;
+    margin: 20px 0;
+    padding: 12px 18px;
+    background-color: var(--color-fondo);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-borde);
+    box-sizing: border-box;
 }
 
-.tabla th:nth-child(2),
-.tabla td:nth-child(2) {
-    width: 70px;
-    text-align: center;
+
+/*=====================================================
+  FORMULARIO DE FILTROS
+=====================================================*/
+
+.formulario-filtros {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
 }
 
-.tabla th:nth-child(3),
-.tabla td:nth-child(3) {
-    width: 110px;
+/*=====================================================
+  FILTROS - PRESENTACIÓN COMPACTA
+=====================================================*/
+
+.formulario-filtros {
+    align-items: center;
+}
+
+.formulario-filtros .campo:first-child {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+}
+
+.formulario-filtros .campo:first-child label {
+    margin: 0;
     white-space: nowrap;
 }
 
-.tabla th:nth-child(4),
-.tabla td:nth-child(4) {
-    width: 130px;
+.formulario-filtros .campo-boton {
+    display: flex;
+    align-items: center;
 }
-
-.tabla th:nth-child(5),
-.tabla td:nth-child(5) {
-    width: 110px;
-}
-
-.tabla th:nth-child(6),
-.tabla td:nth-child(6) {
-    width: 140px;
-}
-
-.tabla th:nth-child(7),
-.tabla td:nth-child(7) {
-    width: 90px;
-}
-
-.tabla th:nth-child(8),
-.tabla td:nth-child(8) {
-    width: 160px;
-}
-
-.tabla th:nth-child(9),
-.tabla td:nth-child(9) {
-    width: 110px;
-    white-space: nowrap;
-}
-
-.tabla th:nth-child(10),
-.tabla td:nth-child(10) {
-    width: 110px;
-    white-space: nowrap;
-}
-
-.tabla th:nth-child(11),
-.tabla td:nth-child(11) {
-    width: 90px;
-    text-align: center;
-}
-
-.tabla th:nth-child(12),
-.tabla td:nth-child(12) {
-    width: 190px;
-    min-width: 190px;
-}
-
-/*
-.tabla-detalle tr:first-child th {
-    border-top-left-radius: var(--radio-borde);
-}
-
-.tabla-detalle tr:first-child td {
-    border-top-right-radius: var(--radio-borde);
-}
-
-.tabla-detalle tr:last-child th {
-    border-bottom-left-radius: var(--radio-borde);
-}
-
-.tabla-detalle tr:last-child td {
-    border-bottom-right-radius: var(--radio-borde);
-}*/
 
 /*=====================================================
-  TABLA DE LISTADO
+  CAMPOS
 =====================================================*/
 
-/*
-Se implementará cuando desarrollemos los módulos de
-listado (usuarios, reservas, docentes, cursos, etc.).
-*/
+.formulario-filtros .campo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+
+/*=====================================================
+  LABEL
+=====================================================*/
+
+.formulario-filtros label {
+    font-weight: 600;
+    color: var(--color-texto);
+}
+
+
+/*=====================================================
+  SELECT
+=====================================================*/
+
+.formulario-filtros select {
+    min-width: 220px;
+    padding: 9px 12px;
+    font-family: inherit;
+    font-size: inherit;
+    color: var(--color-texto);
+    background-color: var(--color-fondo);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-borde);
+    box-sizing: border-box;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+
+/*=====================================================
+  FOCUS
+=====================================================*/
+
+.formulario-filtros select:focus {
+    outline: none;
+    border-color: var(--color-primario);
+    box-shadow: var(--sombra-focus);
+}
+
+
+/*=====================================================
+  RESPONSIVE
+=====================================================*/
+
+@media (max-width: 768px) {
+
+    .formulario-filtros {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .formulario-filtros .campo,
+    .formulario-filtros select {
+        width: 100%;
+    }
+
+}
 
 
 /*=====================================================

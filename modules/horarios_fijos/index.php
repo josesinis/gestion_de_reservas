@@ -145,12 +145,12 @@ function textoModalidadHorarioFijo(string $modalidad): string
 
 <body>
 
-    <div class="contenedor">
+    <div class="contenedor contenedor-horarios-fijos">
 
 
         <!--=================================================
-        ENCABEZADO
-    ==================================================-->
+    ENCABEZADO
+==================================================-->
 
         <div class="encabezado-pagina">
 
@@ -166,7 +166,6 @@ function textoModalidadHorarioFijo(string $modalidad): string
 
             </div>
 
-
             <div>
 
                 <a
@@ -181,8 +180,8 @@ function textoModalidadHorarioFijo(string $modalidad): string
 
 
         <!--=================================================
-        FILTROS
-    ==================================================-->
+    FILTROS
+==================================================-->
 
         <div class="filtros">
 
@@ -190,11 +189,6 @@ function textoModalidadHorarioFijo(string $modalidad): string
                 method="GET"
                 action="index.php"
                 class="formulario-filtros">
-
-
-                <!--=========================================
-                ESTADO
-            ==========================================-->
 
                 <div class="campo">
 
@@ -234,12 +228,7 @@ function textoModalidadHorarioFijo(string $modalidad): string
 
                 </div>
 
-
-                <!--=========================================
-                BOTÓN
-            ==========================================-->
-
-                <div class="campo">
+                <div class="campo campo-boton">
 
                     <button
                         type="submit"
