@@ -13,20 +13,19 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-/*
-|--------------------------------------------------------------------------
-| VALIDACIÓN DE SESIÓN
-|--------------------------------------------------------------------------
-|
-| Cuando el login esté implementado, se descomentará este bloque.
-|
-*/
 
-/*
-if (empty($_SESSION['usuario_id'])) {
+//=====================================================
+// VALIDAR SESIÓN
+//=====================================================
 
-    header('Location: /gestion_de_reservas/login.php');
-    exit();
+function requiereLogin(): void
+{
+    if (empty($_SESSION['usuario_id'])) {
 
+        $_SESSION['error'] =
+            'Debe iniciar sesión para acceder al sistema.';
+
+        header('Location: /gestion_de_reservas/login.php');
+        exit();
+    }
 }
-*/

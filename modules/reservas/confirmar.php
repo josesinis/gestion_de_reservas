@@ -1,75 +1,136 @@
 <?php
 //=====================================================
 // CONFIRMAR.PHP
-// Confirma el uso de una reserva y genera la bitácora.
+// Confirma el uso de una reserva o de una ocurrencia
+// de horario fijo.
+//=====================================================
+
+//=====================================================
+// 1. VALIDAR SESIÓN
+//=====================================================
+
+require_once '../../includes/auth.php';
+
+requiereLogin();
+
+//=====================================================
+// 2. ARCHIVOS NECESARIOS
 //=====================================================
 
 require_once '../../config/database.php';
 require_once '../../includes/reservas_funciones.php';
 
 //=====================================================
-// VALIDAR ID
+// VALIDAR IDENTIFICADOR
 //=====================================================
 
-$id = (int) ($_GET['id'] ?? 0);
+$reservaId = (int) ($_GET['id'] ?? 0);
 
-if ($id <= 0) {
-
-    $_SESSION['error'] = 'La reserva no es válida.';
-
-    header('Location: agenda.php');
-
-    exit();
-}
-
-//=====================================================
-// OBTENER RESERVA
-//=====================================================
-
-$reserva = obtenerReservaPorId(
-    $conexion,
-    $id
+$ocurrenciaId = (int) (
+    $_GET['horario_fijo_ocurrencia_id'] ?? 0
 );
 
-if (!$reserva) {
+if ($reservaId <= 0 && $ocurrenciaId <= 0) {
 
-    $_SESSION['error'] = 'La reserva no existe.';
+    $_SESSION['error'] =
+        'La reserva o la ocurrencia no es válida.';
 
     header('Location: agenda.php');
-
     exit();
 }
 
-//=====================================================
-// VALIDAR ESTADO
-//=====================================================
-
-if ($reserva['estado'] !== 'reservada') {
+if ($reservaId > 0 && $ocurrenciaId > 0) {
 
     $_SESSION['error'] =
-        'Esta reserva ya no se encuentra disponible para confirmar.';
+        'La confirmación no es válida.';
 
-    header('Location: ver.php?id=' . $id);
-
+    header('Location: agenda.php');
     exit();
 }
 
 //=====================================================
-// VALIDAR INICIO DEL HORARIO
+// OBTENER ELEMENTO A CONFIRMAR
 //=====================================================
 
-if (!reservaPuedeConfirmarse($reserva)) {
+$reserva = null;
+$ocurrencia = null;
+$esHorarioFijo = false;
 
-    $_SESSION['error'] =
-        'El uso de la sala todavía no puede ser confirmado porque el horario aún no comienza.';
+if ($reservaId > 0) {
 
-    header('Location: ver.php?id=' . $id);
+    $reserva = obtenerReservaPorId(
+        $conexion,
+        $reservaId
+    );
 
-    exit();
+    if (!$reserva) {
+
+        $_SESSION['error'] =
+            'La reserva no existe.';
+
+        header('Location: agenda.php');
+        exit();
+    }
+
+    if ($reserva['estado'] !== 'reservada') {
+
+        $_SESSION['error'] =
+            'Esta reserva ya no se encuentra disponible para confirmar.';
+
+        header('Location: agenda.php');
+        exit();
+    }
+
+    if (!reservaPuedeConfirmarse($reserva)) {
+
+        $_SESSION['error'] =
+            'El uso de la sala todavía no puede ser confirmado porque el horario aún no comienza.';
+
+        header('Location: ver.php?id=' . $reservaId);
+        exit();
+    }
+} else {
+
+    $esHorarioFijo = true;
+
+    $ocurrencia = obtenerOcurrenciaHorarioFijo(
+        $conexion,
+        $ocurrenciaId
+    );
+
+    if (!$ocurrencia) {
+
+        $_SESSION['error'] =
+            'La ocurrencia del horario fijo no existe.';
+
+        header('Location: agenda.php');
+        exit();
+    }
+
+    if ($ocurrencia['estado'] !== 'pendiente') {
+
+        $_SESSION['error'] =
+            'Esta ocurrencia de horario fijo ya no está disponible para confirmar.';
+
+        header('Location: agenda.php');
+        exit();
+    }
+
+    if (!ocurrenciaHorarioFijoPuedeConfirmarse($ocurrencia)) {
+
+        $_SESSION['error'] =
+            'El uso de la sala todavía no puede ser confirmado porque el horario aún no comienza.';
+
+        header(
+            'Location: confirmar.php?horario_fijo_ocurrencia_id='
+                . $ocurrenciaId
+        );
+        exit();
+    }
 }
 
 //=====================================================
-// OBTENER RECURSOS DISPONIBLES
+// OBTENER RECURSOS
 //=====================================================
 
 $sqlRecursos = "
@@ -90,6 +151,38 @@ if ($resultadoRecursos) {
 
         $recursos[] = $recurso;
     }
+}
+
+//=====================================================
+// DATOS PARA MOSTRAR
+//=====================================================
+
+if ($esHorarioFijo) {
+
+    $fecha = $ocurrencia['fecha'];
+    $numeroBloque = $ocurrencia['numero_bloque'];
+    $horaInicio = $ocurrencia['hora_inicio'];
+    $horaTermino = $ocurrencia['hora_termino'];
+    $curso = $ocurrencia['nombre_curso'];
+    $asignatura = $ocurrencia['asignatura_nombre'];
+    $docente = $ocurrencia['docente'];
+
+    $accionVolver =
+        'agenda.php';
+} else {
+
+    $fecha = $reserva['fecha'];
+    $numeroBloque = $reserva['numero_bloque'];
+    $horaInicio = $reserva['hora_inicio'];
+    $horaTermino = $reserva['hora_termino'];
+    $curso = $reserva['nombre_curso'];
+    $asignatura = $reserva['asignatura_nombre'];
+
+    $docente =
+        $reserva['nombres'] . ' ' . $reserva['apellidos'];
+
+    $accionVolver =
+        'ver.php?id=' . $reservaId;
 }
 ?>
 <!DOCTYPE html>
@@ -118,10 +211,6 @@ if ($resultadoRecursos) {
 
             <h1>Confirmar uso de la sala</h1>
 
-            <!-- ========================================= -->
-            <!-- DATOS DE LA RESERVA -->
-            <!-- ========================================= -->
-
             <div class="tabla-responsive">
 
                 <table class="tabla-detalle">
@@ -133,7 +222,7 @@ if ($resultadoRecursos) {
 
                             <td>
                                 <?= htmlspecialchars(
-                                    formatearFechaLarga($reserva['fecha'])
+                                    formatearFechaLarga($fecha)
                                 ) ?>
                             </td>
                         </tr>
@@ -142,11 +231,11 @@ if ($resultadoRecursos) {
                             <th>Bloque</th>
 
                             <td>
-                                Bloque <?= htmlspecialchars($reserva['numero_bloque']) ?>
+                                Bloque <?= htmlspecialchars($numeroBloque) ?>
 
-                                (<?= substr($reserva['hora_inicio'], 0, 5) ?>
+                                (<?= substr($horaInicio, 0, 5) ?>
                                 -
-                                <?= substr($reserva['hora_termino'], 0, 5) ?>)
+                                <?= substr($horaTermino, 0, 5) ?>)
                             </td>
                         </tr>
 
@@ -154,7 +243,7 @@ if ($resultadoRecursos) {
                             <th>Curso</th>
 
                             <td>
-                                <?= htmlspecialchars($reserva['nombre_curso']) ?>
+                                <?= htmlspecialchars($curso) ?>
                             </td>
                         </tr>
 
@@ -162,7 +251,7 @@ if ($resultadoRecursos) {
                             <th>Asignatura</th>
 
                             <td>
-                                <?= htmlspecialchars($reserva['asignatura_nombre']) ?>
+                                <?= htmlspecialchars($asignatura) ?>
                             </td>
                         </tr>
 
@@ -170,9 +259,7 @@ if ($resultadoRecursos) {
                             <th>Docente</th>
 
                             <td>
-                                <?= htmlspecialchars(
-                                    $reserva['nombres'] . ' ' . $reserva['apellidos']
-                                ) ?>
+                                <?= htmlspecialchars($docente) ?>
                             </td>
                         </tr>
 
@@ -182,23 +269,26 @@ if ($resultadoRecursos) {
 
             </div>
 
-
-            <!-- ========================================= -->
-            <!-- FORMULARIO -->
-            <!-- ========================================= -->
-
             <form
                 action="guardar_confirmacion.php"
                 method="POST"
                 class="formulario-confirmacion">
 
-                <input
-                    type="hidden"
-                    name="reserva_id"
-                    value="<?= $reserva['id'] ?>">
+                <?php if ($esHorarioFijo): ?>
 
+                    <input
+                        type="hidden"
+                        name="horario_fijo_ocurrencia_id"
+                        value="<?= $ocurrenciaId ?>">
 
-                <!-- ACTIVIDAD -->
+                <?php else: ?>
+
+                    <input
+                        type="hidden"
+                        name="reserva_id"
+                        value="<?= $reservaId ?>">
+
+                <?php endif; ?>
 
                 <div class="campo-formulario">
 
@@ -211,12 +301,13 @@ if ($resultadoRecursos) {
                         name="actividad"
                         rows="3"
                         maxlength="150"
-                        required><?= htmlspecialchars($reserva['actividad'] ?? '') ?></textarea>
+                        required><?= htmlspecialchars(
+                                        $esHorarioFijo
+                                            ? ''
+                                            : ($reserva['actividad'] ?? '')
+                                    ) ?></textarea>
 
                 </div>
-
-
-                <!-- OBJETIVO -->
 
                 <div class="campo-formulario">
 
@@ -228,12 +319,14 @@ if ($resultadoRecursos) {
                         id="objetivo_clase"
                         name="objetivo_clase"
                         rows="4"
-                        required><?= htmlspecialchars($reserva['objetivo_clase'] ?? '') ?></textarea>
+                        maxlength="150"
+                        required><?= htmlspecialchars(
+                                        $esHorarioFijo
+                                            ? ''
+                                            : ($reserva['objetivo_clase'] ?? '')
+                                    ) ?></textarea>
 
                 </div>
-
-
-                <!-- RECURSOS -->
 
                 <div class="campo-formulario">
 
@@ -274,9 +367,6 @@ if ($resultadoRecursos) {
 
                 </div>
 
-
-                <!-- OBSERVACIONES -->
-
                 <div class="campo-formulario">
 
                     <label for="observaciones">
@@ -290,9 +380,6 @@ if ($resultadoRecursos) {
 
                 </div>
 
-
-                <!-- ACCIONES -->
-
                 <div class="acciones">
 
                     <button
@@ -302,7 +389,7 @@ if ($resultadoRecursos) {
                     </button>
 
                     <a
-                        href="ver.php?id=<?= $reserva['id'] ?>"
+                        href="<?= htmlspecialchars($accionVolver) ?>"
                         class="btn btn-secundario">
                         Volver
                     </a>

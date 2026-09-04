@@ -8,6 +8,18 @@ declare(strict_types=1);
 // filtradas según la modalidad.
 //=====================================================
 
+//=====================================================
+// 1. VALIDAR SESIÓN
+//=====================================================
+
+require_once '../../includes/auth.php';
+
+requiereLogin();
+
+//=====================================================
+// 2. ARCHIVOS NECESARIOS
+//=====================================================
+
 require_once '../../config/database.php';
 require_once '../../includes/reservas_funciones.php';
 

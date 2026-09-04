@@ -4,14 +4,17 @@
 // Actualiza una reserva existente.
 //=====================================================
 
-/*
-session_start();
+//=====================================================
+// 1. VALIDAR SESIÓN
+//=====================================================
 
-if (!isset($_SESSION['usuario'])) {
-    header('Location: ../../login.php');
-    exit();
-}
-*/
+require_once '../../includes/auth.php';
+
+requiereLogin();
+
+//=====================================================
+// 2. ARCHIVOS NECESARIOS
+//=====================================================
 
 require_once '../../config/database.php';
 require_once '../../includes/reservas_funciones.php';
@@ -98,7 +101,7 @@ if (!reservaEsModificable($reserva)) {
     $_SESSION['error'] =
         'La reserva ya no puede ser modificada porque su horario ya comenzó.';
 
-    header("Location: ver.php?id=$id");
+    header('Location: agenda.php');
 
     exit();
 }
@@ -123,7 +126,7 @@ if ($fechaInicioSemanaReserva < $fechaInicioSemanaActual) {
     $_SESSION['error'] =
         'No se pueden modificar reservas de semanas anteriores.';
 
-    header("Location: ver.php?id=$id");
+    header('Location: agenda.php');
 
     exit();
 }

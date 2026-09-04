@@ -18,6 +18,10 @@
  */
 
 
+require '../../includes/auth.php';
+
+requiereLogin();
+
 require '../../config/database.php';
 require '../../includes/reservas_funciones.php';
 
@@ -337,15 +341,20 @@ $ocurrenciasHorariosFijosPorFecha =
 
                             <?php
 
-                            $tiposReservados = obtenerTiposReservados(
-                                $conexion,
+                            $reservasCelda = obtenerReservaCelda(
+                                $reservas,
                                 $dia['fecha'],
-                                $bloque['id']
+                                (int)$bloque['id']
                             );
 
-                            $reservaCompleta = $tiposReservados['completo'] ?? null;
-                            $reservaSub1     = $tiposReservados['sub1'] ?? null;
-                            $reservaSub2     = $tiposReservados['sub2'] ?? null;
+                            $reservaCompleta =
+                                $reservasCelda['completo'] ?? null;
+
+                            $reservaSub1 =
+                                $reservasCelda['sub1'] ?? null;
+
+                            $reservaSub2 =
+                                $reservasCelda['sub2'] ?? null;
 
                             $horariosFijosBloque =
                                 $horariosFijosPorFecha[$dia['fecha']][$bloque['id']]

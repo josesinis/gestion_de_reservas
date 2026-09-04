@@ -11,18 +11,14 @@
 |--------------------------------------------------------------------------
 */
 
+
 //=====================================================
 // 1. VALIDAR SESIÓN
 //=====================================================
 
-/*
-session_start();
+require_once '../../includes/auth.php';
 
-if (!isset($_SESSION['usuario'])) {
-    header('Location: ../../login.php');
-    exit();
-}
-*/
+requiereLogin();
 
 //=====================================================
 // 2. ARCHIVOS NECESARIOS
@@ -61,6 +57,15 @@ if (!$reserva) {
     die('La reserva no existe.');
 }
 
+if ($reserva['estado'] !== 'reservada') {
+
+    $_SESSION['error'] =
+        'Esta reserva ya no puede ser modificada.';
+
+    header('Location: agenda.php');
+
+    exit();
+}
 //=====================================================
 // 6. OBTENER DOCENTES
 //=====================================================

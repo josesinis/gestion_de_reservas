@@ -3,14 +3,20 @@
 // VER.PHP
 // Muestra el detalle de una reserva.
 //=====================================================
-/*
-session_start();
 
-if (!isset($_SESSION['usuario'])) {
-    header('Location: ../../login.php');
-    exit();
-}
-*/
+
+//=====================================================
+// 1. VALIDAR SESIÓN
+//=====================================================
+
+require_once '../../includes/auth.php';
+
+requiereLogin();
+
+//=====================================================
+// 2. ARCHIVOS NECESARIOS
+//=====================================================
+
 require_once '../../config/database.php';
 require_once '../../includes/reservas_funciones.php';
 
@@ -95,6 +101,16 @@ $stmt->close();
 if (!$reserva) {
 
     $_SESSION['error'] = 'La reserva no existe.';
+
+    header('Location: agenda.php');
+
+    exit();
+}
+
+if ($reserva['estado'] !== 'reservada') {
+
+    $_SESSION['error'] =
+        'Esta reserva ya no está disponible para consulta.';
 
     header('Location: agenda.php');
 

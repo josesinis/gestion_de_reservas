@@ -14,14 +14,10 @@
 //=====================================================
 // 1. VALIDAR SESIÓN
 //=====================================================
-/*
-session_start();
 
-if (!isset($_SESSION['usuario'])) {
-    header('Location: ../../login.php');
-    exit();
-}
-*/
+require_once '../../includes/auth.php';
+
+requiereLogin();
 
 //=====================================================
 // 2. ARCHIVOS NECESARIOS

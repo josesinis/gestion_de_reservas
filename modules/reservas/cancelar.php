@@ -4,14 +4,17 @@
 // Cancela una reserva sin eliminarla de la base de datos.
 //=====================================================
 
-/*
-session_start();
+//=====================================================
+// 1. VALIDAR SESIÓN
+//=====================================================
 
-if (!isset($_SESSION['usuario'])) {
-    header('Location: ../../login.php');
-    exit();
-}
-*/
+require_once '../../includes/auth.php';
+
+requiereLogin();
+
+//=====================================================
+// 2. ARCHIVOS NECESARIOS
+//=====================================================
 
 require_once '../../config/database.php';
 require_once '../../includes/reservas_funciones.php';
@@ -71,7 +74,7 @@ if (!reservaEsModificable($reserva)) {
     $_SESSION['error'] =
         'No es posible cancelar una reserva cuyo bloque ya terminó.';
 
-    header('Location: ver.php?id=' . $id);
+    header('Location: agenda.php');
 
     exit();
 }
@@ -85,7 +88,7 @@ if ($reserva['estado'] !== 'reservada') {
     $_SESSION['error'] =
         'Solo se pueden cancelar reservas activas.';
 
-    header('Location: ver.php?id=' . $id);
+    header('Location: agenda.php');
 
     exit();
 }
@@ -98,6 +101,7 @@ $sql = "
     UPDATE reservas
     SET estado = 'cancelada'
     WHERE id = ?
+    AND estado = 'reservada'
 ";
 
 $stmt = $conexion->prepare($sql);
@@ -121,7 +125,6 @@ if ($stmt->execute()) {
 
     $_SESSION['exito'] =
         'La reserva fue cancelada correctamente.';
-
 } else {
 
     $_SESSION['error'] =

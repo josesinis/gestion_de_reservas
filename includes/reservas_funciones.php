@@ -306,16 +306,30 @@ function reservaPuedeConfirmarse(array $reserva): bool
         $inicioReserva->modify(
             '+' . ($duracion / 2) . ' seconds'
         );
+
     } else {
 
         $inicioReserva = $inicioBloque;
     }
 
-    return $ahora >= $inicioReserva;
+    if ($ahora < $inicioReserva) {
+        return false;
+    }
+
+    // Se puede confirmar durante el día de la reserva
+    // y durante todo el día calendario siguiente.
+    $limiteConfirmacion = new DateTime(
+        $reserva['fecha'] . ' 23:59:59'
+    );
+
+    $limiteConfirmacion->modify('+1 day');
+
+    return $ahora <= $limiteConfirmacion;
 }
 
 
 /**
+
  * Obtiene las reservas comprendidas entre dos fechas.
  *
  * @param mysqli $conexion
@@ -343,6 +357,9 @@ function obtenerReservas(
             r.cierre_manual,
             r.estado,
 
+            b.hora_inicio,
+            b.hora_termino,
+
         CONCAT(SUBSTRING_INDEX(d.nombres,' ',1), ' ', SUBSTRING_INDEX(d.apellidos,' ',1) ) AS docente,
 
             c.nombre_curso AS curso,
@@ -359,6 +376,9 @@ function obtenerReservas(
 
         INNER JOIN asignaturas a
             ON a.id = r.asignatura_id
+
+        INNER JOIN bloques b
+            ON b.id = r.bloque_id
 
         WHERE
 
@@ -1036,12 +1056,39 @@ function hayConflictoReserva(
 
 function renderizarTarjetaReserva(array $reserva): string
 {
+    $estado = $reserva['estado'] ?? 'reservada';
+
+    $puedeConfirmarse =
+        $estado === 'reservada'
+        && reservaPuedeConfirmarse($reserva);
+
+    $claseEstado = '';
+
+    if ($estado === 'no_utilizada') {
+        $claseEstado = ' agenda-reserva-deshabilitada';
+    } elseif ($estado === 'utilizada') {
+        $claseEstado = ' agenda-reserva-utilizada';
+    }
+
     ob_start();
 ?>
 
-    <a
-        href="ver.php?id=<?= (int)$reserva['id']; ?>"
-        class="agenda-reserva">
+    <?php if (
+        $estado === 'no_utilizada' ||
+        $estado === 'utilizada'
+    ): ?>
+
+        <div
+            class="agenda-reserva<?= $claseEstado; ?>"
+            aria-disabled="true">
+
+    <?php else: ?>
+
+        <a
+            href="ver.php?id=<?= (int)$reserva['id']; ?>"
+            class="agenda-reserva<?= $claseEstado; ?>">
+
+    <?php endif; ?>
 
         <div class="agenda-reserva-asignatura">
             <?= htmlspecialchars($reserva['asignatura']); ?>
@@ -1057,7 +1104,38 @@ function renderizarTarjetaReserva(array $reserva): string
 
         </div>
 
-    </a>
+        <?php if ($puedeConfirmarse): ?>
+
+            <div class="agenda-reserva-confirmacion">
+                Confirmar uso
+            </div>
+
+        <?php elseif ($estado === 'utilizada'): ?>
+
+            <div class="agenda-reserva-confirmacion">
+                Uso confirmado
+            </div>
+
+        <?php elseif ($estado === 'no_utilizada'): ?>
+
+            <div class="agenda-reserva-confirmacion">
+                No utilizada
+            </div>
+
+        <?php endif; ?>
+
+    <?php if (
+        $estado === 'no_utilizada' ||
+        $estado === 'utilizada'
+    ): ?>
+
+        </div>
+
+    <?php else: ?>
+
+        </a>
+
+    <?php endif; ?>
 
 <?php
 
@@ -1672,6 +1750,61 @@ function obtenerHorariosFijosPorFecha(
 // Muestra la información básica de un horario fijo
 // dentro de la agenda.
 //=====================================================
+// VALIDAR SI UNA OCURRENCIA DE HORARIO FIJO PUEDE
+// SER CONFIRMADA
+//
+// - completo/sub1: desde el inicio del bloque
+// - sub2: desde la mitad del bloque
+//=====================================================
+
+function ocurrenciaHorarioFijoPuedeConfirmarse(
+    array $ocurrencia
+): bool {
+
+    if (
+        !isset(
+            $ocurrencia['fecha'],
+            $ocurrencia['hora_inicio'],
+            $ocurrencia['hora_termino'],
+            $ocurrencia['tipo']
+        )
+    ) {
+        return false;
+    }
+
+    $ahora = new DateTime();
+
+    $inicioBloque = new DateTime(
+        $ocurrencia['fecha'] . ' ' . $ocurrencia['hora_inicio']
+    );
+
+    if ($ocurrencia['tipo'] === 'sub2') {
+
+        $terminoBloque = new DateTime(
+            $ocurrencia['fecha'] . ' ' . $ocurrencia['hora_termino']
+        );
+
+        $duracion = $terminoBloque->getTimestamp()
+            - $inicioBloque->getTimestamp();
+
+        $inicioOcurrencia = clone $inicioBloque;
+
+        $inicioOcurrencia->modify(
+            '+' . ($duracion / 2) . ' seconds'
+        );
+
+    } else {
+
+        $inicioOcurrencia = $inicioBloque;
+    }
+
+    return $ahora >= $inicioOcurrencia;
+}
+
+
+//=====================================================
+// RENDERIZAR TARJETA DE HORARIO FIJO
+//=====================================================
 
 function renderizarTarjetaHorarioFijo(
     array $horario,
@@ -1696,7 +1829,33 @@ function renderizarTarjetaHorarioFijo(
         'UTF-8'
     );
 
-    $botonReasignar = '';
+    $botones = '';
+
+    //=================================================
+    // CONFIRMAR USO
+    //=================================================
+
+    if (
+        $ocurrencia !== null &&
+        $ocurrencia['estado'] === 'pendiente' &&
+        ocurrenciaHorarioFijoPuedeConfirmarse($ocurrencia)
+    ) {
+
+        $botones .= '
+        <a
+            href="confirmar.php?horario_fijo_ocurrencia_id='
+            . (int) $ocurrencia['id'] . '"
+            class="agenda-btn-confirmar">
+
+            Confirmar uso
+
+        </a>
+        ';
+    }
+
+    //=================================================
+    // REASIGNAR
+    //=================================================
 
     if (
         $ocurrencia !== null &&
@@ -1704,7 +1863,7 @@ function renderizarTarjetaHorarioFijo(
         $horario['modalidad'] === 'asignatura'
     ) {
 
-        $botonReasignar = '
+        $botones .= '
         <a
             href="agregar.php?modo=reasignar&horario_fijo_ocurrencia_id='
             . (int) $ocurrencia['id'] . '"
@@ -1713,7 +1872,18 @@ function renderizarTarjetaHorarioFijo(
             Reasignar
 
         </a>
-    ';
+        ';
+    }
+
+    $contenedorBotones = '';
+
+    if ($botones !== '') {
+
+        $contenedorBotones = '
+        <div class="agenda-tarjeta-acciones">
+            ' . $botones . '
+        </div>
+        ';
     }
 
     return '
@@ -1735,7 +1905,7 @@ function renderizarTarjetaHorarioFijo(
                 Horario fijo
             </div>
 
-            ' . $botonReasignar . '
+            ' . $contenedorBotones . '
 
         </div>
     ';
@@ -1774,10 +1944,14 @@ function obtenerOcurrenciasHorariosFijosPorFecha(
             hfo.observaciones,
             hfo.fecha_confirmacion,
             hf.bloque_id,
-            hf.tipo
+            hf.tipo,
+            b.hora_inicio,
+            b.hora_termino
         FROM horarios_fijos_ocurrencias hfo
         INNER JOIN horarios_fijos hf
             ON hf.id = hfo.horario_fijo_id
+        INNER JOIN bloques b
+            ON b.id = hf.bloque_id
         WHERE hfo.fecha BETWEEN ? AND ?
         ORDER BY hfo.fecha, hf.bloque_id, hf.tipo
     ";

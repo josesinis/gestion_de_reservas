@@ -4,6 +4,18 @@
 // Formulario para crear un nuevo horario fijo.
 //=====================================================
 
+//=====================================================
+// 1. VALIDAR SESIÓN
+//=====================================================
+
+require_once '../../includes/auth.php';
+
+requiereLogin();
+
+//=====================================================
+// 2. ARCHIVOS NECESARIOS
+//=====================================================
+
 require_once '../../config/database.php';
 require_once '../../includes/reservas_funciones.php';
 

@@ -4,13 +4,18 @@
 // Guarda una nueva reserva.
 //=====================================================
 
-/*session_start();
+//=====================================================
+// 1. VALIDAR SESIÓN
+//=====================================================
 
-if (!isset($_SESSION['usuario'])) {
-    header('Location: ../../login.php');
-    exit();
-}
-*/
+require_once '../../includes/auth.php';
+
+requiereLogin();
+
+//=====================================================
+// 2. ARCHIVOS NECESARIOS
+//=====================================================
+
 require_once '../../config/database.php';
 require_once '../../includes/reservas_funciones.php';
 
@@ -111,7 +116,7 @@ exit;*/
 // VARIABLES INTERNAS DEL SISTEMA
 //-----------------------------------------------------
 
-$usuarioId = 1;          // Temporal hasta implementar login
+$usuarioId = (int) $_SESSION['usuario_id'];
 
 $estado = 'reservada';
 
@@ -396,13 +401,15 @@ if ($modo !== 'reasignar') {
 
 /*
  * Desde aquí comienza una operación que afecta
- * tres elementos:
+ * dos elementos:
  *
  * 1. nueva reserva
  * 2. ocurrencia del horario fijo
- * 3. bitácora
  *
- * Las tres operaciones deben completarse juntas.
+ * Las dos operaciones deben completarse juntas.
+ *
+ * La bitácora NO se crea aquí.
+ * Se generará posteriormente al confirmar el uso.
  */
 
 
@@ -481,52 +488,7 @@ try {
     $stmtOcurrencia->close();
 
 
-    //=================================================
-    // 3. CREAR BITÁCORA
-    //=================================================
-
-    $observaciones =
-        'Reasignación de horario fijo. '
-        . 'El horario original fue reasignado a la nueva reserva.';
-
-    $sqlBitacora = "
-        INSERT INTO bitacoras (
-            reserva_id,
-            horario_fijo_ocurrencia_id,
-            observaciones
-        )
-        VALUES (?, ?, ?)
-    ";
-
-    $stmtBitacora =
-        $conexion->prepare($sqlBitacora);
-
-    if (!$stmtBitacora) {
-
-        throw new Exception(
-            'No fue posible preparar la bitácora.'
-        );
-    }
-
-    $stmtBitacora->bind_param(
-        "iis",
-        $reservaId,
-        $ocurrenciaId,
-        $observaciones
-    );
-
-    if (!$stmtBitacora->execute()) {
-
-        throw new Exception(
-            'No fue posible registrar la bitácora.'
-        );
-    }
-
-    $stmtBitacora->close();
-
-
-    //=================================================
-    // 4. CONFIRMAR TRANSACCIÓN
+    // 3. CONFIRMAR TRANSACCIÓN
     //=================================================
 
     $conexion->commit();
