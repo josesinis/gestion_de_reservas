@@ -7,6 +7,10 @@
    CONTENEDOR DE LA TABLA
    ===================================================== */
 
+/*=====================================================
+  TABLA DE BITÁCORA
+=====================================================*/
+
 .tabla-bitacora-contenedor {
     width: 100%;
     overflow-x: auto;
@@ -14,151 +18,144 @@
 }
 
 
-/* =====================================================
-   TABLA
-   ===================================================== */
-
 .tabla-bitacora {
     width: 100%;
-    min-width: 1050px;
+    min-width: 1200px;
     border-collapse: collapse;
     table-layout: fixed;
 }
 
 
-/* =====================================================
-   CELDAS
-   ===================================================== */
+/*-----------------------------------------------------
+  CELDAS
+-----------------------------------------------------*/
 
 .tabla-bitacora th,
 .tabla-bitacora td {
     padding: 10px 12px;
     vertical-align: top;
+    box-sizing: border-box;
 }
 
-
-/* =====================================================
-   ENCABEZADOS
-   ===================================================== */
 
 .tabla-bitacora th {
     white-space: nowrap;
 }
 
 
-/* =====================================================
-   DÍA / MES
-   ===================================================== */
+/*-----------------------------------------------------
+  ANCHOS DE LAS COLUMNAS
+-----------------------------------------------------*/
 
 .tabla-bitacora th:nth-child(1),
 .tabla-bitacora td:nth-child(1) {
-    width: 95px;
+    width: 8%;
 }
 
-
-/* =====================================================
-   HORA
-   ===================================================== */
 
 .tabla-bitacora th:nth-child(2),
 .tabla-bitacora td:nth-child(2) {
-    width: 100px;
+    width: 7%;
 }
 
-
-/* =====================================================
-   PROFESOR
-   ===================================================== */
 
 .tabla-bitacora th:nth-child(3),
 .tabla-bitacora td:nth-child(3) {
-    width: 165px;
+    width: 14%;
 }
 
-
-/* =====================================================
-   CURSO
-   ===================================================== */
 
 .tabla-bitacora th:nth-child(4),
 .tabla-bitacora td:nth-child(4) {
-    width: 65px;
+    width: 6%;
 }
 
-
-/* =====================================================
-   ASIGNATURA
-   ===================================================== */
 
 .tabla-bitacora th:nth-child(5),
 .tabla-bitacora td:nth-child(5) {
-    width: 105px;
+    width: 8%;
 }
 
-
-/* =====================================================
-   OBJETIVO
-   ===================================================== */
 
 .tabla-bitacora th:nth-child(6),
 .tabla-bitacora td:nth-child(6) {
-    width: 190px;
+    width: 14%;
 }
 
-
-/* =====================================================
-   ACTIVIDAD
-   ===================================================== */
 
 .tabla-bitacora th:nth-child(7),
 .tabla-bitacora td:nth-child(7) {
-    width: 190px;
+    width: 14%;
 }
 
-
-/* =====================================================
-   HERRAMIENTAS
-   ===================================================== */
 
 .tabla-bitacora th:nth-child(8),
 .tabla-bitacora td:nth-child(8) {
-    width: 160px;
+    width: 15%;
 }
 
 
-/* =====================================================
-   TEXTOS LARGOS
-   ===================================================== */
+.tabla-bitacora th:nth-child(9),
+.tabla-bitacora td:nth-child(9) {
+    width: 14%;
+}
+
+
+/*-----------------------------------------------------
+  CONTENIDO DE LAS CELDAS
+-----------------------------------------------------*/
 
 .tabla-bitacora td {
     overflow-wrap: break-word;
-    word-break: normal;
+    word-wrap: break-word;
 }
 
 
-/* =====================================================
-   DESPLAZAMIENTO HORIZONTAL
-   ===================================================== */
+/*-----------------------------------------------------
+  ACCIONES
+-----------------------------------------------------*/
+
+.tabla-bitacora .acciones-bitacora {
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+
+.tabla-bitacora .btn-bitacora {
+    display: inline-block;
+    margin: 0 3px 4px 0;
+    padding: 8px 12px;
+    white-space: nowrap;
+}
+
+
+/*-----------------------------------------------------
+  BARRA DE DESPLAZAMIENTO
+-----------------------------------------------------*/
 
 .tabla-bitacora-contenedor::-webkit-scrollbar {
     height: 12px;
 }
 
-.tabla-bitacora-contenedor::-webkit-scrollbar-thumb {
-    border-radius: 6px;
-}
 
 .tabla-bitacora-contenedor::-webkit-scrollbar-track {
+    background: #eeeeee;
+}
+
+
+.tabla-bitacora-contenedor::-webkit-scrollbar-thumb {
+    background: #888888;
     border-radius: 6px;
 }
 
-/* =====================================================
-   CONTENEDOR GENERAL DE BITÁCORA
-   ===================================================== */
+
+/*=====================================================
+  CONTENEDOR PRINCIPAL
+=====================================================*/
 
 .contenedor-bitacora {
     width: calc(100% - 40px);
-    max-width: 1500px;
+    max-width: 1700px;
     margin-left: auto;
     margin-right: auto;
 }
@@ -191,4 +188,125 @@
 
 .tabla-detalle-bitacora td {
     overflow-wrap: break-word;
+}
+
+/*=====================================================
+  FORMULARIO DE EDICIÓN DE BITÁCORA
+=====================================================*/
+
+/* Cada campo ocupa todo el ancho disponible */
+.contenedor-bitacora .campo-formulario {
+    display: block;
+    margin-bottom: 20px;
+}
+
+
+/* Etiquetas */
+.contenedor-bitacora .campo-formulario > label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+
+/* Campos de texto */
+.contenedor-bitacora .campo-formulario textarea {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-height: 100px;
+    box-sizing: border-box;
+    resize: vertical;
+}
+
+
+/* Lista de herramientas */
+.contenedor-bitacora .lista-recursos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 20px;
+    margin-top: 8px;
+}
+
+
+/* Cada herramienta */
+.contenedor-bitacora .lista-recursos label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    font-weight: normal;
+    white-space: nowrap;
+}
+
+
+/* Checkbox */
+.contenedor-bitacora .lista-recursos input[type="checkbox"] {
+    margin: 0;
+}
+
+
+/* Botones del formulario */
+.contenedor-bitacora form .acciones {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 10px;
+}
+
+/*=====================================================
+  ENCABEZADO DE BITÁCORA
+=====================================================*/
+
+.contenedor-bitacora .encabezado-pagina {
+    width: 900px;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding-left: 25px;
+    padding-right: 25px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/*=====================================================
+  ENCABEZADO FIJO DE LA TABLA
+=====================================================*/
+
+.tabla-bitacora thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #741b49;
+}
+/*=====================================================
+  RESUMEN COMPACTO DE BITÁCORA
+=====================================================*/
+
+/*=====================================================
+  RESUMEN DE BITÁCORA
+=====================================================*/
+
+.contenedor-bitacora .resumen-bitacora {
+    margin-top: 18px;
+    margin-bottom: 8px;
+    padding: 0 25px;
+
+    font-size: 13px;
+    color: #555;
+}
+
+.contenedor-bitacora .resumen-bitacora strong {
+    color: #333;
+}
+
+.contenedor-bitacora .encabezado-pagina {
+    width: calc(100% - 40px);
+    max-width: 1700px;
+    box-sizing: border-box;
+
+    padding-left: 0;
+    padding-right: 0;
+
+    margin-left: auto;
+    margin-right: auto;
 }

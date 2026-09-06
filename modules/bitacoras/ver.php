@@ -4,25 +4,28 @@
 // BITÁCORA - DETALLE
 //=====================================================
 //
-// Muestra el detalle de un uso confirmado de la
-// Sala de Computación.
+// Muestra el detalle de un registro de bitácora.
 //
-// El registro puede provenir de:
+// Acceso:
+// - admin
+// - superadmin
 //
-// 1. Una reserva normal.
-// 2. Una ocurrencia de horario fijo.
-// 3. Una reasignación.
-//
+// El usuario normal solo podrá acceder al listado
+// y posteriormente a la impresión.
 //=====================================================
 
 
 //=====================================================
-// 1. VALIDAR SESIÓN
+// 1. VALIDAR SESIÓN Y ROL
 //=====================================================
 
 require_once '../../includes/auth.php';
 
 requiereLogin();
+
+require_once '../../includes/permisos.php';
+
+requiereRol(['admin', 'superadmin']);
 
 
 //=====================================================
@@ -33,23 +36,21 @@ require_once '../../config/database.php';
 
 
 //=====================================================
-// 3. OBTENER ID
+// 3. VALIDAR ID
 //=====================================================
 
-$id = (int) ($_GET['id'] ?? 0);
+$bitacoraId = (int) ($_GET['id'] ?? 0);
 
-if ($id <= 0) {
-
-    $_SESSION['error'] =
-        'El registro de bitácora no es válido.';
+if ($bitacoraId <= 0) {
 
     header('Location: index.php');
+
     exit();
 }
 
 
 //=====================================================
-// 4. CONSULTAR REGISTRO
+// 4. CONSULTAR BITÁCORA
 //=====================================================
 
 $sql = "
@@ -62,15 +63,21 @@ $sql = "
 
         bita.horario_fijo_ocurrencia_id,
 
-        bita.objetivo_clase,
+        COALESCE(
+            bita.objetivo_clase,
+            r.objetivo_clase
+        ) AS objetivo_clase,
 
-        bita.actividad,
+        COALESCE(
+            bita.actividad,
+            r.actividad
+        ) AS actividad,
 
         bita.observaciones,
 
 
         /*---------------------------------------------
-          FECHA
+          DATOS DE LA CLASE
         ---------------------------------------------*/
 
         COALESCE(
@@ -78,10 +85,6 @@ $sql = "
             hfo.fecha
         ) AS fecha,
 
-
-        /*---------------------------------------------
-          DATOS DE LA CLASE
-        ---------------------------------------------*/
 
         COALESCE(
             r.docente_id,
@@ -114,7 +117,7 @@ $sql = "
 
 
         /*---------------------------------------------
-          DOCENTE
+          DATOS DESCRIPTIVOS
         ---------------------------------------------*/
 
         CONCAT(
@@ -124,23 +127,11 @@ $sql = "
         ) AS docente,
 
 
-        /*---------------------------------------------
-          CURSO
-        ---------------------------------------------*/
-
         c.nombre_curso AS curso,
 
 
-        /*---------------------------------------------
-          ASIGNATURA
-        ---------------------------------------------*/
-
         a.asignatura_nombre AS asignatura,
 
-
-        /*---------------------------------------------
-          BLOQUE
-        ---------------------------------------------*/
 
         bl.numero_bloque,
 
@@ -150,7 +141,7 @@ $sql = "
 
 
         /*---------------------------------------------
-          FECHA DE CONFIRMACIÓN
+          INFORMACIÓN DEL HORARIO FIJO
         ---------------------------------------------*/
 
         hfo.fecha_confirmacion,
@@ -191,7 +182,8 @@ $sql = "
 
     LEFT JOIN horarios_fijos hf
 
-        ON hf.id = hfo.horario_fijo_id
+        ON hf.id =
+            hfo.horario_fijo_id
 
 
     /*---------------------------------------------
@@ -262,7 +254,8 @@ $sql = "
 
         INNER JOIN recursos rec
 
-            ON rec.id = br.recurso_id
+            ON rec.id =
+                br.recurso_id
 
         GROUP BY
             br.bitacora_id
@@ -283,36 +276,21 @@ $sql = "
 
 ";
 
-
 $stmt = $conexion->prepare($sql);
 
 if (!$stmt) {
 
-    $_SESSION['error'] =
-        'No se pudo consultar el registro de bitácora.';
-
     header('Location: index.php');
+
     exit();
 }
-
 
 $stmt->bind_param(
     "i",
-    $id
+    $bitacoraId
 );
 
-
-if (!$stmt->execute()) {
-
-    $stmt->close();
-
-    $_SESSION['error'] =
-        'No se pudo consultar el registro de bitácora.';
-
-    header('Location: index.php');
-    exit();
-}
-
+$stmt->execute();
 
 $resultado = $stmt->get_result();
 
@@ -321,115 +299,156 @@ $registro = $resultado->fetch_assoc();
 $stmt->close();
 
 
+//=====================================================
+// 5. VALIDAR EXISTENCIA
+//=====================================================
+
 if (!$registro) {
 
-    $_SESSION['error'] =
-        'El registro de bitácora no existe.';
-
     header('Location: index.php');
+
     exit();
 }
 
 
 //=====================================================
-// 5. PREPARAR FECHA
+// 6. FUNCIONES DE PRESENTACIÓN
 //=====================================================
 
-$fecha = '';
+function formatearFechaDetalle(
+    ?string $fecha
+): string {
 
-if (!empty($registro['fecha'])) {
-
-    $fechaObj = DateTime::createFromFormat(
-        'Y-m-d',
-        $registro['fecha']
-    );
-
-    if ($fechaObj) {
-
-        $fecha =
-            $fechaObj->format('d/m/Y');
-    } else {
-
-        $fecha =
-            $registro['fecha'];
+    if (
+        $fecha === null
+        ||
+        $fecha === ''
+    ) {
+        return '—';
     }
+
+    $fechaObj =
+        DateTime::createFromFormat(
+            'Y-m-d',
+            $fecha
+        );
+
+    if (!$fechaObj) {
+        return $fecha;
+    }
+
+    return $fechaObj->format(
+        'd/m/Y'
+    );
 }
 
 
-//=====================================================
-// 6. PREPARAR HORARIO
-//=====================================================
+function obtenerHorarioDetalle(
+    ?string $fecha,
+    ?string $horaInicio,
+    ?string $horaTermino,
+    ?string $tipo
+): string {
 
-$hora = '';
-
-if (
-    !empty($registro['hora_inicio']) &&
-    !empty($registro['hora_termino']) &&
-    !empty($registro['fecha'])
-) {
+    if (
+        empty($fecha)
+        ||
+        empty($horaInicio)
+        ||
+        empty($horaTermino)
+    ) {
+        return '—';
+    }
 
     $inicio = new DateTime(
-        $registro['fecha']
-            . ' '
-            . $registro['hora_inicio']
+        $fecha
+        . ' '
+        . $horaInicio
     );
 
     $termino = new DateTime(
-        $registro['fecha']
-            . ' '
-            . $registro['hora_termino']
+        $fecha
+        . ' '
+        . $horaTermino
     );
 
     $duracion =
         $termino->getTimestamp()
-        - $inicio->getTimestamp();
+        -
+        $inicio->getTimestamp();
 
     $media = clone $inicio;
 
     $media->modify(
-        '+' . ($duracion / 2) . ' seconds'
+        '+'
+        . ($duracion / 2)
+        . ' seconds'
     );
 
-
-    switch ($registro['tipo_uso']) {
+    switch ($tipo) {
 
         case 'sub1':
 
-            $hora =
+            return
                 $inicio->format('H:i')
                 . ' - '
                 . $media->format('H:i');
 
-            break;
-
-
         case 'sub2':
 
-            $hora =
+            return
                 $media->format('H:i')
                 . ' - '
                 . $termino->format('H:i');
-
-            break;
-
 
         case 'completo':
 
         default:
 
-            $hora =
+            return
                 $inicio->format('H:i')
                 . ' - '
                 . $termino->format('H:i');
-
-            break;
     }
 }
 
 
 //=====================================================
-// 7. PREPARAR DATOS DE LA CLASE
+// 7. PREPARAR DATOS
 //=====================================================
+
+$fecha =
+    formatearFechaDetalle(
+        $registro['fecha'] ?? null
+    );
+
+
+$hora =
+    obtenerHorarioDetalle(
+        $registro['fecha'] ?? null,
+        $registro['hora_inicio'] ?? null,
+        $registro['hora_termino'] ?? null,
+        $registro['tipo_uso'] ?? 'completo'
+    );
+
+
+$docente =
+    trim(
+        $registro['docente'] ?? ''
+    );
+
+
+$curso =
+    trim(
+        $registro['curso'] ?? ''
+    );
+
+
+$asignatura =
+    trim(
+        $registro['asignatura'] ?? ''
+    );
+
 
 $objetivo =
     trim(
@@ -443,15 +462,15 @@ $actividad =
     );
 
 
-$observaciones =
-    trim(
-        $registro['observaciones'] ?? ''
-    );
-
-
 $recursos =
     trim(
         $registro['nombres_recursos'] ?? ''
+    );
+
+
+$observaciones =
+    trim(
+        $registro['observaciones'] ?? ''
     );
 
 
@@ -460,16 +479,21 @@ $recursos =
 //=====================================================
 
 if (
-    !empty($registro['reserva_id']) &&
+    !empty($registro['reserva_id'])
+    &&
     !empty($registro['horario_fijo_ocurrencia_id'])
 ) {
 
     $origen =
         'Reasignación';
-} elseif (!empty($registro['reserva_id'])) {
+
+} elseif (
+    !empty($registro['reserva_id'])
+) {
 
     $origen =
         'Reserva';
+
 } else {
 
     $origen =
@@ -481,19 +505,25 @@ if (
 // 9. FECHA DE CONFIRMACIÓN
 //=====================================================
 
-$fechaConfirmacion = '';
+$fechaConfirmacion = '—';
 
-if (!empty($registro['fecha_confirmacion'])) {
+if (
+    !empty($registro['fecha_confirmacion'])
+) {
 
-    $fechaConfirmacionObj =
-        new DateTime(
+    $fechaObj =
+        DateTime::createFromFormat(
+            'Y-m-d H:i:s',
             $registro['fecha_confirmacion']
         );
 
-    $fechaConfirmacion =
-        $fechaConfirmacionObj->format(
-            'd/m/Y H:i'
-        );
+    if ($fechaObj) {
+
+        $fechaConfirmacion =
+            $fechaObj->format(
+                'd/m/Y H:i'
+            );
+    }
 }
 
 ?>
@@ -508,36 +538,33 @@ if (!empty($registro['fecha_confirmacion'])) {
 
     <meta
         name="viewport"
-        content="width=device-width, initial-scale=1.0">
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>
         Detalle de bitácora
     </title>
 
 
-    <!-- CSS generales -->
+    <link
+        rel="stylesheet"
+        href="../../assets/css/estilos.css"
+    >
 
     <link
         rel="stylesheet"
-        href="../../assets/css/estilos.css">
+        href="../../assets/css/botones.css"
+    >
 
     <link
         rel="stylesheet"
-        href="../../assets/css/botones.css">
+        href="../../assets/css/tablas.css"
+    >
 
     <link
         rel="stylesheet"
-        href="../../assets/css/formularios.css">
-
-    <link
-        rel="stylesheet"
-        href="../../assets/css/tablas.css">
-
-    <!-- CSS Bitácora -->
-
-    <link
-        rel="stylesheet"
-        href="../../assets/css/bitacora.css">
+        href="../../assets/css/bitacora.css"
+    >
 
 </head>
 
@@ -545,382 +572,374 @@ if (!empty($registro['fecha_confirmacion'])) {
 <body>
 
 
-    <div class="contenedor contenedor-bitacora">
+<main class="contenedor contenedor-bitacora">
 
 
-        <!--=================================================
+    <!--=================================================
         ENCABEZADO
     ==================================================-->
 
-        <div class="encabezado-pagina">
+    <div class="encabezado-pagina">
 
-            <div>
+        <div>
 
-                <h1>
-                    Detalle de bitácora
-                </h1>
+            <h1>
+                Detalle de bitácora
+            </h1>
 
-                <p>
-                    Registro de utilización de la Sala de Computación
-                </p>
-
-            </div>
-
-
-            <div>
-
-                <a
-                    href="index.php"
-                    class="btn btn-secondary">
-                    Volver a bitácora
-                </a>
-
-            </div>
+            <p>
+                Registro de utilización de la Sala de Computación
+            </p>
 
         </div>
 
+    </div>
 
-        <!--=================================================
+
+    <!--=================================================
         INFORMACIÓN DE LA CLASE
     ==================================================-->
 
-        <div class="panel">
+    <section class="panel">
 
-            <h2>
-                Información de la clase
-            </h2>
-
-
-            <div class="tabla-detalle-bitacora">
-
-                <table>
-
-                    <tbody>
-
-                        <tr>
-
-                            <th>
-                                Fecha
-                            </th>
-
-                            <td>
-                                <?= htmlspecialchars($fecha) ?>
-                            </td>
-
-                        </tr>
+        <h2>
+            Información de la clase
+        </h2>
 
 
-                        <tr>
+        <div class="tabla-detalle-bitacora">
 
-                            <th>
-                                Hora
-                            </th>
+            <table>
 
-                            <td>
-                                <?= htmlspecialchars(
-                                    $hora !== ''
-                                        ? $hora
-                                        : '—'
-                                ) ?>
-                            </td>
+                <tbody>
 
-                        </tr>
+                    <tr>
 
+                        <th>
+                            Fecha
+                        </th>
 
-                        <tr>
+                        <td>
+                            <?= htmlspecialchars($fecha) ?>
+                        </td>
 
-                            <th>
-                                Profesor
-                            </th>
-
-                            <td>
-                                <?= htmlspecialchars(
-                                    $registro['docente'] ?? '—'
-                                ) ?>
-                            </td>
-
-                        </tr>
+                    </tr>
 
 
-                        <tr>
+                    <tr>
 
-                            <th>
-                                Curso
-                            </th>
+                        <th>
+                            Hora
+                        </th>
 
-                            <td>
-                                <?= htmlspecialchars(
-                                    $registro['curso'] ?? '—'
-                                ) ?>
-                            </td>
+                        <td>
+                            <?= htmlspecialchars($hora) ?>
+                        </td>
 
-                        </tr>
+                    </tr>
 
 
-                        <tr>
+                    <tr>
 
-                            <th>
-                                Asignatura
-                            </th>
+                        <th>
+                            Profesor
+                        </th>
 
-                            <td>
-                                <?= htmlspecialchars(
-                                    $registro['asignatura'] ?? '—'
-                                ) ?>
-                            </td>
+                        <td>
+                            <?= htmlspecialchars(
+                                $docente !== ''
+                                    ? $docente
+                                    : '—'
+                            ) ?>
+                        </td>
 
-                        </tr>
+                    </tr>
 
 
-                        <tr>
+                    <tr>
 
-                            <th>
-                                Origen
-                            </th>
+                        <th>
+                            Curso
+                        </th>
 
-                            <td>
-                                <?= htmlspecialchars($origen) ?>
-                            </td>
+                        <td>
+                            <?= htmlspecialchars(
+                                $curso !== ''
+                                    ? $curso
+                                    : '—'
+                            ) ?>
+                        </td>
 
-                        </tr>
+                    </tr>
 
-                    </tbody>
 
-                </table>
+                    <tr>
 
-            </div>
+                        <th>
+                            Asignatura
+                        </th>
+
+                        <td>
+                            <?= htmlspecialchars(
+                                $asignatura !== ''
+                                    ? $asignatura
+                                    : '—'
+                            ) ?>
+                        </td>
+
+                    </tr>
+
+
+                    <tr>
+
+                        <th>
+                            Origen
+                        </th>
+
+                        <td>
+                            <?= htmlspecialchars($origen) ?>
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
 
         </div>
 
+    </section>
 
-        <!--=================================================
+
+    <!--=================================================
         REGISTRO DE LA CLASE
     ==================================================-->
 
-        <div class="panel">
+    <section class="panel">
 
-            <h2>
-                Registro de la clase
-            </h2>
-
-
-            <div class="tabla-detalle-bitacora">
-
-                <table>
-
-                    <tbody>
-
-                        <tr>
-
-                            <th>
-                                Objetivo de la clase
-                            </th>
-
-                            <td>
-
-                                <?= nl2br(
-                                    htmlspecialchars(
-                                        $objetivo !== ''
-                                            ? $objetivo
-                                            : '—'
-                                    )
-                                ) ?>
-
-                            </td>
-
-                        </tr>
+        <h2>
+            Registro de la clase
+        </h2>
 
 
-                        <tr>
+        <div class="tabla-detalle-bitacora">
 
-                            <th>
-                                Actividad realizada
-                            </th>
+            <table>
 
-                            <td>
+                <tbody>
 
-                                <?= nl2br(
-                                    htmlspecialchars(
-                                        $actividad !== ''
-                                            ? $actividad
-                                            : '—'
-                                    )
-                                ) ?>
+                    <tr>
 
-                            </td>
+                        <th>
+                            Objetivo de la clase
+                        </th>
 
-                        </tr>
+                        <td>
+                            <?= htmlspecialchars(
+                                $objetivo !== ''
+                                    ? $objetivo
+                                    : '—'
+                            ) ?>
+                        </td>
 
-
-                        <tr>
-
-                            <th>
-                                Herramientas utilizadas
-                            </th>
-
-                            <td>
-
-                                <?= nl2br(
-                                    htmlspecialchars(
-                                        $recursos !== ''
-                                            ? $recursos
-                                            : '—'
-                                    )
-                                ) ?>
-
-                            </td>
-
-                        </tr>
+                    </tr>
 
 
-                        <tr>
+                    <tr>
 
-                            <th>
-                                Observaciones
-                            </th>
+                        <th>
+                            Actividad realizada
+                        </th>
 
-                            <td>
+                        <td>
+                            <?= htmlspecialchars(
+                                $actividad !== ''
+                                    ? $actividad
+                                    : '—'
+                            ) ?>
+                        </td>
+
+                    </tr>
+
+
+                    <tr>
+
+                        <th>
+                            Herramientas utilizadas
+                        </th>
+
+                        <td>
+                            <?= htmlspecialchars(
+                                $recursos !== ''
+                                    ? $recursos
+                                    : '—'
+                            ) ?>
+                        </td>
+
+                    </tr>
+
+
+                    <tr>
+
+                        <th>
+                            Observaciones
+                        </th>
+
+                        <td>
+                            <?php if ($observaciones !== ''): ?>
 
                                 <?= nl2br(
                                     htmlspecialchars(
-                                        $observaciones !== ''
-                                            ? $observaciones
-                                            : '—'
+                                        $observaciones
                                     )
                                 ) ?>
 
-                            </td>
+                            <?php else: ?>
 
-                        </tr>
+                                —
 
-                    </tbody>
+                            <?php endif; ?>
+                        </td>
 
-                </table>
+                    </tr>
 
-            </div>
+                </tbody>
+
+            </table>
 
         </div>
 
+    </section>
 
-        <!--=================================================
+
+    <!--=================================================
         INFORMACIÓN DEL REGISTRO
     ==================================================-->
 
-        <div class="panel">
+    <section class="panel">
 
-            <h2>
-                Información del registro
-            </h2>
-
-
-            <div class="tabla-detalle-bitacora">
-
-                <table>
-
-                    <tbody>
-
-                        <tr>
-
-                            <th>
-                                N.º de bitácora
-                            </th>
-
-                            <td>
-                                <?= (int) $registro['bitacora_id'] ?>
-                            </td>
-
-                        </tr>
+        <h2>
+            Información del registro
+        </h2>
 
 
-                        <tr>
+        <div class="tabla-detalle-bitacora">
 
-                            <th>
-                                Fecha de confirmación
-                            </th>
+            <table>
 
-                            <td>
+                <tbody>
 
-                                <?= htmlspecialchars(
-                                    $fechaConfirmacion !== ''
-                                        ? $fechaConfirmacion
-                                        : '—'
-                                ) ?>
+                    <tr>
 
-                            </td>
+                        <th>
+                            N.º de bitácora
+                        </th>
 
-                        </tr>
+                        <td>
+                            <?= (int) $registro['bitacora_id'] ?>
+                        </td>
 
-
-                        <tr>
-
-                            <th>
-                                Reserva asociada
-                            </th>
-
-                            <td>
-
-                                <?php if (
-                                    !empty($registro['reserva_id'])
-                                ): ?>
-
-                                    #<?= (int) $registro['reserva_id'] ?>
-
-                                <?php else: ?>
-
-                                    —
-
-                                <?php endif; ?>
-
-                            </td>
-
-                        </tr>
+                    </tr>
 
 
-                        <tr>
+                    <tr>
 
-                            <th>
-                                Ocurrencia de horario fijo
-                            </th>
+                        <th>
+                            Fecha de confirmación
+                        </th>
 
-                            <td>
+                        <td>
+                            <?= htmlspecialchars(
+                                $fechaConfirmacion
+                            ) ?>
+                        </td>
 
-                                <?php if (
-                                    !empty($registro['horario_fijo_ocurrencia_id'])
-                                ): ?>
+                    </tr>
 
-                                    #<?= (int) $registro['horario_fijo_ocurrencia_id'] ?>
 
-                                <?php else: ?>
+                    <tr>
 
-                                    —
+                        <th>
+                            Reserva asociada
+                        </th>
 
-                                <?php endif; ?>
+                        <td>
 
-                            </td>
+                            <?php if (
+                                !empty(
+                                    $registro['reserva_id']
+                                )
+                            ): ?>
 
-                        </tr>
+                                #<?= (int) $registro['reserva_id'] ?>
 
-                    </tbody>
+                            <?php else: ?>
 
-                </table>
+                                —
 
-            </div>
+                            <?php endif; ?>
+
+                        </td>
+
+                    </tr>
+
+
+                    <tr>
+
+                        <th>
+                            Ocurrencia de horario fijo
+                        </th>
+
+                        <td>
+
+                            <?php if (
+                                !empty(
+                                    $registro[
+                                        'horario_fijo_ocurrencia_id'
+                                    ]
+                                )
+                            ): ?>
+
+                                #<?= (int) $registro[
+                                    'horario_fijo_ocurrencia_id'
+                                ] ?>
+
+                            <?php else: ?>
+
+                                —
+
+                            <?php endif; ?>
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
 
         </div>
 
+    </section>
 
-        <!--=================================================
-        ACCIONES
+
+    <!--=================================================
+        VOLVER
     ==================================================-->
 
-        <div class="acciones-formulario">
+    <div class="acciones">
 
-
-
-        </div>
-
+        <a
+            href="index.php"
+            class="btn btn-secondary"
+        >
+            Volver a bitácora
+        </a>
 
     </div>
+
+
+</main>
 
 
 </body>

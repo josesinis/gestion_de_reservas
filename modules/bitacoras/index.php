@@ -6,19 +6,12 @@
 //
 // Muestra los usos confirmados de la Sala de Computación.
 //
-// La información puede provenir de:
+// Acceso a acciones:
+// - usuario: solo listado (por ahora)
+// - admin: ver + editar
+// - superadmin: ver + editar + eliminar
 //
-// 1. Una reserva normal.
-// 2. Una ocurrencia de horario fijo.
-// 3. Una reasignación, donde existen ambos vínculos.
-//
-// La información propia del uso:
-// - objetivo
-// - actividad
-// - observaciones
-// - recursos
-//
-// se obtiene desde la bitácora.
+// La impresión se agregará posteriormente.
 //
 //=====================================================
 
@@ -31,6 +24,8 @@ require_once '../../includes/auth.php';
 
 requiereLogin();
 
+require_once '../../includes/permisos.php';
+
 
 //=====================================================
 // 2. ARCHIVOS NECESARIOS
@@ -40,7 +35,14 @@ require_once '../../config/database.php';
 
 
 //=====================================================
-// 3. FUNCIONES
+// 3. OBTENER ROL
+//=====================================================
+
+$rolUsuario = $_SESSION['rol'] ?? 'usuario';
+
+
+//=====================================================
+// 4. FUNCIONES
 //=====================================================
 
 /**
@@ -130,22 +132,7 @@ function obtenerHorarioBitacora(
 
 
 //=====================================================
-// 4. CONSULTAR BITÁCORA
-//=====================================================
-//
-// Se utiliza una sola consulta para obtener:
-//
-// - Reservas normales.
-// - Horarios fijos directos.
-// - Reasignaciones.
-//
-// COALESCE permite utilizar los datos de la reserva
-// cuando existe, y los de la ocurrencia cuando no existe.
-//
-// Los objetivos y actividades se obtienen directamente
-// desde bitacoras, ya que representan el uso efectivo
-// registrado.
-//
+// 5. CONSULTAR BITÁCORA
 //=====================================================
 
 $registros = [];
@@ -159,6 +146,7 @@ $sql = "
         bita.reserva_id,
 
         bita.horario_fijo_ocurrencia_id,
+
 
         /*---------------------------------------------
           OBJETIVO Y ACTIVIDAD
@@ -276,7 +264,8 @@ $sql = "
 
     LEFT JOIN horarios_fijos hf
 
-        ON hf.id = hfo.horario_fijo_id
+        ON hf.id =
+            hfo.horario_fijo_id
 
 
     /*---------------------------------------------
@@ -380,7 +369,7 @@ $resultado = $conexion->query($sql);
 
 
 //=====================================================
-// 5. COMPROBAR RESULTADO
+// 6. COMPROBAR RESULTADO
 //=====================================================
 
 if ($resultado) {
@@ -393,7 +382,7 @@ if ($resultado) {
 
 
 //=====================================================
-// 6. CONTADOR
+// 7. CONTADOR
 //=====================================================
 
 $totalRegistros = count($registros);
@@ -414,7 +403,9 @@ $totalRegistros = count($registros);
 
     <title>Bitácora de uso</title>
 
-
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <!-- CSS generales -->
 
     <link
@@ -448,6 +439,13 @@ $totalRegistros = count($registros);
 
 <body>
 
+    <?php
+
+    $seccionActual = 'bitacora';
+
+    require_once '../../includes/menu.php';
+
+    ?>
 
     <div class="contenedor contenedor-bitacora">
 
@@ -474,9 +472,10 @@ $totalRegistros = count($registros);
             <div>
 
                 <a
-                    href="../reservas/agenda.php"
-                    class="btn btn-secondary">
-                    Volver a agenda
+                    href="imprimir.php"
+                    class="btn btn-primary">
+                    <i class="fa-solid fa-print"></i>
+                    Imprimir
                 </a>
 
             </div>
@@ -488,16 +487,12 @@ $totalRegistros = count($registros);
         RESUMEN
     ==================================================-->
 
-        <div class="panel">
+        <div class="resumen-bitacora">
 
-            <p>
-
-                Registros encontrados:
-                <strong>
-                    <?= $totalRegistros ?>
-                </strong>
-
-            </p>
+            Registros encontrados:
+            <strong>
+                <?= $totalRegistros ?>
+            </strong>
 
         </div>
 
@@ -546,6 +541,10 @@ $totalRegistros = count($registros);
                             Herramientas utilizadas
                         </th>
 
+                        <th>
+                            Acciones
+                        </th>
+
                     </tr>
 
                 </thead>
@@ -559,7 +558,7 @@ $totalRegistros = count($registros);
                         <tr>
 
                             <td
-                                colspan="8"
+                                colspan="9"
                                 style="text-align: center;">
 
                                 No existen registros en la bitácora.
@@ -701,6 +700,64 @@ $totalRegistros = count($registros);
                                             ? $recursos
                                             : '—'
                                     ) ?>
+
+                                </td>
+
+
+                                <!-- Acciones -->
+
+                                <td class="acciones-bitacora">
+
+
+                                    <?php if (
+                                        $rolUsuario === 'admin'
+                                        ||
+                                        $rolUsuario === 'superadmin'
+                                    ): ?>
+
+
+                                        <a
+                                            href="ver.php?id=<?= (int) $registro['bitacora_id'] ?>"
+                                            class="btn btn-secundario btn-bitacora">
+                                            Ver
+                                        </a>
+
+
+                                        <a
+                                            href="editar.php?id=<?= (int) $registro['bitacora_id'] ?>"
+                                            class="btn btn-primario btn-bitacora">
+                                            Editar
+                                        </a>
+
+
+                                    <?php endif; ?>
+
+
+                                    <?php if (
+                                        $rolUsuario === 'superadmin'
+                                    ): ?>
+
+
+                                        <a
+                                            href="eliminar.php?id=<?= (int) $registro['bitacora_id'] ?>"
+                                            class="btn btn-peligro btn-bitacora">
+                                            Eliminar
+                                        </a>
+
+
+                                    <?php endif; ?>
+
+
+                                    <?php if (
+                                        $rolUsuario === 'usuario'
+                                    ): ?>
+
+                                        <span>
+                                            —
+                                        </span>
+
+                                    <?php endif; ?>
+
 
                                 </td>
 

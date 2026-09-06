@@ -129,6 +129,14 @@ $ocurrenciasHorariosFijosPorFecha =
 
 <body>
 
+    <?php
+
+    $seccionActual = 'reservas';
+
+    require_once '../../includes/menu.php';
+
+    ?>
+
     <div class="agenda-container">
 
         <!-- =====================================================
