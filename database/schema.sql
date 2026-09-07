@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 04-09-2026 a las 14:07:08
+-- Tiempo de generación: 07-09-2026 a las 15:02:19
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -75,7 +75,8 @@ INSERT INTO `bitacoras` (`id`, `reserva_id`, `objetivo_clase`, `actividad`, `hor
 (9, NULL, NULL, NULL, 2797, ''),
 (10, 45, NULL, NULL, NULL, ''),
 (11, NULL, 'Objetivo 1', 'Actividad 1', 3194, ''),
-(12, 49, 'Comprender que es el acento diacrítico.', 'Buscar monosílabas, con y sin tilde.', NULL, '');
+(12, 49, 'Comprender que es el acento diacrítico.', 'Buscar monosílabas, con y sin tilde.', NULL, ''),
+(13, 50, 'Sacar conclusiones y hacer inferencias.', 'Buscar significado de, inferir y sacar conclusiones.', NULL, '');
 
 -- --------------------------------------------------------
 
@@ -118,7 +119,9 @@ INSERT INTO `bitacora_recursos` (`id`, `bitacora_id`, `recurso_id`) VALUES
 (22, 11, 2),
 (23, 11, 3),
 (24, 12, 1),
-(25, 12, 2);
+(25, 12, 2),
+(26, 13, 1),
+(27, 13, 2);
 
 -- --------------------------------------------------------
 
@@ -188,23 +191,25 @@ CREATE TABLE `docentes` (
   `id` int(11) NOT NULL,
   `nombres` varchar(50) NOT NULL,
   `apellidos` varchar(50) NOT NULL,
-  `correo` varchar(50) NOT NULL
+  `correo` varchar(50) NOT NULL,
+  `activo` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
 --
 -- Volcado de datos para la tabla `docentes`
 --
 
-INSERT INTO `docentes` (`id`, `nombres`, `apellidos`, `correo`) VALUES
-(1, 'Esmeralda Jacqueline', 'Cabrera Saavedra', 'kellycabrera1@gmail.com'),
-(2, 'Evelyn Del Rosario', 'Cortés Saavedra', 'elastro6@hotmail.com'),
-(3, 'Eduardo Cecilio', 'Muñoz Apablaza', 'emunozapablaza@gmail.com'),
-(4, 'Hector Igor', 'Castillo Ulloa', 'h.castillo@edutome.cl'),
-(5, 'Katherine Celestina', 'Fuentes Diaz', 'katherinecfuentes@gmail.com'),
-(6, 'Matias', 'Lantaño Mardones', 'mlantano@ematematica.ucsc.cl'),
-(7, 'Gastón', 'Flores Vargas', 'gaston.flores.vargas@edutome.cl'),
-(8, 'María Sandra', 'Aguayo Aravena', 'intirrayen@gmail.com'),
-(9, 'Luis Andres', 'Inostroza Jara', 'profesor.inostroza@gmail.com');
+INSERT INTO `docentes` (`id`, `nombres`, `apellidos`, `correo`, `activo`) VALUES
+(1, 'Esmeralda J.', 'Cabrera Saavedra', 'kellycabrera1@gmail.com', 1),
+(2, 'Evelyn Del Rosario', 'Cortés Saavedra', 'elastro6@hotmail.com', 0),
+(3, 'Eduardo Cecilio', 'Muñoz Apablaza', 'emunozapablaza@gmail.com', 0),
+(4, 'Hector Igor', 'Castillo Ulloa', 'h.castillo@edutome.cl', 0),
+(5, 'Katherine Celestina', 'Fuentes Diaz', 'katherinecfuentes@gmail.com', 0),
+(6, 'Matias', 'Lantaño Mardones', 'mlantano@ematematica.ucsc.cl', 0),
+(7, 'Gastón', 'Flores Vargas', 'gaston.flores.vargas@edutome.cl', 0),
+(8, 'María Sandra', 'Aguayo Aravena', 'intirrayen@gmail.com', 1),
+(9, 'Luis Andres', 'Inostroza Jara', 'profesor.inostroza@gmail.com', 0),
+(10, 'Angelica Ivonne', 'Orellana Contreras', 'profe.angelicaorellana@gmail.com', 1);
 
 -- --------------------------------------------------------
 
@@ -809,7 +814,8 @@ INSERT INTO `reservas` (`id`, `docente_id`, `usuario_id`, `curso_id`, `asignatur
 (45, 1, 1, 13, 3, 1, '2026-09-04', 'Escribir una breve biografía de un deportista.', 'Buscar información.', 0, NULL, 0, 'utilizada', '2026-09-03 11:26:45', '2026-09-04 10:03:49', 'completo', NULL),
 (47, 1, 1, 12, 3, 2, '2026-09-09', '', '', 0, NULL, 0, 'reservada', '2026-09-04 09:58:00', '2026-09-04 09:58:00', 'completo', NULL),
 (48, 1, 1, 11, 3, 4, '2026-09-09', '', '', 0, NULL, 0, 'reservada', '2026-09-04 09:58:18', '2026-09-04 09:58:18', 'completo', NULL),
-(49, 4, 1, 14, 2, 3, '2026-09-04', 'Comprender que es el acento diacrítico.', 'Buscar monosílabas, con y sin tilde.', 0, NULL, 0, 'utilizada', '2026-09-04 10:54:08', '2026-09-04 13:56:16', 'completo', NULL);
+(49, 4, 1, 14, 2, 3, '2026-09-04', 'Comprender que es el acento diacrítico.', 'Buscar monosílabas, con y sin tilde.', 0, NULL, 0, 'utilizada', '2026-09-04 10:54:08', '2026-09-04 13:56:16', 'completo', NULL),
+(50, 4, 1, 16, 2, 4, '2026-09-07', 'Sacar conclusiones y hacer inferencias.', 'Buscar significado de, inferir y sacar conclusiones.', 0, NULL, 0, 'utilizada', '2026-09-07 14:19:59', '2026-09-07 14:45:18', 'completo', NULL);
 
 -- --------------------------------------------------------
 
@@ -824,7 +830,7 @@ CREATE TABLE `usuarios` (
   `correo` varchar(50) NOT NULL,
   `usuario` varchar(30) NOT NULL,
   `password` varchar(255) NOT NULL,
-  `rol` enum('usuario','admin','superdmin') NOT NULL,
+  `rol` enum('usuario','admin','superadmin') NOT NULL,
   `acceso` tinyint(1) NOT NULL DEFAULT 1,
   `ultimo_acceso` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
@@ -834,7 +840,8 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id`, `nombres`, `apellidos`, `correo`, `usuario`, `password`, `rol`, `acceso`, `ultimo_acceso`) VALUES
-(1, 'José A.', 'Fernández Concha', 'jfernandezconcha@gmail.com', 'Josesinis', '$2y$10$6/4FA8ny1xObuxbWtzI6J.6fY/2rc.KaITAU2aCXk4gTSFu/tEQ/2', 'superdmin', 1, '2026-09-04 10:53:44');
+(1, 'José A.', 'Fernández Concha', 'jfernandezconcha@gmail.com', 'Josesinis', '$2y$10$6/4FA8ny1xObuxbWtzI6J.6fY/2rc.KaITAU2aCXk4gTSFu/tEQ/2', 'superadmin', 1, '2026-09-07 10:58:51'),
+(2, 'Esmeralda Jacqueline', 'Cabrera Saavedra', 'kellycabrera1@gmail.com', 'Esmeralda', '$2y$10$1pJ3/AsvJtI6dXSbX63FxOgPyXTSx50/p1GR47wGdu62NgFX7rMV6', 'usuario', 1, NULL);
 
 --
 -- Índices para tablas volcadas
@@ -956,13 +963,13 @@ ALTER TABLE `asignaturas`
 -- AUTO_INCREMENT de la tabla `bitacoras`
 --
 ALTER TABLE `bitacoras`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT de la tabla `bitacora_recursos`
 --
 ALTER TABLE `bitacora_recursos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- AUTO_INCREMENT de la tabla `bloques`
@@ -980,7 +987,7 @@ ALTER TABLE `cursos`
 -- AUTO_INCREMENT de la tabla `docentes`
 --
 ALTER TABLE `docentes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT de la tabla `docentes_asignaturas`
@@ -1016,13 +1023,13 @@ ALTER TABLE `recursos`
 -- AUTO_INCREMENT de la tabla `reservas`
 --
 ALTER TABLE `reservas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
 
 --
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- Restricciones para tablas volcadas

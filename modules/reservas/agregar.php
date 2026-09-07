@@ -24,7 +24,7 @@ requiereLogin();
 //=====================================================
 
 require_once '../../includes/header.php';
-require_once '../../includes/menu.php';
+//require_once '../../includes/menu.php';
 require_once '../../config/database.php';
 require_once '../../includes/reservas_funciones.php';
 

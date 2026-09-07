@@ -54,6 +54,14 @@ function claseMenuActivo(
         : '';
 }
 
+
+//=====================================================
+// DETERMINAR SUBSECCIÓN DE ADMINISTRACIÓN
+//=====================================================
+
+$subseccionAdministracion =
+    $subseccionAdministracion ?? '';
+
 ?>
 
 <nav class="menu-principal">
@@ -136,7 +144,7 @@ function claseMenuActivo(
             ==================================================-->
 
             <a
-                href="/gestion_de_reservas/modules/bitacoras/index.php"
+                href="/gestion_de_reservas/modules/bitacora/index.php"
                 class="menu-enlace<?= claseMenuActivo(
                                         'bitacora',
                                         $seccionActual
@@ -152,26 +160,6 @@ function claseMenuActivo(
 
 
             <!--=================================================
-                BIENES
-            ==================================================-->
-
-            <a
-                href="/gestion_de_reservas/modules/bienes/bienes_lista.php"
-                class="menu-enlace<?= claseMenuActivo(
-                                        'bienes',
-                                        $seccionActual
-                                    ) ?>">
-
-                <i class="fa-solid fa-desktop"></i>
-
-                <span>
-                    Bienes
-                </span>
-
-            </a>
-
-
-            <!--=================================================
                 ADMINISTRACIÓN
             ==================================================-->
 
@@ -181,20 +169,72 @@ function claseMenuActivo(
                 $rolUsuario === 'superadmin'
             ): ?>
 
-                <a
-                    href="/gestion_de_reservas/modules/usuarios/index.php"
-                    class="menu-enlace<?= claseMenuActivo(
-                                            'administracion',
-                                            $seccionActual
-                                        ) ?>">
+                <div class="menu-administracion">
 
-                    <i class="fa-solid fa-users-gear"></i>
 
-                    <span>
-                        Administración
-                    </span>
+                    <!--=================================================
+                        BOTÓN ADMINISTRACIÓN
+                    ==================================================-->
 
-                </a>
+                    <a
+                        href="#"
+                        class="menu-enlace menu-enlace-administracion<?= claseMenuActivo(
+                                                                            'administracion',
+                                                                            $seccionActual
+                                                                        ) ?>">
+
+                        <i class="fa-solid fa-users-gear"></i>
+
+                        <span>
+                            Administración
+                        </span>
+
+                        <i class="fa-solid fa-chevron-down menu-flecha"></i>
+
+                    </a>
+
+
+                    <!--=================================================
+                        SUBMENÚ
+                    ==================================================-->
+
+                    <div class="menu-submenu">
+
+
+                        <a
+                            href="/gestion_de_reservas/modules/usuarios/index.php"
+                            class="menu-submenu-enlace<?= $subseccionAdministracion === 'usuarios'
+                                                            ? ' menu-submenu-activo'
+                                                            : '' ?>">
+
+                            <i class="fa-solid fa-users"></i>
+
+                            <span>
+                                Usuarios
+                            </span>
+
+                        </a>
+
+
+                        <a
+                            href="/gestion_de_reservas/modules/docentes/index.php"
+                            class="menu-submenu-enlace<?= $subseccionAdministracion === 'docentes'
+                                                            ? ' menu-submenu-activo'
+                                                            : '' ?>">
+
+                            <i class="fa-solid fa-chalkboard-user"></i>
+
+                            <span>
+                                Docentes
+                            </span>
+
+                        </a>
+
+
+                    </div>
+
+
+                </div>
 
             <?php endif; ?>
 
