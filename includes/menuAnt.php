@@ -16,6 +16,7 @@
 //
 //=====================================================
 
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -37,7 +38,6 @@ $nombreUsuario =
 //=====================================================
 
 $seccionActual = $seccionActual ?? '';
-$subseccionAdministracion = $subseccionAdministracion ?? '';
 
 
 //=====================================================
@@ -53,6 +53,14 @@ function claseMenuActivo(
         ? ' menu-enlace-activo'
         : '';
 }
+
+
+//=====================================================
+// DETERMINAR SUBSECCIÓN DE ADMINISTRACIÓN
+//=====================================================
+
+$subseccionAdministracion =
+    $subseccionAdministracion ?? '';
 
 ?>
 
@@ -132,31 +140,11 @@ function claseMenuActivo(
 
 
             <!--=================================================
-                HORARIOS FIJOS
-            ==================================================-->
-
-            <a
-                href="/gestion_de_reservas/modules/horarios_fijos/index.php"
-                class="menu-enlace<?= claseMenuActivo(
-                                        'horarios_fijos',
-                                        $seccionActual
-                                    ) ?>">
-
-                <i class="fa-solid fa-calendar-week"></i>
-
-                <span>
-                    Horarios fijos
-                </span>
-
-            </a>
-
-
-            <!--=================================================
                 BITÁCORA
             ==================================================-->
 
             <a
-                href="/gestion_de_reservas/modules/bitacoras/index.php"
+                href="/gestion_de_reservas/modules/bitacora/index.php"
                 class="menu-enlace<?= claseMenuActivo(
                                         'bitacora',
                                         $seccionActual
@@ -183,6 +171,11 @@ function claseMenuActivo(
 
                 <div class="menu-administracion">
 
+
+                    <!--=================================================
+                        BOTÓN ADMINISTRACIÓN
+                    ==================================================-->
+
                     <a
                         href="#"
                         class="menu-enlace menu-enlace-administracion<?= claseMenuActivo(
@@ -200,13 +193,21 @@ function claseMenuActivo(
 
                     </a>
 
+
+                    <!--=================================================
+                        SUBMENÚ
+                    ==================================================-->
+
                     <div class="menu-submenu">
+
 
                         <a
                             href="/gestion_de_reservas/modules/usuarios/index.php"
-                            class="menu-submenu-enlace<?= $subseccionAdministracion === 'usuarios' ? ' menu-submenu-activo' : '' ?>">
+                            class="menu-submenu-enlace<?= $subseccionAdministracion === 'usuarios'
+                                                            ? ' menu-submenu-activo'
+                                                            : '' ?>">
 
-                            <i class="fa-solid fa-user-gear"></i>
+                            <i class="fa-solid fa-users"></i>
 
                             <span>
                                 Usuarios
@@ -214,9 +215,12 @@ function claseMenuActivo(
 
                         </a>
 
+
                         <a
                             href="/gestion_de_reservas/modules/docentes/index.php"
-                            class="menu-submenu-enlace<?= $subseccionAdministracion === 'docentes' ? ' menu-submenu-activo' : '' ?>">
+                            class="menu-submenu-enlace<?= $subseccionAdministracion === 'docentes'
+                                                            ? ' menu-submenu-activo'
+                                                            : '' ?>">
 
                             <i class="fa-solid fa-chalkboard-user"></i>
 
@@ -226,19 +230,9 @@ function claseMenuActivo(
 
                         </a>
 
-                        <a
-                            href="/gestion_de_reservas/modules/asignaturas/index.php"
-                            class="menu-submenu-enlace<?= $subseccionAdministracion === 'asignaturas' ? ' menu-submenu-activo' : '' ?>">
-
-                            <i class="fa-solid fa-book"></i>
-
-                            <span>
-                                Asignaturas
-                            </span>
-
-                        </a>
 
                     </div>
+
 
                 </div>
 
@@ -253,6 +247,7 @@ function claseMenuActivo(
         ==================================================-->
 
         <div class="menu-usuario">
+
 
             <span class="menu-usuario-nombre">
 
@@ -277,6 +272,7 @@ function claseMenuActivo(
                 </span>
 
             </a>
+
 
         </div>
 

@@ -266,6 +266,23 @@ if ($fechaInicioSemanaReserva < $fechaInicioSemanaActual) {
 }
 
 //=====================================================
+// VALIDAR ENTREGA DE TRABAJOS
+//=====================================================
+
+if ($permiteEntrega === 1) {
+
+    if ($fechaEntregaOficial === null) {
+
+        $errores[] =
+            'Debe indicar la fecha oficial de entrega.';
+    } elseif ($fechaEntregaOficial < $fecha) {
+
+        $errores[] =
+            'La fecha oficial de entrega no puede ser anterior a la fecha de la reserva.';
+    }
+}
+
+//=====================================================
 // VALIDAR ERRORES
 //=====================================================
 
@@ -379,17 +396,105 @@ $stmt->bind_param(
 
 if ($modo !== 'reasignar') {
 
-    if ($stmt->execute()) {
+    $conexion->begin_transaction();
+
+    try {
+
+        //=================================================
+        // 1. CREAR LA RESERVA
+        //=================================================
+
+        if (!$stmt->execute()) {
+
+            throw new Exception(
+                'No fue posible guardar la reserva.'
+            );
+        }
+
+        $reservaId = $conexion->insert_id;
+
+        $stmt->close();
+
+
+        //=================================================
+        // 2. CREAR EL TRABAJO SI CORRESPONDE
+        //=================================================
+
+        if ($permiteEntrega === 1) {
+
+            $tituloTrabajo = $actividad;
+
+            $fechaInicioTrabajo =
+                $fecha . ' 00:00:00';
+
+            $fechaLimiteTrabajo =
+                $fechaEntregaOficial . ' 16:15:00';
+
+
+            $sqlTrabajo = "
+                INSERT INTO trabajos (
+                    reserva_id,
+                    titulo,
+                    estado,
+                    fecha_inicio,
+                    fecha_limite
+                )
+                VALUES (?, ?, 'en_proceso', ?, ?)
+            ";
+
+            $stmtTrabajo =
+                $conexion->prepare($sqlTrabajo);
+
+            if (!$stmtTrabajo) {
+
+                throw new Exception(
+                    'No fue posible preparar la creación del trabajo.'
+                );
+            }
+
+            $stmtTrabajo->bind_param(
+                "isss",
+                $reservaId,
+                $tituloTrabajo,
+                $fechaInicioTrabajo,
+                $fechaLimiteTrabajo
+            );
+
+            if (!$stmtTrabajo->execute()) {
+
+                $stmtTrabajo->close();
+
+                throw new Exception(
+                    'No fue posible crear el trabajo.'
+                );
+            }
+
+            $stmtTrabajo->close();
+        }
+
+
+        //=================================================
+        // 3. CONFIRMAR
+        //=================================================
+
+        $conexion->commit();
 
         $_SESSION['exito'] =
-            'La reserva fue creada correctamente.';
-    } else {
+            $permiteEntrega === 1
+            ? 'La reserva y el trabajo fueron creados correctamente.'
+            : 'La reserva fue creada correctamente.';
+    } catch (Throwable $e) {
+
+        $conexion->rollback();
+
+        if (isset($stmt) && $stmt) {
+            $stmt->close();
+        }
 
         $_SESSION['error'] =
-            'Ocurrió un error al guardar la reserva.';
+            'No fue posible guardar la reserva: '
+            . $e->getMessage();
     }
-
-    $stmt->close();
 
     header('Location: agenda.php');
     exit();

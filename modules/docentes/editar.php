@@ -112,6 +112,99 @@ $correo = $docente['correo'];
 
 $activo = (int) $docente['activo'];
 
+
+//=====================================================
+// 6. OBTENER ASIGNATURAS DEL DOCENTE
+//=====================================================
+
+$asignaturasSeleccionadas = [];
+
+
+$sql = "
+    SELECT asignatura_id
+    FROM docentes_asignaturas
+    WHERE docente_id = ?
+";
+
+
+$stmt = $conexion->prepare($sql);
+
+
+if ($stmt) {
+
+    $stmt->bind_param('i', $id);
+
+    $stmt->execute();
+
+    $resultado = $stmt->get_result();
+
+
+    while ($fila = $resultado->fetch_assoc()) {
+
+        $asignaturasSeleccionadas[] =
+            (int) $fila['asignatura_id'];
+    }
+
+
+    $stmt->close();
+}
+
+
+//=====================================================
+// 7. OBTENER ASIGNATURAS
+//=====================================================
+//
+// Se muestran:
+// - Todas las asignaturas activas.
+// - Las asignaturas inactivas que actualmente
+//   estén asociadas al docente.
+//
+// Esto permite conservar relaciones históricas
+// y evitar que desaparezcan del formulario.
+//=====================================================
+
+$sql = "
+    SELECT
+        a.id,
+        a.asignatura_nombre,
+        a.modalidad,
+        a.activo
+    FROM asignaturas a
+    WHERE a.activo = 1
+       OR a.id IN (
+            SELECT asignatura_id
+            FROM docentes_asignaturas
+            WHERE docente_id = ?
+       )
+    ORDER BY
+        a.asignatura_nombre ASC
+";
+
+
+$stmt = $conexion->prepare($sql);
+
+
+$asignaturas = [];
+
+
+if ($stmt) {
+
+    $stmt->bind_param('i', $id);
+
+    $stmt->execute();
+
+    $resultado = $stmt->get_result();
+
+
+    while ($fila = $resultado->fetch_assoc()) {
+
+        $asignaturas[] = $fila;
+    }
+
+
+    $stmt->close();
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -173,7 +266,7 @@ $activo = (int) $docente['activo'];
 
 
         <!--=================================================
-         ENCABEZADO
+             ENCABEZADO
         ==================================================-->
 
         <div class="encabezado-pagina encabezado-usuario">
@@ -221,7 +314,7 @@ $activo = (int) $docente['activo'];
 
 
         <!--=================================================
-         FORMULARIO
+             FORMULARIO
         ==================================================-->
 
         <form
@@ -233,7 +326,7 @@ $activo = (int) $docente['activo'];
 
 
             <!--=================================================
-             ID DEL DOCENTE
+                 ID DEL DOCENTE
             ==================================================-->
 
             <input
@@ -243,7 +336,7 @@ $activo = (int) $docente['activo'];
 
 
             <!--=================================================
-             DATOS DEL DOCENTE
+                 DATOS DEL DOCENTE
             ==================================================-->
 
             <section class="panel">
@@ -330,13 +423,17 @@ $activo = (int) $docente['activo'];
                             <option
                                 value="1"
                                 <?= $activo === 1 ? 'selected' : '' ?>>
+
                                 Activo
+
                             </option>
 
                             <option
                                 value="0"
                                 <?= $activo === 0 ? 'selected' : '' ?>>
+
                                 Inactivo
+
                             </option>
 
                         </select>
@@ -345,6 +442,84 @@ $activo = (int) $docente['activo'];
 
 
                 </div>
+
+            </section>
+
+
+            <!--=================================================
+                 ASIGNATURAS DEL DOCENTE
+            ==================================================-->
+
+            <section class="panel">
+
+                <h2>
+                    Asignaturas que imparte
+                </h2>
+
+
+                <div class="grupo-formulario">
+
+                    <label for="asignaturas">
+                        Asignaturas
+                    </label>
+
+
+                    <select
+                        id="asignaturas"
+                        name="asignaturas[]"
+                        multiple
+                        size="8">
+
+
+                        <?php foreach ($asignaturas as $asignatura): ?>
+
+
+                            <option
+                                value="<?= (int) $asignatura['id'] ?>"
+                                <?= in_array(
+                                    (int) $asignatura['id'],
+                                    $asignaturasSeleccionadas,
+                                    true
+                                ) ? 'selected' : '' ?>>
+
+
+                                <?= htmlspecialchars(
+                                    $asignatura['asignatura_nombre']
+                                ) ?>
+
+
+                                <?php if (!empty($asignatura['modalidad'])): ?>
+
+                                    (<?= htmlspecialchars(
+                                            ucfirst($asignatura['modalidad'])
+                                        ) ?>)
+
+                                <?php endif; ?>
+
+
+                                <?php if ((int) $asignatura['activo'] === 0): ?>
+
+                                    - Inactiva
+
+                                <?php endif; ?>
+
+
+                            </option>
+
+
+                        <?php endforeach; ?>
+
+
+                    </select>
+
+
+                    <small>
+                        Mantén presionada la tecla Ctrl para seleccionar varias asignaturas.
+                    </small>
+
+
+                </div>
+
 
             </section>
 

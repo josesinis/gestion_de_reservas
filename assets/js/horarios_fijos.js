@@ -285,6 +285,13 @@ document.addEventListener(
                             opcion.textContent =
                                 asignatura.asignatura_nombre;
 
+                            if (
+                                window.asignaturaActual
+                                && parseInt(window.asignaturaActual) === parseInt(asignatura.id)
+                            ) {
+                                opcion.selected = true;
+                            }
+
                             asignaturaSelect.appendChild(
                                 opcion
                             );

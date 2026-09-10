@@ -70,26 +70,7 @@ if ($reserva['estado'] !== 'reservada') {
 // 6. OBTENER DOCENTES
 //=====================================================
 
-$sqlDocentes = "
-    SELECT
-        id,
-        CONCAT(nombres, ' ', apellidos) AS nombre
-    FROM docentes
-    WHERE activo = 1
-       OR id = ?
-    ORDER BY apellidos, nombres
-";
-
-$stmtDocentes = $conexion->prepare($sqlDocentes);
-$docentes = [];
-
-if ($stmtDocentes) {
-    $stmtDocentes->bind_param("i", $reserva['docente_id']);
-    $stmtDocentes->execute();
-    $resultadoDocentes = $stmtDocentes->get_result();
-    $docentes = $resultadoDocentes->fetch_all(MYSQLI_ASSOC);
-    $stmtDocentes->close();
-}
+$docentes = obtenerDocentes($conexion);
 //=====================================================
 // 7. OBTENER CURSOS
 //=====================================================
@@ -100,33 +81,7 @@ $cursos = obtenerCursos($conexion);
 // 8. OBTENER ASIGNATURAS
 //=====================================================
 
-$sqlAsignaturas = "
-    SELECT
-        a.id,
-        a.asignatura_nombre,
-        a.activo
-    FROM docentes_asignaturas da
-    INNER JOIN asignaturas a
-        ON a.id = da.asignatura_id
-    WHERE da.docente_id = ?
-      AND (a.activo = 1 OR a.id = ?)
-    ORDER BY a.asignatura_nombre
-";
-
-$stmtAsignaturas = $conexion->prepare($sqlAsignaturas);
-$asignaturas = [];
-
-if ($stmtAsignaturas) {
-    $stmtAsignaturas->bind_param(
-        "ii",
-        $reserva['docente_id'],
-        $reserva['asignatura_id']
-    );
-    $stmtAsignaturas->execute();
-    $resultadoAsignaturas = $stmtAsignaturas->get_result();
-    $asignaturas = $resultadoAsignaturas->fetch_all(MYSQLI_ASSOC);
-    $stmtAsignaturas->close();
-}
+$asignaturas = obtenerAsignaturas($conexion);
 
 ?>
 
@@ -261,7 +216,7 @@ if ($stmtAsignaturas) {
                     <option
                         value="<?= $asignatura['id'] ?>"
                         <?= $asignatura['id'] == $reserva['asignatura_id'] ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($asignatura['asignatura_nombre']) ?><?php if ((int) $asignatura['activo'] !== 1): ?> (inactiva)<?php endif; ?>
+                        <?= htmlspecialchars($asignatura['asignatura_nombre']) ?>
                     </option>
 
                 <?php endforeach; ?>
@@ -335,8 +290,6 @@ if ($stmtAsignaturas) {
     </form>
 
 </div>
-
-<script src="../../assets/js/reservas.js"></script>
 
 <?php require_once '../../includes/footer.php'; ?>
 

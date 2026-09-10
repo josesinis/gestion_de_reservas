@@ -5,7 +5,7 @@
 | Archivo     : modules/docentes/guardar.php
 |--------------------------------------------------------------------------
 | Descripción :
-| Guarda un nuevo docente en la base de datos.
+| Guarda un nuevo docente y sus asignaturas en la base de datos.
 |
 | Acceso :
 | Exclusivo para superadmin.
@@ -62,9 +62,11 @@ $correo = trim($_POST['correo'] ?? '');
 
 $activo = $_POST['activo'] ?? '';
 
+$asignaturas = $_POST['asignaturas'] ?? [];
+
 
 //=====================================================
-// 6. VALIDAR DATOS
+// 6. VALIDAR DATOS DEL DOCENTE
 //=====================================================
 
 if ($nombres === '' || $apellidos === '' || $correo === '') {
@@ -122,67 +124,241 @@ if ($activo !== '0' && $activo !== '1') {
 
 
 //=====================================================
-// 7. INSERTAR DOCENTE
+// 7. VALIDAR ASIGNATURAS
 //=====================================================
 
-$sql = "
-    INSERT INTO docentes (
-        nombres,
-        apellidos,
-        correo,
-        activo
-    )
-    VALUES (?, ?, ?, ?)
-";
+if (!is_array($asignaturas)) {
 
-
-$stmt = $conexion->prepare($sql);
-
-
-if (!$stmt) {
-
-    $_SESSION['error'] = 'No fue posible preparar el registro del docente.';
+    $_SESSION['error'] = 'Las asignaturas seleccionadas no son válidas.';
 
     header('Location: crear.php');
     exit();
 }
 
 
-$activoInt = (int) $activo;
+// Convertir IDs a enteros y eliminar duplicados
+
+$asignaturas = array_map('intval', $asignaturas);
+
+$asignaturas = array_unique($asignaturas);
 
 
-$stmt->bind_param(
-    'sssi',
-    $nombres,
-    $apellidos,
-    $correo,
-    $activoInt
+// Eliminar valores inválidos
+
+$asignaturas = array_filter(
+    $asignaturas,
+    function ($id) {
+        return $id > 0;
+    }
 );
 
 
-if (!$stmt->execute()) {
+//=====================================================
+// 8. INICIAR TRANSACCIÓN
+//=====================================================
 
-    $_SESSION['error'] = 'No fue posible guardar el docente.';
+$conexion->begin_transaction();
+
+
+try {
+
+
+    //=================================================
+    // 9. INSERTAR DOCENTE
+    //=================================================
+
+    $sql = "
+        INSERT INTO docentes (
+            nombres,
+            apellidos,
+            correo,
+            activo
+        )
+        VALUES (?, ?, ?, ?)
+    ";
+
+
+    $stmt = $conexion->prepare($sql);
+
+
+    if (!$stmt) {
+
+        throw new Exception(
+            'No fue posible preparar el registro del docente.'
+        );
+    }
+
+
+    $activoInt = (int) $activo;
+
+
+    $stmt->bind_param(
+        'sssi',
+        $nombres,
+        $apellidos,
+        $correo,
+        $activoInt
+    );
+
+
+    if (!$stmt->execute()) {
+
+        $stmt->close();
+
+        throw new Exception(
+            'No fue posible guardar el docente.'
+        );
+    }
+
+
+    // Obtener ID del docente recién creado
+
+    $docenteId = $conexion->insert_id;
+
 
     $stmt->close();
 
+
+    //=================================================
+    // 10. INSERTAR ASIGNATURAS
+    //=================================================
+
+    if (!empty($asignaturas)) {
+
+
+        $sql = "
+            INSERT INTO docentes_asignaturas (
+                docente_id,
+                asignatura_id
+            )
+            VALUES (?, ?)
+        ";
+
+
+        $stmtAsignatura = $conexion->prepare($sql);
+
+
+        if (!$stmtAsignatura) {
+
+            throw new Exception(
+                'No fue posible preparar las asignaturas del docente.'
+            );
+        }
+
+
+        foreach ($asignaturas as $asignaturaId) {
+
+
+            // Verificar que la asignatura exista y esté activa
+
+            $sqlVerificar = "
+                SELECT id
+                FROM asignaturas
+                WHERE id = ?
+                  AND activo = 1
+                LIMIT 1
+            ";
+
+
+            $stmtVerificar = $conexion->prepare($sqlVerificar);
+
+
+            if (!$stmtVerificar) {
+
+                $stmtAsignatura->close();
+
+                throw new Exception(
+                    'No fue posible validar las asignaturas.'
+                );
+            }
+
+
+            $stmtVerificar->bind_param(
+                'i',
+                $asignaturaId
+            );
+
+
+            $stmtVerificar->execute();
+
+            $resultado = $stmtVerificar->get_result();
+
+            $asignaturaValida = $resultado->fetch_assoc();
+
+            $stmtVerificar->close();
+
+
+            if (!$asignaturaValida) {
+
+                $stmtAsignatura->close();
+
+                throw new Exception(
+                    'Una de las asignaturas seleccionadas no es válida o está inactiva.'
+                );
+            }
+
+
+            // Guardar relación docente ↔ asignatura
+
+            $stmtAsignatura->bind_param(
+                'ii',
+                $docenteId,
+                $asignaturaId
+            );
+
+
+            if (!$stmtAsignatura->execute()) {
+
+                $stmtAsignatura->close();
+
+                throw new Exception(
+                    'No fue posible guardar las asignaturas del docente.'
+                );
+            }
+
+        }
+
+
+        $stmtAsignatura->close();
+
+    }
+
+
+    //=================================================
+    // 11. CONFIRMAR TRANSACCIÓN
+    //=================================================
+
+    $conexion->commit();
+
+
+} catch (Exception $e) {
+
+
+    //=================================================
+    // 12. DESHACER CAMBIOS SI HAY ERROR
+    //=================================================
+
+    $conexion->rollback();
+
+
+    $_SESSION['error'] = $e->getMessage();
+
     header('Location: crear.php');
     exit();
+
 }
 
 
-$stmt->close();
+//=====================================================
+// 13. MENSAJE DE ÉXITO
+//=====================================================
+
+$_SESSION['exito'] =
+    'Docente creado correctamente.';
 
 
 //=====================================================
-// 8. MENSAJE DE ÉXITO
-//=====================================================
-
-$_SESSION['exito'] = 'Docente creado correctamente.';
-
-
-//=====================================================
-// 9. REDIRECCIÓN
+// 14. REDIRECCIÓN
 //=====================================================
 
 header('Location: index.php');

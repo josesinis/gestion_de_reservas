@@ -259,3 +259,45 @@ function cargarAsignaturas() {
 
         });
 }
+//=====================================================
+// MOSTRAR U OCULTAR OPCIONES DE ENTREGA
+//=====================================================
+document.addEventListener('DOMContentLoaded', function () {
+
+    const permiteEntrega = document.getElementById('permite_entrega');
+    const opcionesEntrega = document.getElementById('opciones_entrega');
+    const fechaEntregaOficial = document.getElementById('fecha_entrega_oficial');
+
+    if (!permiteEntrega || !opcionesEntrega) {
+        return;
+    }
+
+    function actualizarOpcionesEntrega() {
+
+        if (permiteEntrega.checked) {
+
+            opcionesEntrega.style.display = 'block';
+
+            if (fechaEntregaOficial) {
+                fechaEntregaOficial.required = true;
+            }
+
+        } else {
+
+            opcionesEntrega.style.display = 'none';
+
+            if (fechaEntregaOficial) {
+                fechaEntregaOficial.required = false;
+                fechaEntregaOficial.value = '';
+            }
+        }
+    }
+
+    permiteEntrega.addEventListener(
+        'change',
+        actualizarOpcionesEntrega
+    );
+
+    // Estado inicial
+    actualizarOpcionesEntrega();
+});

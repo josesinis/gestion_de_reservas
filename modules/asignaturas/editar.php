@@ -1,11 +1,12 @@
 <?php
+
 /*
 |--------------------------------------------------------------------------
 | Sistema     : Gestión Institucional
-| Archivo     : modules/docentes/crear.php
+| Archivo     : modules/asignaturas/editar.php
 |--------------------------------------------------------------------------
 | Descripción :
-| Formulario para crear un nuevo docente.
+| Formulario para editar una asignatura existente.
 |
 | Acceso :
 | Exclusivo para superadmin.
@@ -33,40 +34,93 @@ requiereRol('superadmin');
 
 
 //=====================================================
-// 3. DATOS DEL FORMULARIO
+// 3. OBTENER ID
 //=====================================================
 
-$nombres = '';
-$apellidos = '';
-$correo = '';
-$activo = 1;
+$id = filter_input(
+    INPUT_GET,
+    'id',
+    FILTER_VALIDATE_INT
+);
+
+
+if (!$id || $id <= 0) {
+
+    $_SESSION['error'] = 'Asignatura no válida.';
+
+    header('Location: index.php');
+    exit();
+}
 
 
 //=====================================================
-// 4. OBTENER ASIGNATURAS ACTIVAS
+// 4. OBTENER ASIGNATURA
 //=====================================================
 
 $sql = "
+
     SELECT
         id,
         asignatura_nombre,
-        modalidad
+        modalidad,
+        activo
+
     FROM asignaturas
-    WHERE activo = 1
-    ORDER BY asignatura_nombre ASC
+
+    WHERE id = ?
+
 ";
 
-$resultadoAsignaturas = $conexion->query($sql);
 
-$asignaturas = [];
+$stmt = $conexion->prepare($sql);
 
-if ($resultadoAsignaturas) {
 
-    while ($fila = $resultadoAsignaturas->fetch_assoc()) {
+if (!$stmt) {
 
-        $asignaturas[] = $fila;
-    }
+    $_SESSION['error'] =
+        'No fue posible consultar la asignatura.';
+
+    header('Location: index.php');
+    exit();
 }
+
+
+$stmt->bind_param(
+    'i',
+    $id
+);
+
+$stmt->execute();
+
+$resultado = $stmt->get_result();
+
+$asignatura = $resultado->fetch_assoc();
+
+$stmt->close();
+
+
+if (!$asignatura) {
+
+    $_SESSION['error'] =
+        'La asignatura no existe.';
+
+    header('Location: index.php');
+    exit();
+}
+
+
+//=====================================================
+// 5. DATOS DEL FORMULARIO
+//=====================================================
+
+$asignaturaNombre =
+    $asignatura['asignatura_nombre'];
+
+$modalidad =
+    $asignatura['modalidad'];
+
+$activo =
+    (int) $asignatura['activo'];
 
 ?>
 
@@ -82,7 +136,7 @@ if ($resultadoAsignaturas) {
         name="viewport"
         content="width=device-width, initial-scale=1.0">
 
-    <title>Nuevo docente</title>
+    <title>Editar asignatura</title>
 
 
     <!--=================================================
@@ -137,11 +191,11 @@ if ($resultadoAsignaturas) {
             <div>
 
                 <h1>
-                    Nuevo docente
+                    Editar asignatura
                 </h1>
 
                 <p>
-                    Crear un nuevo docente para el sistema
+                    Modificar los datos de la asignatura seleccionada
                 </p>
 
             </div>
@@ -162,12 +216,12 @@ if ($resultadoAsignaturas) {
 
                 <button
                     type="submit"
-                    form="form-docente"
+                    form="form-asignatura"
                     class="btn btn-primario">
 
-                    <i class="fa-solid fa-user-plus"></i>
+                    <i class="fa-solid fa-floppy-disk"></i>
 
-                    Crear docente
+                    Guardar cambios
 
                 </button>
 
@@ -181,81 +235,87 @@ if ($resultadoAsignaturas) {
         ==================================================-->
 
         <form
-            id="form-docente"
-            action="guardar.php"
+            id="form-asignatura"
+            action="actualizar.php"
             method="post"
             class="formulario"
             autocomplete="off">
 
 
             <!--=================================================
-                 DATOS DEL DOCENTE
+                 ID DE LA ASIGNATURA
+            ==================================================-->
+
+            <input
+                type="hidden"
+                name="id"
+                value="<?= (int) $asignatura['id'] ?>">
+
+
+            <!--=================================================
+                 DATOS DE LA ASIGNATURA
             ==================================================-->
 
             <section class="panel">
 
                 <h2>
-                    Datos del docente
+                    Datos de la asignatura
                 </h2>
 
 
                 <div class="formulario-grid">
 
 
-                    <!-- NOMBRES -->
+                    <!-- ASIGNATURA -->
 
                     <div class="grupo-formulario">
 
-                        <label for="nombres">
-                            Nombres
+                        <label for="asignatura_nombre">
+                            Nombre de la asignatura
                         </label>
 
                         <input
                             type="text"
-                            id="nombres"
-                            name="nombres"
+                            id="asignatura_nombre"
+                            name="asignatura_nombre"
                             maxlength="50"
-                            value="<?= htmlspecialchars($nombres) ?>"
+                            value="<?= htmlspecialchars($asignaturaNombre) ?>"
                             required
                             autofocus>
 
                     </div>
 
 
-                    <!-- APELLIDOS -->
+                    <!-- MODALIDAD -->
 
                     <div class="grupo-formulario">
 
-                        <label for="apellidos">
-                            Apellidos
+                        <label for="modalidad">
+                            Modalidad
                         </label>
 
-                        <input
-                            type="text"
-                            id="apellidos"
-                            name="apellidos"
-                            maxlength="50"
-                            value="<?= htmlspecialchars($apellidos) ?>"
+                        <select
+                            id="modalidad"
+                            name="modalidad"
                             required>
 
-                    </div>
+                            <option
+                                value="asignatura"
+                                <?= $modalidad === 'asignatura' ? 'selected' : '' ?>>
 
+                                Asignatura
 
-                    <!-- CORREO -->
+                            </option>
 
-                    <div class="grupo-formulario">
+                            <option
+                                value="taller"
+                                <?= $modalidad === 'taller' ? 'selected' : '' ?>>
 
-                        <label for="correo">
-                            Correo electrónico
-                        </label>
+                                Taller
 
-                        <input
-                            type="email"
-                            id="correo"
-                            name="correo"
-                            maxlength="50"
-                            value="<?= htmlspecialchars($correo) ?>"
-                            required>
+                            </option>
+
+                        </select>
 
                     </div>
 
@@ -275,13 +335,15 @@ if ($resultadoAsignaturas) {
 
                             <option
                                 value="1"
-                                selected>
+                                <?= $activo === 1 ? 'selected' : '' ?>>
 
                                 Activo
 
                             </option>
 
-                            <option value="0">
+                            <option
+                                value="0"
+                                <?= $activo === 0 ? 'selected' : '' ?>>
 
                                 Inactivo
 
@@ -291,58 +353,6 @@ if ($resultadoAsignaturas) {
 
                     </div>
 
-
-                </div>
-
-            </section>
-
-
-            <!--=================================================
-                 ASIGNATURAS DEL DOCENTE
-            ==================================================-->
-
-            <section class="panel">
-
-                <h2>
-                    Asignaturas que imparte
-                </h2>
-
-                <div class="grupo-formulario">
-
-                    <label for="asignaturas">
-                        Asignaturas
-                    </label>
-
-                    <select
-                        id="asignaturas"
-                        name="asignaturas[]"
-                        multiple
-                        size="8">
-
-                        <?php foreach ($asignaturas as $asignatura): ?>
-
-                            <option
-                                value="<?= (int) $asignatura['id'] ?>">
-
-                                <?= htmlspecialchars($asignatura['asignatura_nombre']) ?>
-
-                                <?php if (!empty($asignatura['modalidad'])): ?>
-
-                                    (<?= htmlspecialchars(
-                                        ucfirst($asignatura['modalidad'])
-                                    ) ?>)
-
-                                <?php endif; ?>
-
-                            </option>
-
-                        <?php endforeach; ?>
-
-                    </select>
-
-                    <small>
-                        Mantén presionada la tecla Ctrl para seleccionar varias asignaturas.
-                    </small>
 
                 </div>
 

@@ -577,13 +577,7 @@ $cursos = obtenerCursos($conexion);
                 </button>
 
             </div>
+
             <script src="../../assets/js/reservas.js"></script>
     </form>
 </div>
-
-<?php require_once '../../includes/footer.php'; ?>
-
-<?php
-//=====================================================
-// FIN DEL ARCHIVO
-//=====================================================

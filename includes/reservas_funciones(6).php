@@ -108,7 +108,6 @@ function obtenerDocentes(mysqli $conexion): array
             id,
             CONCAT(nombres, ' ', apellidos) AS nombre
         FROM docentes
-        WHERE activo = 1
         ORDER BY apellidos, nombres
     ";
 
@@ -119,60 +118,6 @@ function obtenerDocentes(mysqli $conexion): array
     }
 
     return $resultado->fetch_all(MYSQLI_ASSOC);
-}
-
-
-//=====================================================
-// VALIDAR DOCENTE Y ASIGNATURA
-//=====================================================
-
-/**
- * Valida que el docente y la asignatura estén activos y que
- * la asignatura esté asociada al docente seleccionado.
- *
- * Se utiliza para operaciones nuevas, como reservas y horarios
- * fijos. No afecta la consulta de datos históricos.
- *
- * @param mysqli $conexion
- * @param int $docenteId
- * @param int $asignaturaId
- * @return bool
- */
-function docenteAsignaturaPuedeUtilizarse(
-    mysqli $conexion,
-    int $docenteId,
-    int $asignaturaId
-): bool {
-
-    $sql = "
-        SELECT 1
-        FROM docentes d
-        INNER JOIN docentes_asignaturas da
-            ON da.docente_id = d.id
-        INNER JOIN asignaturas a
-            ON a.id = da.asignatura_id
-        WHERE d.id = ?
-          AND d.activo = 1
-          AND a.id = ?
-          AND a.activo = 1
-        LIMIT 1
-    ";
-
-    $stmt = $conexion->prepare($sql);
-
-    if (!$stmt) {
-        return false;
-    }
-
-    $stmt->bind_param("ii", $docenteId, $asignaturaId);
-    $stmt->execute();
-    $stmt->store_result();
-
-    $valido = $stmt->num_rows === 1;
-
-    $stmt->close();
-
-    return $valido;
 }
 
 
@@ -245,7 +190,6 @@ function obtenerAsignaturasPorDocente(
         WHERE
             da.docente_id = ?
             AND a.modalidad = ?
-            AND a.activo = 1
 
         ORDER BY a.asignatura_nombre
     ";

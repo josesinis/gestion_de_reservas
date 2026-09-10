@@ -151,24 +151,11 @@ if ($resultado) {
 // OBTENER ASIGNATURAS
 //=====================================================
 
-$asignaturas = [];
-
-$resultado = $conexion->query("
-    SELECT
-        id,
-        asignatura_nombre,
-        modalidad
-    FROM asignaturas
-    ORDER BY asignatura_nombre
-");
-
-if ($resultado) {
-
-    $asignaturas = $resultado->fetch_all(
-        MYSQLI_ASSOC
-    );
-}
-
+$asignaturas = obtenerAsignaturasPorDocente(
+    $conexion,
+    (int) $horario['docente_id'],
+    $horario['modalidad']
+);
 ?>
 
 <!DOCTYPE html>
@@ -180,8 +167,7 @@ if ($resultado) {
 
     <meta
         name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+        content="width=device-width, initial-scale=1.0">
 
     <title>Editar horario fijo</title>
 
@@ -189,496 +175,462 @@ if ($resultado) {
 
     <link
         rel="stylesheet"
-        href="../../assets/css/estilos.css"
-    >
+        href="../../assets/css/estilos.css">
 
     <link
         rel="stylesheet"
-        href="../../assets/css/botones.css"
-    >
+        href="../../assets/css/botones.css">
 
     <link
         rel="stylesheet"
-        href="../../assets/css/formularios.css"
-    >
+        href="../../assets/css/formularios.css">
 
     <link
         rel="stylesheet"
-        href="../../assets/css/reservas.css"
-    >
+        href="../../assets/css/reservas.css">
 
 </head>
 
 <body>
 
-<div class="contenedor-formulario">
+    <div class="contenedor-formulario">
 
-    <h1>
-        Editar horario fijo
-    </h1>
+        <h1>
+            Editar horario fijo
+        </h1>
 
-    <form
-        action="actualizar.php"
-        method="POST"
-    >
+        <form
+            action="actualizar.php"
+            method="POST">
 
-        <!-- ID DEL HORARIO FIJO -->
+            <!-- ID DEL HORARIO FIJO -->
 
-        <input
-            type="hidden"
-            name="id"
-            value="<?= (int)$horario['id']; ?>"
-        >
+            <input
+                type="hidden"
+                name="id"
+                value="<?= (int)$horario['id']; ?>">
 
 
-        <!--=================================================
+            <!--=================================================
             DÍA
         ==================================================-->
 
-        <div class="grupo-formulario">
+            <div class="grupo-formulario">
 
-            <label for="dia_semana">
-                Día
-            </label>
+                <label for="dia_semana">
+                    Día
+                </label>
 
-            <select
-                id="dia_semana"
-                name="dia_semana"
-                required
-            >
+                <select
+                    id="dia_semana"
+                    name="dia_semana"
+                    required>
 
-                <option value="">
-                    Seleccione un día
-                </option>
-
-                <?php foreach ($nombresDias as $numero => $nombre): ?>
-
-                    <option
-                        value="<?= $numero; ?>"
-                        <?= (
-                            (int)$horario['dia_semana'] === $numero
-                        )
-                            ? 'selected'
-                            : ''
-                        ?>
-                    >
-                        <?= htmlspecialchars($nombre); ?>
+                    <option value="">
+                        Seleccione un día
                     </option>
 
-                <?php endforeach; ?>
+                    <?php foreach ($nombresDias as $numero => $nombre): ?>
 
-            </select>
+                        <option
+                            value="<?= $numero; ?>"
+                            <?= (
+                                (int)$horario['dia_semana'] === $numero
+                            )
+                                ? 'selected'
+                                : ''
+                            ?>>
+                            <?= htmlspecialchars($nombre); ?>
+                        </option>
 
-        </div>
+                    <?php endforeach; ?>
+
+                </select>
+
+            </div>
 
 
-        <!--=================================================
+            <!--=================================================
             BLOQUE
         ==================================================-->
 
-        <div class="grupo-formulario">
+            <div class="grupo-formulario">
 
-            <label for="bloque_id">
-                Bloque
-            </label>
+                <label for="bloque_id">
+                    Bloque
+                </label>
 
-            <select
-                id="bloque_id"
-                name="bloque_id"
-                required
-            >
+                <select
+                    id="bloque_id"
+                    name="bloque_id"
+                    required>
 
-                <option value="">
-                    Seleccione un bloque
-                </option>
-
-                <?php foreach ($bloques as $bloque): ?>
-
-                    <option
-                        value="<?= (int)$bloque['id']; ?>"
-                        <?= (
-                            (int)$horario['bloque_id']
-                            === (int)$bloque['id']
-                        )
-                            ? 'selected'
-                            : ''
-                        ?>
-                    >
-                        <?= htmlspecialchars(
-                            $bloque['numero_bloque']
-                        ); ?>
-
-                        -
-                        <?= substr(
-                            $bloque['hora_inicio'],
-                            0,
-                            5
-                        ); ?>
-
-                        -
-                        <?= substr(
-                            $bloque['hora_termino'],
-                            0,
-                            5
-                        ); ?>
-
+                    <option value="">
+                        Seleccione un bloque
                     </option>
 
-                <?php endforeach; ?>
+                    <?php foreach ($bloques as $bloque): ?>
 
-            </select>
+                        <option
+                            value="<?= (int)$bloque['id']; ?>"
+                            <?= (
+                                (int)$horario['bloque_id']
+                                === (int)$bloque['id']
+                            )
+                                ? 'selected'
+                                : ''
+                            ?>>
+                            <?= htmlspecialchars(
+                                $bloque['numero_bloque']
+                            ); ?>
 
-        </div>
+                            -
+                            <?= substr(
+                                $bloque['hora_inicio'],
+                                0,
+                                5
+                            ); ?>
+
+                            -
+                            <?= substr(
+                                $bloque['hora_termino'],
+                                0,
+                                5
+                            ); ?>
+
+                        </option>
+
+                    <?php endforeach; ?>
+
+                </select>
+
+            </div>
 
 
-        <!--=================================================
+            <!--=================================================
             TIPO
         ==================================================-->
 
-        <div class="grupo-formulario">
+            <div class="grupo-formulario">
 
-            <label for="tipo">
-                Tipo de reserva
-            </label>
+                <label for="tipo">
+                    Tipo de reserva
+                </label>
 
-            <select
-                id="tipo"
-                name="tipo"
-                required
-            >
+                <select
+                    id="tipo"
+                    name="tipo"
+                    required>
 
-                <option value="">
-                    Seleccione un tipo
-                </option>
+                    <option value="">
+                        Seleccione un tipo
+                    </option>
 
-                <option
-                    value="completo"
-                    <?= $horario['tipo'] === 'completo'
-                        ? 'selected'
-                        : ''
-                    ?>
-                >
-                    Bloque completo
-                </option>
+                    <option
+                        value="completo"
+                        <?= $horario['tipo'] === 'completo'
+                            ? 'selected'
+                            : ''
+                        ?>>
+                        Bloque completo
+                    </option>
 
-                <option
-                    value="sub1"
-                    <?= $horario['tipo'] === 'sub1'
-                        ? 'selected'
-                        : ''
-                    ?>
-                >
-                    Primer bloque
-                </option>
+                    <option
+                        value="sub1"
+                        <?= $horario['tipo'] === 'sub1'
+                            ? 'selected'
+                            : ''
+                        ?>>
+                        Primer bloque
+                    </option>
 
-                <option
-                    value="sub2"
-                    <?= $horario['tipo'] === 'sub2'
-                        ? 'selected'
-                        : ''
-                    ?>
-                >
-                    Segundo bloque
-                </option>
+                    <option
+                        value="sub2"
+                        <?= $horario['tipo'] === 'sub2'
+                            ? 'selected'
+                            : ''
+                        ?>>
+                        Segundo bloque
+                    </option>
 
-            </select>
+                </select>
 
-        </div>
+            </div>
 
 
-        <!--=================================================
+            <!--=================================================
             MODALIDAD
         ==================================================-->
 
-        <div class="grupo-formulario">
+            <div class="grupo-formulario">
 
-            <label for="modalidad">
-                Modalidad
-            </label>
+                <label for="modalidad">
+                    Modalidad
+                </label>
 
-            <select
-                id="modalidad"
-                name="modalidad"
-                required
-            >
+                <select
+                    id="modalidad"
+                    name="modalidad"
+                    required>
 
-                <option value="">
-                    Seleccione una modalidad
-                </option>
+                    <option value="">
+                        Seleccione una modalidad
+                    </option>
 
-                <option
-                    value="asignatura"
-                    <?= $horario['modalidad'] === 'asignatura'
-                        ? 'selected'
-                        : ''
-                    ?>
-                >
-                    Asignatura
-                </option>
+                    <option
+                        value="asignatura"
+                        <?= $horario['modalidad'] === 'asignatura'
+                            ? 'selected'
+                            : ''
+                        ?>>
+                        Asignatura
+                    </option>
 
-                <option
-                    value="taller"
-                    <?= $horario['modalidad'] === 'taller'
-                        ? 'selected'
-                        : ''
-                    ?>
-                >
-                    Taller
-                </option>
+                    <option
+                        value="taller"
+                        <?= $horario['modalidad'] === 'taller'
+                            ? 'selected'
+                            : ''
+                        ?>>
+                        Taller
+                    </option>
 
-            </select>
+                </select>
 
-        </div>
+            </div>
 
 
-        <!--=================================================
+            <!--=================================================
             DOCENTE
         ==================================================-->
 
-        <div class="grupo-formulario">
+            <div class="grupo-formulario">
 
-            <label for="docente_id">
-                Docente
-            </label>
+                <label for="docente_id">
+                    Docente
+                </label>
 
-            <select
-                id="docente_id"
-                name="docente_id"
-                required
-            >
+                <select
+                    id="docente_id"
+                    name="docente_id"
+                    required>
 
-                <option value="">
-                    Seleccione un docente
-                </option>
-
-                <?php foreach ($docentes as $docente): ?>
-
-                    <option
-                        value="<?= (int)$docente['id']; ?>"
-                        <?= (
-                            (int)$horario['docente_id']
-                            === (int)$docente['id']
-                        )
-                            ? 'selected'
-                            : ''
-                        ?>
-                    >
-                        <?= htmlspecialchars(
-                            $docente['nombres']
-                            . ' '
-                            . $docente['apellidos']
-                        ); ?>
+                    <option value="">
+                        Seleccione un docente
                     </option>
 
-                <?php endforeach; ?>
+                    <?php foreach ($docentes as $docente): ?>
 
-            </select>
+                        <option
+                            value="<?= (int)$docente['id']; ?>"
+                            <?= (
+                                (int)$horario['docente_id']
+                                === (int)$docente['id']
+                            )
+                                ? 'selected'
+                                : ''
+                            ?>>
+                            <?= htmlspecialchars(
+                                $docente['nombres']
+                                    . ' '
+                                    . $docente['apellidos']
+                            ); ?>
+                        </option>
 
-        </div>
+                    <?php endforeach; ?>
+
+                </select>
+
+            </div>
 
 
-        <!--=================================================
+            <!--=================================================
             CURSO
         ==================================================-->
 
-        <div class="grupo-formulario">
+            <div class="grupo-formulario">
 
-            <label for="curso_id">
-                Curso
-            </label>
+                <label for="curso_id">
+                    Curso
+                </label>
 
-            <select
-                id="curso_id"
-                name="curso_id"
-                required
-            >
+                <select
+                    id="curso_id"
+                    name="curso_id"
+                    required>
 
-                <option value="">
-                    Seleccione un curso
-                </option>
-
-                <?php foreach ($cursos as $curso): ?>
-
-                    <option
-                        value="<?= (int)$curso['id']; ?>"
-                        data-modalidad="<?= htmlspecialchars(
-                            $curso['modalidad'],
-                            ENT_QUOTES,
-                            'UTF-8'
-                        ); ?>"
-                        <?= (
-                            (int)$horario['curso_id']
-                            === (int)$curso['id']
-                        )
-                            ? 'selected'
-                            : ''
-                        ?>
-                    >
-                        <?= htmlspecialchars(
-                            $curso['nombre_curso']
-                        ); ?>
+                    <option value="">
+                        Seleccione un curso
                     </option>
 
-                <?php endforeach; ?>
+                    <?php foreach ($cursos as $curso): ?>
 
-            </select>
+                        <option
+                            value="<?= (int)$curso['id']; ?>"
+                            data-modalidad="<?= htmlspecialchars(
+                                                $curso['modalidad'],
+                                                ENT_QUOTES,
+                                                'UTF-8'
+                                            ); ?>"
+                            <?= (
+                                (int)$horario['curso_id']
+                                === (int)$curso['id']
+                            )
+                                ? 'selected'
+                                : ''
+                            ?>>
+                            <?= htmlspecialchars(
+                                $curso['nombre_curso']
+                            ); ?>
+                        </option>
 
-        </div>
+                    <?php endforeach; ?>
 
+                </select>
 
-        <!--=================================================
-            ASIGNATURA / TALLER
-        ==================================================-->
+            </div>
 
-        <div class="grupo-formulario">
+            <!--=================================================
+    ASIGNATURA / TALLER
+==================================================-->
 
-            <label for="asignatura_id">
-                Asignatura / Taller
-            </label>
+            <div class="grupo-formulario">
 
-            <select
-                id="asignatura_id"
-                name="asignatura_id"
-                required
-            >
+                <label for="asignatura_id">
+                    Asignatura / Taller
+                </label>
 
-                <option value="">
-                    Seleccione una asignatura
-                </option>
+                <select
+                    id="asignatura_id"
+                    name="asignatura_id"
+                    required>
 
-                <?php foreach ($asignaturas as $asignatura): ?>
-
-                    <option
-                        value="<?= (int)$asignatura['id']; ?>"
-                        data-modalidad="<?= htmlspecialchars(
-                            $asignatura['modalidad'],
-                            ENT_QUOTES,
-                            'UTF-8'
-                        ); ?>"
-                        <?= (
-                            (int)$horario['asignatura_id']
-                            === (int)$asignatura['id']
-                        )
-                            ? 'selected'
-                            : ''
-                        ?>
-                    >
-                        <?= htmlspecialchars(
-                            $asignatura['asignatura_nombre']
-                        ); ?>
+                    <option value="">
+                        Seleccione una asignatura
                     </option>
 
-                <?php endforeach; ?>
+                    <?php foreach ($asignaturas as $asignatura): ?>
 
-            </select>
+                        <option
+                            value="<?= (int) $asignatura['id']; ?>"
+                            <?= (
+                                (int) $horario['asignatura_id']
+                                === (int) $asignatura['id']
+                            )
+                                ? 'selected'
+                                : ''
+                            ?>>
+                            <?= htmlspecialchars(
+                                $asignatura['asignatura_nombre']
+                            ); ?>
+                        </option>
 
-        </div>
+                    <?php endforeach; ?>
+
+                </select>
+
+            </div>
 
 
-        <!--=================================================
+            <!--=================================================
             FECHA DE INICIO
         ==================================================-->
 
-        <div class="grupo-formulario">
+            <div class="grupo-formulario">
 
-            <label for="fecha_inicio">
-                Fecha de inicio
-            </label>
+                <label for="fecha_inicio">
+                    Fecha de inicio
+                </label>
 
-            <input
-                type="date"
-                id="fecha_inicio"
-                name="fecha_inicio"
-                value="<?= htmlspecialchars(
-                    $horario['fecha_inicio']
-                ); ?>"
-                required
-            >
+                <input
+                    type="date"
+                    id="fecha_inicio"
+                    name="fecha_inicio"
+                    value="<?= htmlspecialchars(
+                                $horario['fecha_inicio']
+                            ); ?>"
+                    required>
 
-        </div>
+            </div>
 
 
-        <!--=================================================
+            <!--=================================================
             FECHA DE TÉRMINO
         ==================================================-->
 
-        <div class="grupo-formulario">
+            <div class="grupo-formulario">
 
-            <label for="fecha_fin">
-                Fecha de término
-            </label>
+                <label for="fecha_fin">
+                    Fecha de término
+                </label>
 
-            <input
-                type="date"
-                id="fecha_fin"
-                name="fecha_fin"
-                value="<?= (
-                    $horario['fecha_fin'] !== null
-                )
-                    ? htmlspecialchars(
-                        $horario['fecha_fin']
-                    )
-                    : ''
-                ?>"
-            >
+                <input
+                    type="date"
+                    id="fecha_fin"
+                    name="fecha_fin"
+                    value="<?= (
+                                $horario['fecha_fin'] !== null
+                            )
+                                ? htmlspecialchars(
+                                    $horario['fecha_fin']
+                                )
+                                : ''
+                            ?>">
 
-        </div>
+            </div>
 
 
-        <!--=================================================
+            <!--=================================================
             OBSERVACIONES
         ==================================================-->
 
-        <div class="grupo-formulario">
+            <div class="grupo-formulario">
 
-            <label for="observaciones">
-                Observaciones
-            </label>
+                <label for="observaciones">
+                    Observaciones
+                </label>
 
-            <textarea
-                id="observaciones"
-                name="observaciones"
-            ><?= htmlspecialchars(
-                $horario['observaciones'] ?? ''
-            ); ?></textarea>
+                <textarea
+                    id="observaciones"
+                    name="observaciones"><?= htmlspecialchars(
+                                                $horario['observaciones'] ?? ''
+                                            ); ?></textarea>
 
-        </div>
+            </div>
 
 
-        <!--=================================================
+            <!--=================================================
             BOTONES
         ==================================================-->
 
-        <div class="botones">
+            <div class="botones">
 
-            <a
-                href="index.php"
-                class="btn btn-secundario"
-            >
-                Cancelar
-            </a>
+                <a
+                    href="index.php"
+                    class="btn btn-secundario">
+                    Cancelar
+                </a>
 
-            <button
-                type="submit"
-                class="btn btn-primario"
-            >
-                Guardar cambios
-            </button>
+                <button
+                    type="submit"
+                    class="btn btn-primario">
+                    Guardar cambios
+                </button>
 
-        </div>
+            </div>
 
-    </form>
+        </form>
 
-</div>
+    </div>
 
 
-<!--=====================================================
+    <!--=====================================================
     JAVASCRIPT
 ======================================================-->
 
-<script
-    src="../../assets/js/horarios_fijos.js"
-></script>
+
+    <script
+        src="../../assets/js/horarios_fijos.js"></script>
 
 </body>
 

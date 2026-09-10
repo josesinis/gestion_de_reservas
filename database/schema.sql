@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 07-09-2026 a las 15:02:19
+-- Tiempo de generación: 10-09-2026 a las 15:20:36
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -30,22 +30,25 @@ SET time_zone = "+00:00";
 CREATE TABLE `asignaturas` (
   `id` int(11) NOT NULL,
   `asignatura_nombre` varchar(50) NOT NULL,
-  `modalidad` enum('asignatura','taller') DEFAULT 'asignatura'
+  `modalidad` enum('asignatura','taller') DEFAULT 'asignatura',
+  `activo` tinyint(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
 --
 -- Volcado de datos para la tabla `asignaturas`
 --
 
-INSERT INTO `asignaturas` (`id`, `asignatura_nombre`, `modalidad`) VALUES
-(1, 'Matemáticas', 'asignatura'),
-(2, 'Lenguaje', 'asignatura'),
-(3, 'Inglés', 'asignatura'),
-(4, 'Música', 'asignatura'),
-(5, 'Ciencias', 'asignatura'),
-(6, 'Historia', 'asignatura'),
-(7, 'Taller de IA', 'taller'),
-(8, 'Tecnología', 'asignatura');
+INSERT INTO `asignaturas` (`id`, `asignatura_nombre`, `modalidad`, `activo`) VALUES
+(1, 'Matemáticas', 'asignatura', 1),
+(2, 'Lenguaje y Comunicación', 'asignatura', 1),
+(3, 'Idioma Extranjero: Inglés', 'asignatura', 1),
+(4, 'Música', 'asignatura', 0),
+(5, 'Ciencias Naturales', 'asignatura', 1),
+(6, 'Historia, Geografía y Ciencias Sociales', 'asignatura', 1),
+(7, 'Taller de IA', 'taller', 1),
+(8, 'Tecnología', 'asignatura', 1),
+(9, 'Educación física', 'asignatura', 1),
+(10, 'Artes Visuales', 'asignatura', 1);
 
 -- --------------------------------------------------------
 
@@ -76,7 +79,11 @@ INSERT INTO `bitacoras` (`id`, `reserva_id`, `objetivo_clase`, `actividad`, `hor
 (10, 45, NULL, NULL, NULL, ''),
 (11, NULL, 'Objetivo 1', 'Actividad 1', 3194, ''),
 (12, 49, 'Comprender que es el acento diacrítico.', 'Buscar monosílabas, con y sin tilde.', NULL, ''),
-(13, 50, 'Sacar conclusiones y hacer inferencias.', 'Buscar significado de, inferir y sacar conclusiones.', NULL, '');
+(13, 50, 'Sacar conclusiones y hacer inferencias.', 'Buscar significado de, inferir y sacar conclusiones.', NULL, ''),
+(14, 47, 'Crear una presentación en PowerPoint de animal favorito.', 'Buscar información requerida de un animal favorito.', NULL, ''),
+(15, 48, 'Crear presentación en PowerPoint, sobre un animal favorito.', 'Buscar información requerida de un animal favorito.', NULL, ''),
+(16, 52, 'Conocer el vocabulario relacionado con el campo colonial.', 'Buscar información y generan presentación en PowerPoint.', NULL, ''),
+(17, 53, 'Presentaciones orales.', 'Generan presentación en PowerPoint y disertan, sobre un viaje.', NULL, '');
 
 -- --------------------------------------------------------
 
@@ -121,7 +128,18 @@ INSERT INTO `bitacora_recursos` (`id`, `bitacora_id`, `recurso_id`) VALUES
 (24, 12, 1),
 (25, 12, 2),
 (26, 13, 1),
-(27, 13, 2);
+(27, 13, 2),
+(28, 14, 1),
+(29, 14, 2),
+(30, 14, 3),
+(31, 15, 1),
+(32, 15, 2),
+(33, 15, 3),
+(34, 16, 1),
+(35, 16, 2),
+(36, 16, 3),
+(37, 17, 1),
+(38, 17, 3);
 
 -- --------------------------------------------------------
 
@@ -201,15 +219,15 @@ CREATE TABLE `docentes` (
 
 INSERT INTO `docentes` (`id`, `nombres`, `apellidos`, `correo`, `activo`) VALUES
 (1, 'Esmeralda J.', 'Cabrera Saavedra', 'kellycabrera1@gmail.com', 1),
-(2, 'Evelyn Del Rosario', 'Cortés Saavedra', 'elastro6@hotmail.com', 0),
-(3, 'Eduardo Cecilio', 'Muñoz Apablaza', 'emunozapablaza@gmail.com', 0),
-(4, 'Hector Igor', 'Castillo Ulloa', 'h.castillo@edutome.cl', 0),
-(5, 'Katherine Celestina', 'Fuentes Diaz', 'katherinecfuentes@gmail.com', 0),
-(6, 'Matias', 'Lantaño Mardones', 'mlantano@ematematica.ucsc.cl', 0),
-(7, 'Gastón', 'Flores Vargas', 'gaston.flores.vargas@edutome.cl', 0),
+(2, 'Evelyn Del Rosario', 'Cortés Saavedra', 'elastro6@hotmail.com', 1),
+(3, 'Eduardo Cecilio', 'Muñoz Apablaza', 'emunozapablaza@gmail.com', 1),
+(4, 'Hector Igor', 'Castillo Ulloa', 'h.castillo@edutome.cl', 1),
+(5, 'Katherine Celestina', 'Fuentes Diaz', 'katherinecfuentes@gmail.com', 1),
+(6, 'Matias', 'Lantaño Mardones', 'mlantano@ematematica.ucsc.cl', 1),
+(7, 'Gastón', 'Flores Vargas', 'gaston.flores.vargas@edutome.cl', 1),
 (8, 'María Sandra', 'Aguayo Aravena', 'intirrayen@gmail.com', 1),
-(9, 'Luis Andres', 'Inostroza Jara', 'profesor.inostroza@gmail.com', 0),
-(10, 'Angelica Ivonne', 'Orellana Contreras', 'profe.angelicaorellana@gmail.com', 1);
+(9, 'Luis Andres', 'Inostroza Jara', 'profesor.inostroza@gmail.com', 1),
+(10, 'Angelica Ivonne', 'Orellana Contreras', 'profe.angelicaorellana@gmail.com', 0);
 
 -- --------------------------------------------------------
 
@@ -246,13 +264,16 @@ INSERT INTO `docentes_asignaturas` (`id`, `docente_id`, `asignatura_id`) VALUES
 --
 
 CREATE TABLE `entregas` (
-  `id` int(11) NOT NULL,
-  `reserva_id` int(11) NOT NULL,
+  `id` int(10) UNSIGNED NOT NULL,
+  `trabajo_id` int(10) UNSIGNED NOT NULL,
+  `curso_id` int(11) NOT NULL,
+  `asignatura_id` int(11) NOT NULL,
   `nombre_alumno` varchar(50) NOT NULL,
   `apellido_alumno` varchar(50) NOT NULL,
-  `nombre_archivo` varchar(50) DEFAULT NULL,
-  `fecha_hora_entrega` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
+  `nombre_archivo` varchar(255) NOT NULL,
+  `ruta_archivo` varchar(500) NOT NULL,
+  `fecha_hora_entrega` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -712,7 +733,11 @@ INSERT INTO `horarios_fijos_ocurrencias` (`id`, `horario_fijo_id`, `fecha`, `est
 (3205, 24, '2026-11-20', 'pendiente', 8, 9, 8, NULL, NULL, NULL, NULL),
 (3206, 24, '2026-11-27', 'pendiente', 8, 9, 8, NULL, NULL, NULL, NULL),
 (3207, 24, '2026-12-04', 'pendiente', 8, 9, 8, NULL, NULL, NULL, NULL),
-(3208, 24, '2026-12-11', 'pendiente', 8, 9, 8, NULL, NULL, NULL, NULL);
+(3208, 24, '2026-12-11', 'pendiente', 8, 9, 8, NULL, NULL, NULL, NULL),
+(3413, 19, '2026-12-15', 'pendiente', 8, 9, 8, NULL, NULL, NULL, NULL),
+(3454, 20, '2026-12-15', 'pendiente', 8, 12, 8, NULL, NULL, NULL, NULL),
+(3495, 21, '2026-12-15', 'pendiente', 8, 10, 8, NULL, NULL, NULL, NULL),
+(3532, 22, '2026-12-15', 'pendiente', 3, 17, 7, NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -755,67 +780,95 @@ CREATE TABLE `reservas` (
   `objetivo_clase` varchar(150) DEFAULT NULL,
   `actividad` varchar(150) DEFAULT '',
   `permite_entrega` tinyint(1) NOT NULL,
-  `fecha_cierre` date DEFAULT NULL,
+  `fecha_cierre` datetime DEFAULT NULL,
   `cierre_manual` tinyint(1) DEFAULT 0,
   `estado` enum('reservada','utilizada','cancelada') NOT NULL DEFAULT 'reservada',
   `fecha_creacion` datetime DEFAULT current_timestamp(),
   `fecha_actualizacion` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `tipo_reserva` enum('completo','sub1','sub2') NOT NULL DEFAULT 'completo',
-  `fecha_entrega_oficial` date DEFAULT NULL
+  `fecha_entrega_oficial` datetime DEFAULT NULL,
+  `trabajo_id` int(10) UNSIGNED DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
 --
 -- Volcado de datos para la tabla `reservas`
 --
 
-INSERT INTO `reservas` (`id`, `docente_id`, `usuario_id`, `curso_id`, `asignatura_id`, `bloque_id`, `fecha`, `objetivo_clase`, `actividad`, `permite_entrega`, `fecha_cierre`, `cierre_manual`, `estado`, `fecha_creacion`, `fecha_actualizacion`, `tipo_reserva`, `fecha_entrega_oficial`) VALUES
-(3, 1, 1, 9, 3, 1, '2026-08-03', NULL, 'Generación de una presentación en PowerPoint \"My Favorite Food\"', 0, NULL, 0, 'cancelada', '2026-08-05 12:33:10', '2026-08-20 09:26:16', 'sub1', NULL),
-(4, 1, 1, 16, 3, 1, '2026-08-10', NULL, 'gdfjgdfjgh', 0, NULL, 0, 'cancelada', '2026-08-10 09:02:35', '2026-08-20 09:26:16', 'sub1', NULL),
-(5, 1, 1, 12, 3, 1, '2026-08-10', NULL, 'dsffasfd', 0, NULL, 0, 'cancelada', '2026-08-10 09:02:55', '2026-08-20 09:26:16', 'sub2', NULL),
-(6, 1, 1, 9, 3, 1, '2026-08-11', NULL, 'HOLAaaaaaaaaa', 0, NULL, 0, 'cancelada', '2026-08-10 09:03:13', '2026-08-20 09:26:16', 'completo', NULL),
-(7, 1, 1, 9, 3, 3, '2026-08-10', NULL, 'aaaaaaaaaaaaaaaaaaaa', 0, NULL, 0, 'cancelada', '2026-08-10 09:47:06', '2026-08-20 09:26:16', 'sub1', NULL),
-(8, 1, 1, 12, 3, 4, '2026-08-10', NULL, 'dsffffffff        ddddddddddddd', 0, NULL, 0, 'cancelada', '2026-08-10 13:23:55', '2026-08-20 09:26:16', 'sub1', NULL),
-(9, 1, 1, 13, 3, 4, '2026-08-10', NULL, 'bbbbbbbbbbbbbbbbbbb', 0, NULL, 0, 'cancelada', '2026-08-10 14:32:58', '2026-08-20 09:26:16', 'sub2', NULL),
-(10, 1, 1, 15, 3, 2, '2026-08-10', '', '', 0, NULL, 0, 'cancelada', '2026-08-11 15:13:01', '2026-08-20 09:26:16', 'completo', NULL),
-(11, 1, 1, 15, 3, 1, '2026-08-12', 'bbbbbbbbbbbbbbbbbbbb', 'aaaaaaaaaaaaaaaaaaa', 0, NULL, 0, 'cancelada', '2026-08-11 15:24:52', '2026-08-20 09:26:16', 'sub2', NULL),
-(12, 1, 1, 13, 3, 4, '2026-08-11', 'cccccccccccc', 'aaaaaaaaaa', 0, NULL, 0, 'cancelada', '2026-08-11 15:41:46', '2026-08-20 09:26:16', 'sub2', NULL),
-(13, 4, 1, 12, 2, 1, '2026-08-17', 'aaaaaaaaa', 'bbbbbbbbb', 0, NULL, 0, 'cancelada', '2026-08-17 09:46:23', '2026-08-20 09:26:16', 'sub1', NULL),
-(14, 7, 1, 13, 4, 2, '2026-08-17', '', '', 0, NULL, 0, 'cancelada', '2026-08-17 09:59:48', '2026-08-20 09:26:16', 'completo', NULL),
-(15, 4, 1, 13, 2, 3, '2026-08-17', '', '', 0, NULL, 0, 'cancelada', '2026-08-17 10:20:31', '2026-08-20 09:26:16', 'sub2', NULL),
-(16, 1, 1, 14, 3, 4, '2026-08-17', '', '', 0, NULL, 0, 'cancelada', '2026-08-17 14:46:37', '2026-08-20 09:26:16', 'sub2', NULL),
-(17, 1, 1, 16, 3, 1, '2026-08-18', 'qweqwewe', 'ewqeqweqwe', 0, NULL, 0, 'utilizada', '2026-08-17 15:06:39', '2026-08-18 14:50:07', 'sub1', NULL),
-(18, 1, 1, 15, 3, 3, '2026-08-18', 'aaaa', 'bbbb', 0, NULL, 0, 'cancelada', '2026-08-18 11:45:40', '2026-08-18 11:45:51', 'sub2', NULL),
-(19, 1, 1, 15, 3, 4, '2026-08-18', 'actividad', 'Objetivo', 0, NULL, 0, 'cancelada', '2026-08-18 14:51:43', '2026-08-20 09:26:16', 'sub2', NULL),
-(20, 5, 1, 11, 2, 3, '2026-08-19', 'aaaa', 'bbbb', 0, NULL, 0, 'utilizada', '2026-08-19 12:35:10', '2026-08-19 12:56:43', 'sub2', NULL),
-(21, 4, 1, 13, 3, 4, '2026-08-19', 'aaaaa', 'bbbbb', 0, NULL, 0, 'cancelada', '2026-08-19 12:58:38', '2026-08-19 12:59:07', 'sub1', NULL),
-(22, 1, 1, 12, 3, 4, '2026-08-19', 'afasfsf', 'safdsfdsafsfd', 0, NULL, 0, 'cancelada', '2026-08-19 13:06:32', '2026-08-20 09:26:16', 'completo', NULL),
-(23, 1, 1, 16, 3, 2, '2026-08-20', 'aasasasas', 'abvbvbvbv', 0, NULL, 0, 'cancelada', '2026-08-20 09:40:02', '2026-08-20 09:41:35', 'sub1', NULL),
-(24, 4, 1, 14, 2, 2, '2026-08-20', 'aaaaaa', 'bbbbbb', 0, NULL, 0, 'cancelada', '2026-08-20 10:13:28', '2026-08-20 10:13:35', 'sub1', NULL),
-(25, 1, 1, 15, 3, 2, '2026-08-23', 'aaaa', 'sssssss', 0, NULL, 0, 'cancelada', '2026-08-20 10:17:46', '2026-08-24 09:59:28', 'sub1', NULL),
-(26, 7, 1, 14, 4, 2, '2026-08-24', 'mmmmmm', 'sssssssssss', 0, NULL, 0, 'cancelada', '2026-08-24 09:46:35', '2026-08-24 11:26:48', 'sub1', NULL),
-(27, 4, 1, 11, 2, 4, '2026-08-24', 'lllllll', 'yyyyyyyy', 0, NULL, 0, 'cancelada', '2026-08-24 13:03:40', '2026-08-24 15:00:11', 'sub1', NULL),
-(28, 2, 1, 16, 5, 1, '2026-08-26', '', '', 0, NULL, 0, 'cancelada', '2026-08-24 14:21:09', '2026-08-26 10:00:11', 'completo', NULL),
-(29, 1, 1, 15, 3, 1, '2026-08-27', '', '', 0, NULL, 0, 'cancelada', '2026-08-24 14:21:42', '2026-08-27 10:00:12', 'completo', NULL),
-(30, 1, 1, 13, 3, 2, '2026-08-27', '', '', 0, NULL, 0, 'cancelada', '2026-08-24 14:22:00', '2026-08-27 11:50:12', 'completo', NULL),
-(31, 1, 1, 16, 3, 3, '2026-08-27', '', '', 0, NULL, 0, 'cancelada', '2026-08-24 14:22:16', '2026-08-27 13:30:12', 'completo', NULL),
-(32, 6, 1, 16, 1, 2, '2026-08-26', '', '', 0, NULL, 0, 'cancelada', '2026-08-25 12:57:16', '2026-08-26 11:50:12', 'completo', NULL),
-(33, 6, 1, 14, 1, 3, '2026-08-26', '', '', 0, NULL, 0, 'cancelada', '2026-08-25 12:57:37', '2026-08-26 13:30:12', 'completo', NULL),
-(34, 2, 1, 10, 5, 4, '2026-08-26', '', '', 0, NULL, 0, 'cancelada', '2026-08-26 09:06:41', '2026-08-26 15:45:12', 'completo', NULL),
-(35, 4, 1, 15, 2, 2, '2026-08-28', '', '', 1, NULL, 0, 'cancelada', '2026-08-26 14:25:48', '2026-08-28 11:50:12', 'sub2', NULL),
-(36, 1, 1, 12, 3, 2, '2026-09-02', '', '', 0, NULL, 0, 'cancelada', '2026-08-28 11:26:13', '2026-09-02 11:50:12', 'completo', NULL),
-(37, 1, 1, 11, 3, 4, '2026-09-02', 'Buscar información de un animal a elección, describiéndolo físicamente y su hábitat.', 'Buscar información de su animal favorito.', 0, NULL, 0, 'utilizada', '2026-08-28 11:26:34', '2026-09-02 14:55:42', 'completo', NULL),
-(38, 2, 1, 14, 5, 3, '2026-08-31', '', '', 0, NULL, 0, 'cancelada', '2026-08-31 11:12:49', '2026-08-31 12:45:12', 'sub1', NULL),
-(39, 1, 1, 16, 3, 3, '2026-09-02', 'Planificar un viaje usando Going to', 'Buscar información del país elegido', 0, NULL, 0, 'utilizada', '2026-09-02 08:49:59', '2026-09-02 13:33:06', 'completo', NULL),
-(40, 1, 1, 15, 3, 1, '2026-09-03', 'Planificar un viaje, usando Going To.', 'Buscar información de un país.', 0, NULL, 0, 'utilizada', '2026-09-02 08:50:54', '2026-09-03 12:10:51', 'completo', NULL),
-(41, 1, 1, 16, 3, 3, '2026-09-03', 'Escribir una breve biografía de un deportista.', 'Buscar información de un deportista.', 0, NULL, 0, 'utilizada', '2026-09-02 08:51:07', '2026-09-03 12:13:31', 'completo', NULL),
-(42, 1, 1, 13, 3, 2, '2026-09-03', 'Planificar un viaje, usando Going To.', 'Buscar información de un país.', 0, NULL, 0, 'utilizada', '2026-09-02 08:52:01', '2026-09-03 12:12:28', 'completo', NULL),
-(43, 9, 1, 15, 6, 2, '2026-09-08', '', '', 0, NULL, 0, 'reservada', '2026-09-02 13:29:16', '2026-09-02 13:29:16', 'sub2', NULL),
-(44, 9, 1, 11, 6, 3, '2026-09-08', '', '', 0, NULL, 0, 'reservada', '2026-09-02 14:29:40', '2026-09-02 14:29:40', 'sub2', NULL),
-(45, 1, 1, 13, 3, 1, '2026-09-04', 'Escribir una breve biografía de un deportista.', 'Buscar información.', 0, NULL, 0, 'utilizada', '2026-09-03 11:26:45', '2026-09-04 10:03:49', 'completo', NULL),
-(47, 1, 1, 12, 3, 2, '2026-09-09', '', '', 0, NULL, 0, 'reservada', '2026-09-04 09:58:00', '2026-09-04 09:58:00', 'completo', NULL),
-(48, 1, 1, 11, 3, 4, '2026-09-09', '', '', 0, NULL, 0, 'reservada', '2026-09-04 09:58:18', '2026-09-04 09:58:18', 'completo', NULL),
-(49, 4, 1, 14, 2, 3, '2026-09-04', 'Comprender que es el acento diacrítico.', 'Buscar monosílabas, con y sin tilde.', 0, NULL, 0, 'utilizada', '2026-09-04 10:54:08', '2026-09-04 13:56:16', 'completo', NULL),
-(50, 4, 1, 16, 2, 4, '2026-09-07', 'Sacar conclusiones y hacer inferencias.', 'Buscar significado de, inferir y sacar conclusiones.', 0, NULL, 0, 'utilizada', '2026-09-07 14:19:59', '2026-09-07 14:45:18', 'completo', NULL);
+INSERT INTO `reservas` (`id`, `docente_id`, `usuario_id`, `curso_id`, `asignatura_id`, `bloque_id`, `fecha`, `objetivo_clase`, `actividad`, `permite_entrega`, `fecha_cierre`, `cierre_manual`, `estado`, `fecha_creacion`, `fecha_actualizacion`, `tipo_reserva`, `fecha_entrega_oficial`, `trabajo_id`) VALUES
+(3, 1, 1, 9, 3, 1, '2026-08-03', NULL, 'Generación de una presentación en PowerPoint \"My Favorite Food\"', 0, NULL, 0, 'cancelada', '2026-08-05 12:33:10', '2026-08-20 09:26:16', 'sub1', NULL, NULL),
+(4, 1, 1, 16, 3, 1, '2026-08-10', NULL, 'gdfjgdfjgh', 0, NULL, 0, 'cancelada', '2026-08-10 09:02:35', '2026-08-20 09:26:16', 'sub1', NULL, NULL),
+(5, 1, 1, 12, 3, 1, '2026-08-10', NULL, 'dsffasfd', 0, NULL, 0, 'cancelada', '2026-08-10 09:02:55', '2026-08-20 09:26:16', 'sub2', NULL, NULL),
+(6, 1, 1, 9, 3, 1, '2026-08-11', NULL, 'HOLAaaaaaaaaa', 0, NULL, 0, 'cancelada', '2026-08-10 09:03:13', '2026-08-20 09:26:16', 'completo', NULL, NULL),
+(7, 1, 1, 9, 3, 3, '2026-08-10', NULL, 'aaaaaaaaaaaaaaaaaaaa', 0, NULL, 0, 'cancelada', '2026-08-10 09:47:06', '2026-08-20 09:26:16', 'sub1', NULL, NULL),
+(8, 1, 1, 12, 3, 4, '2026-08-10', NULL, 'dsffffffff        ddddddddddddd', 0, NULL, 0, 'cancelada', '2026-08-10 13:23:55', '2026-08-20 09:26:16', 'sub1', NULL, NULL),
+(9, 1, 1, 13, 3, 4, '2026-08-10', NULL, 'bbbbbbbbbbbbbbbbbbb', 0, NULL, 0, 'cancelada', '2026-08-10 14:32:58', '2026-08-20 09:26:16', 'sub2', NULL, NULL),
+(10, 1, 1, 15, 3, 2, '2026-08-10', '', '', 0, NULL, 0, 'cancelada', '2026-08-11 15:13:01', '2026-08-20 09:26:16', 'completo', NULL, NULL),
+(11, 1, 1, 15, 3, 1, '2026-08-12', 'bbbbbbbbbbbbbbbbbbbb', 'aaaaaaaaaaaaaaaaaaa', 0, NULL, 0, 'cancelada', '2026-08-11 15:24:52', '2026-08-20 09:26:16', 'sub2', NULL, NULL),
+(12, 1, 1, 13, 3, 4, '2026-08-11', 'cccccccccccc', 'aaaaaaaaaa', 0, NULL, 0, 'cancelada', '2026-08-11 15:41:46', '2026-08-20 09:26:16', 'sub2', NULL, NULL),
+(13, 4, 1, 12, 2, 1, '2026-08-17', 'aaaaaaaaa', 'bbbbbbbbb', 0, NULL, 0, 'cancelada', '2026-08-17 09:46:23', '2026-08-20 09:26:16', 'sub1', NULL, NULL),
+(14, 7, 1, 13, 4, 2, '2026-08-17', '', '', 0, NULL, 0, 'cancelada', '2026-08-17 09:59:48', '2026-08-20 09:26:16', 'completo', NULL, NULL),
+(15, 4, 1, 13, 2, 3, '2026-08-17', '', '', 0, NULL, 0, 'cancelada', '2026-08-17 10:20:31', '2026-08-20 09:26:16', 'sub2', NULL, NULL),
+(16, 1, 1, 14, 3, 4, '2026-08-17', '', '', 0, NULL, 0, 'cancelada', '2026-08-17 14:46:37', '2026-08-20 09:26:16', 'sub2', NULL, NULL),
+(17, 1, 1, 16, 3, 1, '2026-08-18', 'qweqwewe', 'ewqeqweqwe', 0, NULL, 0, 'utilizada', '2026-08-17 15:06:39', '2026-08-18 14:50:07', 'sub1', NULL, NULL),
+(18, 1, 1, 15, 3, 3, '2026-08-18', 'aaaa', 'bbbb', 0, NULL, 0, 'cancelada', '2026-08-18 11:45:40', '2026-08-18 11:45:51', 'sub2', NULL, NULL),
+(19, 1, 1, 15, 3, 4, '2026-08-18', 'actividad', 'Objetivo', 0, NULL, 0, 'cancelada', '2026-08-18 14:51:43', '2026-08-20 09:26:16', 'sub2', NULL, NULL),
+(20, 5, 1, 11, 2, 3, '2026-08-19', 'aaaa', 'bbbb', 0, NULL, 0, 'utilizada', '2026-08-19 12:35:10', '2026-08-19 12:56:43', 'sub2', NULL, NULL),
+(21, 4, 1, 13, 3, 4, '2026-08-19', 'aaaaa', 'bbbbb', 0, NULL, 0, 'cancelada', '2026-08-19 12:58:38', '2026-08-19 12:59:07', 'sub1', NULL, NULL),
+(22, 1, 1, 12, 3, 4, '2026-08-19', 'afasfsf', 'safdsfdsafsfd', 0, NULL, 0, 'cancelada', '2026-08-19 13:06:32', '2026-08-20 09:26:16', 'completo', NULL, NULL),
+(23, 1, 1, 16, 3, 2, '2026-08-20', 'aasasasas', 'abvbvbvbv', 0, NULL, 0, 'cancelada', '2026-08-20 09:40:02', '2026-08-20 09:41:35', 'sub1', NULL, NULL),
+(24, 4, 1, 14, 2, 2, '2026-08-20', 'aaaaaa', 'bbbbbb', 0, NULL, 0, 'cancelada', '2026-08-20 10:13:28', '2026-08-20 10:13:35', 'sub1', NULL, NULL),
+(25, 1, 1, 15, 3, 2, '2026-08-23', 'aaaa', 'sssssss', 0, NULL, 0, 'cancelada', '2026-08-20 10:17:46', '2026-08-24 09:59:28', 'sub1', NULL, NULL),
+(26, 7, 1, 14, 4, 2, '2026-08-24', 'mmmmmm', 'sssssssssss', 0, NULL, 0, 'cancelada', '2026-08-24 09:46:35', '2026-08-24 11:26:48', 'sub1', NULL, NULL),
+(27, 4, 1, 11, 2, 4, '2026-08-24', 'lllllll', 'yyyyyyyy', 0, NULL, 0, 'cancelada', '2026-08-24 13:03:40', '2026-08-24 15:00:11', 'sub1', NULL, NULL),
+(28, 2, 1, 16, 5, 1, '2026-08-26', '', '', 0, NULL, 0, 'cancelada', '2026-08-24 14:21:09', '2026-08-26 10:00:11', 'completo', NULL, NULL),
+(29, 1, 1, 15, 3, 1, '2026-08-27', '', '', 0, NULL, 0, 'cancelada', '2026-08-24 14:21:42', '2026-08-27 10:00:12', 'completo', NULL, NULL),
+(30, 1, 1, 13, 3, 2, '2026-08-27', '', '', 0, NULL, 0, 'cancelada', '2026-08-24 14:22:00', '2026-08-27 11:50:12', 'completo', NULL, NULL),
+(31, 1, 1, 16, 3, 3, '2026-08-27', '', '', 0, NULL, 0, 'cancelada', '2026-08-24 14:22:16', '2026-08-27 13:30:12', 'completo', NULL, NULL),
+(32, 6, 1, 16, 1, 2, '2026-08-26', '', '', 0, NULL, 0, 'cancelada', '2026-08-25 12:57:16', '2026-08-26 11:50:12', 'completo', NULL, NULL),
+(33, 6, 1, 14, 1, 3, '2026-08-26', '', '', 0, NULL, 0, 'cancelada', '2026-08-25 12:57:37', '2026-08-26 13:30:12', 'completo', NULL, NULL),
+(34, 2, 1, 10, 5, 4, '2026-08-26', '', '', 0, NULL, 0, 'cancelada', '2026-08-26 09:06:41', '2026-08-26 15:45:12', 'completo', NULL, NULL),
+(35, 4, 1, 15, 2, 2, '2026-08-28', '', '', 1, NULL, 0, 'cancelada', '2026-08-26 14:25:48', '2026-08-28 11:50:12', 'sub2', NULL, NULL),
+(36, 1, 1, 12, 3, 2, '2026-09-02', '', '', 0, NULL, 0, 'cancelada', '2026-08-28 11:26:13', '2026-09-02 11:50:12', 'completo', NULL, NULL),
+(37, 1, 1, 11, 3, 4, '2026-09-02', 'Buscar información de un animal a elección, describiéndolo físicamente y su hábitat.', 'Buscar información de su animal favorito.', 0, NULL, 0, 'utilizada', '2026-08-28 11:26:34', '2026-09-02 14:55:42', 'completo', NULL, NULL),
+(38, 2, 1, 14, 5, 3, '2026-08-31', '', '', 0, NULL, 0, 'cancelada', '2026-08-31 11:12:49', '2026-08-31 12:45:12', 'sub1', NULL, NULL),
+(39, 1, 1, 16, 3, 3, '2026-09-02', 'Planificar un viaje usando Going to', 'Buscar información del país elegido', 0, NULL, 0, 'utilizada', '2026-09-02 08:49:59', '2026-09-02 13:33:06', 'completo', NULL, NULL),
+(40, 1, 1, 15, 3, 1, '2026-09-03', 'Planificar un viaje, usando Going To.', 'Buscar información de un país.', 0, NULL, 0, 'utilizada', '2026-09-02 08:50:54', '2026-09-03 12:10:51', 'completo', NULL, NULL),
+(41, 1, 1, 16, 3, 3, '2026-09-03', 'Escribir una breve biografía de un deportista.', 'Buscar información de un deportista.', 0, NULL, 0, 'utilizada', '2026-09-02 08:51:07', '2026-09-03 12:13:31', 'completo', NULL, NULL),
+(42, 1, 1, 13, 3, 2, '2026-09-03', 'Planificar un viaje, usando Going To.', 'Buscar información de un país.', 0, NULL, 0, 'utilizada', '2026-09-02 08:52:01', '2026-09-03 12:12:28', 'completo', NULL, NULL),
+(43, 9, 1, 15, 6, 2, '2026-09-08', '', '', 0, NULL, 0, '', '2026-09-02 13:29:16', '2026-09-10 08:44:53', 'sub2', NULL, NULL),
+(44, 9, 1, 11, 6, 3, '2026-09-08', '', '', 0, NULL, 0, '', '2026-09-02 14:29:40', '2026-09-10 08:44:53', 'sub2', NULL, NULL),
+(45, 1, 1, 13, 3, 1, '2026-09-04', 'Escribir una breve biografía de un deportista.', 'Buscar información.', 0, NULL, 0, 'utilizada', '2026-09-03 11:26:45', '2026-09-04 10:03:49', 'completo', NULL, NULL),
+(47, 1, 1, 12, 3, 2, '2026-09-09', 'Crear una presentación en PowerPoint de animal favorito.', 'Buscar información requerida de un animal favorito.', 0, NULL, 0, 'utilizada', '2026-09-04 09:58:00', '2026-09-09 16:03:12', 'completo', NULL, NULL),
+(48, 1, 1, 11, 3, 4, '2026-09-09', 'Crear presentación en PowerPoint, sobre un animal favorito.', 'Buscar información requerida de un animal favorito.', 0, NULL, 0, 'utilizada', '2026-09-04 09:58:18', '2026-09-09 16:12:03', 'completo', NULL, NULL),
+(49, 4, 1, 14, 2, 3, '2026-09-04', 'Comprender que es el acento diacrítico.', 'Buscar monosílabas, con y sin tilde.', 0, NULL, 0, 'utilizada', '2026-09-04 10:54:08', '2026-09-04 13:56:16', 'completo', NULL, NULL),
+(50, 4, 1, 16, 2, 4, '2026-09-07', 'Sacar conclusiones y hacer inferencias.', 'Buscar significado de, inferir y sacar conclusiones.', 0, NULL, 0, 'utilizada', '2026-09-07 14:19:59', '2026-09-07 14:45:18', 'completo', NULL, NULL),
+(52, 9, 1, 16, 6, 2, '2026-09-10', 'Conocer el vocabulario relacionado con el campo colonial.', 'Buscar información y generan presentación en PowerPoint.', 0, NULL, 0, 'utilizada', '2026-09-09 16:03:51', '2026-09-10 11:51:22', 'completo', NULL, NULL),
+(53, 1, 1, 16, 3, 3, '2026-09-10', 'Presentaciones orales.', 'Generan presentación en PowerPoint y disertan, sobre un viaje.', 0, NULL, 0, 'utilizada', '2026-09-10 12:47:40', '2026-09-10 12:51:21', 'sub2', NULL, NULL),
+(54, 1, 1, 13, 3, 1, '2026-09-11', '', '', 1, '2026-09-24 00:00:00', 0, 'reservada', '2026-09-10 14:36:09', '2026-09-10 14:36:09', 'completo', '2026-09-24 00:00:00', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `trabajos`
+--
+
+CREATE TABLE `trabajos` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `reserva_id` int(11) NOT NULL,
+  `titulo` varchar(150) NOT NULL,
+  `estado` enum('en_proceso','cerrado') NOT NULL DEFAULT 'en_proceso',
+  `fecha_inicio` datetime NOT NULL,
+  `fecha_limite` datetime NOT NULL,
+  `fecha_creacion` datetime NOT NULL DEFAULT current_timestamp(),
+  `fecha_actualizacion` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `trabajos`
+--
+
+INSERT INTO `trabajos` (`id`, `reserva_id`, `titulo`, `estado`, `fecha_inicio`, `fecha_limite`, `fecha_creacion`, `fecha_actualizacion`) VALUES
+(1, 54, '', 'en_proceso', '2026-09-11 00:00:00', '2026-09-24 16:15:00', '2026-09-10 14:36:09', '2026-09-10 14:36:09');
 
 -- --------------------------------------------------------
 
@@ -840,7 +893,7 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id`, `nombres`, `apellidos`, `correo`, `usuario`, `password`, `rol`, `acceso`, `ultimo_acceso`) VALUES
-(1, 'José A.', 'Fernández Concha', 'jfernandezconcha@gmail.com', 'Josesinis', '$2y$10$6/4FA8ny1xObuxbWtzI6J.6fY/2rc.KaITAU2aCXk4gTSFu/tEQ/2', 'superadmin', 1, '2026-09-07 10:58:51'),
+(1, 'José A.', 'Fernández Concha', 'jfernandezconcha@gmail.com', 'Josesinis', '$2y$10$6/4FA8ny1xObuxbWtzI6J.6fY/2rc.KaITAU2aCXk4gTSFu/tEQ/2', 'superadmin', 1, '2026-09-10 08:53:20'),
 (2, 'Esmeralda Jacqueline', 'Cabrera Saavedra', 'kellycabrera1@gmail.com', 'Esmeralda', '$2y$10$1pJ3/AsvJtI6dXSbX63FxOgPyXTSx50/p1GR47wGdu62NgFX7rMV6', 'usuario', 1, NULL);
 
 --
@@ -900,7 +953,9 @@ ALTER TABLE `docentes_asignaturas`
 --
 ALTER TABLE `entregas`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `reserva_id` (`reserva_id`);
+  ADD KEY `fk_entregas_trabajo` (`trabajo_id`),
+  ADD KEY `fk_entregas_curso` (`curso_id`),
+  ADD KEY `fk_entregas_asignatura` (`asignatura_id`);
 
 --
 -- Indices de la tabla `horarios_fijos`
@@ -939,7 +994,15 @@ ALTER TABLE `reservas`
   ADD KEY `usuario_id` (`usuario_id`),
   ADD KEY `docente_id` (`docente_id`),
   ADD KEY `bloque_id` (`bloque_id`),
-  ADD KEY `asignatura_id` (`asignatura_id`);
+  ADD KEY `asignatura_id` (`asignatura_id`),
+  ADD KEY `fk_reservas_trabajo` (`trabajo_id`);
+
+--
+-- Indices de la tabla `trabajos`
+--
+ALTER TABLE `trabajos`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_trabajos_reserva` (`reserva_id`);
 
 --
 -- Indices de la tabla `usuarios`
@@ -957,19 +1020,19 @@ ALTER TABLE `usuarios`
 -- AUTO_INCREMENT de la tabla `asignaturas`
 --
 ALTER TABLE `asignaturas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT de la tabla `bitacoras`
 --
 ALTER TABLE `bitacoras`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT de la tabla `bitacora_recursos`
 --
 ALTER TABLE `bitacora_recursos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
 
 --
 -- AUTO_INCREMENT de la tabla `bloques`
@@ -987,19 +1050,19 @@ ALTER TABLE `cursos`
 -- AUTO_INCREMENT de la tabla `docentes`
 --
 ALTER TABLE `docentes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT de la tabla `docentes_asignaturas`
 --
 ALTER TABLE `docentes_asignaturas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT de la tabla `entregas`
 --
 ALTER TABLE `entregas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `horarios_fijos`
@@ -1011,7 +1074,7 @@ ALTER TABLE `horarios_fijos`
 -- AUTO_INCREMENT de la tabla `horarios_fijos_ocurrencias`
 --
 ALTER TABLE `horarios_fijos_ocurrencias`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3209;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4103;
 
 --
 -- AUTO_INCREMENT de la tabla `recursos`
@@ -1023,7 +1086,13 @@ ALTER TABLE `recursos`
 -- AUTO_INCREMENT de la tabla `reservas`
 --
 ALTER TABLE `reservas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
+
+--
+-- AUTO_INCREMENT de la tabla `trabajos`
+--
+ALTER TABLE `trabajos`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `usuarios`
@@ -1060,7 +1129,9 @@ ALTER TABLE `docentes_asignaturas`
 -- Filtros para la tabla `entregas`
 --
 ALTER TABLE `entregas`
-  ADD CONSTRAINT `id_reserva` FOREIGN KEY (`reserva_id`) REFERENCES `reservas` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `fk_entregas_asignatura` FOREIGN KEY (`asignatura_id`) REFERENCES `asignaturas` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_entregas_curso` FOREIGN KEY (`curso_id`) REFERENCES `cursos` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_entregas_trabajo` FOREIGN KEY (`trabajo_id`) REFERENCES `trabajos` (`id`) ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `horarios_fijos`
@@ -1090,7 +1161,14 @@ ALTER TABLE `reservas`
   ADD CONSTRAINT `bloque_id` FOREIGN KEY (`bloque_id`) REFERENCES `bloques` (`id`),
   ADD CONSTRAINT `curso_id` FOREIGN KEY (`curso_id`) REFERENCES `cursos` (`id`),
   ADD CONSTRAINT `docente_id` FOREIGN KEY (`docente_id`) REFERENCES `docentes` (`id`),
+  ADD CONSTRAINT `fk_reservas_trabajo` FOREIGN KEY (`trabajo_id`) REFERENCES `trabajos` (`id`) ON UPDATE CASCADE,
   ADD CONSTRAINT `usuario_id` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`);
+
+--
+-- Filtros para la tabla `trabajos`
+--
+ALTER TABLE `trabajos`
+  ADD CONSTRAINT `fk_trabajos_reserva` FOREIGN KEY (`reserva_id`) REFERENCES `reservas` (`id`) ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

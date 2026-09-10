@@ -5,7 +5,7 @@
 | Archivo     : modules/docentes/actualizar.php
 |--------------------------------------------------------------------------
 | Descripción :
-| Actualiza los datos de un docente existente.
+| Actualiza los datos de un docente existente y sus asignaturas.
 |
 | Acceso :
 | Exclusivo para superadmin.
@@ -67,6 +67,8 @@ $apellidos = trim($_POST['apellidos'] ?? '');
 $correo = trim($_POST['correo'] ?? '');
 
 $activo = $_POST['activo'] ?? '';
+
+$asignaturas = $_POST['asignaturas'] ?? [];
 
 
 //=====================================================
@@ -153,7 +155,47 @@ if ($activo !== '0' && $activo !== '1') {
 
 
 //=====================================================
-// 11. COMPROBAR QUE EL DOCENTE EXISTA
+// 11. VALIDAR ASIGNATURAS
+//=====================================================
+
+if (!is_array($asignaturas)) {
+
+    $_SESSION['error'] =
+        'Las asignaturas seleccionadas no son válidas.';
+
+    header('Location: editar.php?id=' . $id);
+    exit();
+}
+
+
+// Convertir IDs a enteros
+
+$asignaturas = array_map(
+    'intval',
+    $asignaturas
+);
+
+
+// Eliminar duplicados
+
+$asignaturas = array_unique(
+    $asignaturas
+);
+
+
+// Eliminar valores inválidos
+
+$asignaturas = array_filter(
+    $asignaturas,
+    function ($asignaturaId) {
+
+        return $asignaturaId > 0;
+    }
+);
+
+
+//=====================================================
+// 12. COMPROBAR QUE EL DOCENTE EXISTA
 //=====================================================
 
 $sql = "
@@ -168,14 +210,18 @@ $stmt = $conexion->prepare($sql);
 
 if (!$stmt) {
 
-    $_SESSION['error'] = 'No fue posible consultar el docente.';
+    $_SESSION['error'] =
+        'No fue posible consultar el docente.';
 
     header('Location: index.php');
     exit();
 }
 
 
-$stmt->bind_param('i', $id);
+$stmt->bind_param(
+    'i',
+    $id
+);
 
 $stmt->execute();
 
@@ -188,7 +234,8 @@ $stmt->close();
 
 if (!$docente) {
 
-    $_SESSION['error'] = 'El docente no existe.';
+    $_SESSION['error'] =
+        'El docente no existe.';
 
     header('Location: index.php');
     exit();
@@ -196,68 +243,251 @@ if (!$docente) {
 
 
 //=====================================================
-// 12. ACTUALIZAR DOCENTE
+// 13. INICIAR TRANSACCIÓN
 //=====================================================
 
-$sql = "
-    UPDATE docentes
-    SET
-        nombres = ?,
-        apellidos = ?,
-        correo = ?,
-        activo = ?
-    WHERE id = ?
-";
+$conexion->begin_transaction();
 
 
-$stmt = $conexion->prepare($sql);
+try {
 
 
-if (!$stmt) {
+    //=================================================
+    // 14. ACTUALIZAR DOCENTE
+    //=================================================
 
-    $_SESSION['error'] = 'No fue posible preparar la actualización.';
-
-    header('Location: editar.php?id=' . $id);
-    exit();
-}
-
-
-$activoInt = (int) $activo;
-
-
-$stmt->bind_param(
-    'sssii',
-    $nombres,
-    $apellidos,
-    $correo,
-    $activoInt,
-    $id
-);
+    $sql = "
+        UPDATE docentes
+        SET
+            nombres = ?,
+            apellidos = ?,
+            correo = ?,
+            activo = ?
+        WHERE id = ?
+    ";
 
 
-if (!$stmt->execute()) {
+    $stmt = $conexion->prepare($sql);
 
-    $_SESSION['error'] = 'No fue posible actualizar el docente.';
+
+    if (!$stmt) {
+
+        throw new Exception(
+            'No fue posible preparar la actualización.'
+        );
+    }
+
+
+    $activoInt = (int) $activo;
+
+
+    $stmt->bind_param(
+        'sssii',
+        $nombres,
+        $apellidos,
+        $correo,
+        $activoInt,
+        $id
+    );
+
+
+    if (!$stmt->execute()) {
+
+        $stmt->close();
+
+        throw new Exception(
+            'No fue posible actualizar el docente.'
+        );
+    }
+
 
     $stmt->close();
 
+
+    //=================================================
+    // 15. ELIMINAR RELACIONES ANTERIORES
+    //=================================================
+
+    $sql = "
+        DELETE FROM docentes_asignaturas
+        WHERE docente_id = ?
+    ";
+
+
+    $stmt = $conexion->prepare($sql);
+
+
+    if (!$stmt) {
+
+        throw new Exception(
+            'No fue posible actualizar las asignaturas del docente.'
+        );
+    }
+
+
+    $stmt->bind_param(
+        'i',
+        $id
+    );
+
+
+    if (!$stmt->execute()) {
+
+        $stmt->close();
+
+        throw new Exception(
+            'No fue posible actualizar las asignaturas del docente.'
+        );
+    }
+
+
+    $stmt->close();
+
+
+    //=================================================
+    // 16. GUARDAR NUEVAS ASIGNATURAS
+    //=================================================
+
+    if (!empty($asignaturas)) {
+
+
+        $sql = "
+            INSERT INTO docentes_asignaturas (
+                docente_id,
+                asignatura_id
+            )
+            VALUES (?, ?)
+        ";
+
+
+        $stmtAsignatura =
+            $conexion->prepare($sql);
+
+
+        if (!$stmtAsignatura) {
+
+            throw new Exception(
+                'No fue posible preparar las asignaturas del docente.'
+            );
+        }
+
+
+        foreach ($asignaturas as $asignaturaId) {
+
+
+            //=========================================
+            // Verificar asignatura
+            //=========================================
+
+            $sqlVerificar = "
+                SELECT id
+                FROM asignaturas
+                WHERE id = ?
+                  AND activo = 1
+                LIMIT 1
+            ";
+
+
+            $stmtVerificar =
+                $conexion->prepare($sqlVerificar);
+
+
+            if (!$stmtVerificar) {
+
+                $stmtAsignatura->close();
+
+                throw new Exception(
+                    'No fue posible validar las asignaturas.'
+                );
+            }
+
+
+            $stmtVerificar->bind_param(
+                'i',
+                $asignaturaId
+            );
+
+
+            $stmtVerificar->execute();
+
+            $resultado =
+                $stmtVerificar->get_result();
+
+            $asignaturaValida =
+                $resultado->fetch_assoc();
+
+            $stmtVerificar->close();
+
+
+            if (!$asignaturaValida) {
+
+                $stmtAsignatura->close();
+
+                throw new Exception(
+                    'Una de las asignaturas seleccionadas no es válida o está inactiva.'
+                );
+            }
+
+
+            //=========================================
+            // Insertar relación
+            //=========================================
+
+            $stmtAsignatura->bind_param(
+                'ii',
+                $id,
+                $asignaturaId
+            );
+
+
+            if (!$stmtAsignatura->execute()) {
+
+                $stmtAsignatura->close();
+
+                throw new Exception(
+                    'No fue posible guardar las asignaturas del docente.'
+                );
+            }
+        }
+
+
+        $stmtAsignatura->close();
+    }
+
+
+    //=================================================
+    // 17. CONFIRMAR TRANSACCIÓN
+    //=================================================
+
+    $conexion->commit();
+} catch (Exception $e) {
+
+
+    //=================================================
+    // 18. DESHACER CAMBIOS
+    //=================================================
+
+    $conexion->rollback();
+
+
+    $_SESSION['error'] =
+        $e->getMessage();
+
     header('Location: editar.php?id=' . $id);
     exit();
 }
 
 
-$stmt->close();
+//=====================================================
+// 19. MENSAJE DE ÉXITO
+//=====================================================
+
+$_SESSION['exito'] =
+    'Docente actualizado correctamente.';
 
 
 //=====================================================
-// 13. MENSAJE DE ÉXITO
-//=====================================================
-
-$_SESSION['exito'] = 'Docente actualizado correctamente.';
-
-
-//=====================================================
-// 14. REDIRECCIÓN
+// 20. REDIRECCIÓN
 //=====================================================
 
 header('Location: index.php');

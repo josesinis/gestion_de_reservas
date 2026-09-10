@@ -28,7 +28,6 @@ $docentes = $conexion->query("
         id,
         CONCAT(nombres, ' ', apellidos) AS nombre
     FROM docentes
-    WHERE activo = 1
     ORDER BY apellidos, nombres
 ");
 
@@ -40,15 +39,14 @@ $cursos = $conexion->query("
     FROM cursos
     ORDER BY nombre_curso
 ");
-/*
+
 $asignaturas = $conexion->query("
     SELECT
         id,
         asignatura_nombre
     FROM asignaturas
-    WHERE activo = 1
     ORDER BY asignatura_nombre
-");*/
+");
 
 //=====================================================
 // DÍAS DE LA SEMANA
@@ -337,8 +335,8 @@ $bloques = $conexion->query("
 
 
             <!--=================================================
-ASIGNATURA
-==================================================-->
+            ASIGNATURA
+        ==================================================-->
 
             <div class="grupo-formulario">
 
@@ -348,12 +346,23 @@ ASIGNATURA
 
                 <select
                     name="asignatura_id"
-                    id="asignatura_id"
-                    disabled>
+                    id="asignatura_id">
 
                     <option value="">
-                        Seleccione primero un docente
+                        Seleccione una asignatura
                     </option>
+
+                    <?php while ($asignatura = $asignaturas->fetch_assoc()): ?>
+
+                        <option value="<?= (int) $asignatura['id'] ?>">
+
+                            <?= htmlspecialchars(
+                                $asignatura['asignatura_nombre']
+                            ) ?>
+
+                        </option>
+
+                    <?php endwhile; ?>
 
                 </select>
 

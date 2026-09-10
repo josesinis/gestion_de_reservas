@@ -1,12 +1,10 @@
 <?php
-
 //=====================================================
-// HORARIOS FIJOS - ACTUALIZAR
+// HORARIOS FIJOS - GUARDAR
 //
-// Recibe y valida los datos enviados desde editar.php.
+// Guarda un nuevo horario fijo y genera sus
+// ocurrencias correspondientes.
 //=====================================================
-
-declare(strict_types=1);
 
 //=====================================================
 // 1. VALIDAR SESIÓN
@@ -23,15 +21,13 @@ requiereLogin();
 require_once '../../config/database.php';
 require_once '../../includes/reservas_funciones.php';
 
-
 //=====================================================
-// VALIDAR MÉTODO
+// VALIDAR MÉTODO DE ENVÍO
 //=====================================================
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
     header('Location: index.php');
-
     exit();
 }
 
@@ -40,72 +36,31 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 // RECIBIR DATOS
 //=====================================================
 
-$id = (int) ($_POST['id'] ?? 0);
+$diaSemana = (int) ($_POST['dia_semana'] ?? 0);
 
-$diaSemana = (int) (
-    $_POST['dia_semana'] ?? 0
-);
+$bloqueId = (int) ($_POST['bloque_id'] ?? 0);
 
-$bloqueId = (int) (
-    $_POST['bloque_id'] ?? 0
-);
+$tipo = trim($_POST['tipo'] ?? '');
 
-$tipo = trim(
-    $_POST['tipo'] ?? ''
-);
+$modalidad = trim($_POST['modalidad'] ?? '');
 
-$modalidad = trim(
-    $_POST['modalidad'] ?? ''
-);
+$docenteId = (int) ($_POST['docente_id'] ?? 0);
 
-$docenteId = (int) (
-    $_POST['docente_id'] ?? 0
-);
-
-$cursoId = (int) (
-    $_POST['curso_id'] ?? 0
-);
+$cursoId = (int) ($_POST['curso_id'] ?? 0);
 
 $asignaturaId = !empty($_POST['asignatura_id'])
     ? (int) $_POST['asignatura_id']
     : null;
 
-$fechaInicio = trim(
-    $_POST['fecha_inicio'] ?? ''
-);
+$fechaInicio = trim($_POST['fecha_inicio'] ?? '');
 
 $fechaFin = !empty($_POST['fecha_fin'])
     ? trim($_POST['fecha_fin'])
     : null;
 
-$observaciones = trim(
-    $_POST['observaciones'] ?? ''
-);
-
 
 //=====================================================
-// VALIDAR ID DEL HORARIO FIJO
-//=====================================================
-
-$horarioActual =
-    obtenerHorarioFijoPorId(
-        $conexion,
-        $id
-    );
-
-if (!$horarioActual) {
-
-    $_SESSION['error'] =
-        'El horario fijo seleccionado no existe.';
-
-    header('Location: index.php');
-
-    exit();
-}
-
-
-//=====================================================
-// ERRORES
+// VALIDACIONES
 //=====================================================
 
 $errores = [];
@@ -115,10 +70,7 @@ $errores = [];
 // VALIDAR DÍA
 //=====================================================
 
-if (
-    $diaSemana < 1 ||
-    $diaSemana > 5
-) {
+if ($diaSemana < 1 || $diaSemana > 5) {
 
     $errores[] =
         'El día seleccionado no es válido.';
@@ -151,11 +103,7 @@ $tiposPermitidos = [
     'sub2'
 ];
 
-if (!in_array(
-    $tipo,
-    $tiposPermitidos,
-    true
-)) {
+if (!in_array($tipo, $tiposPermitidos, true)) {
 
     $errores[] =
         'El tipo de horario no es válido.';
@@ -171,11 +119,7 @@ $modalidadesPermitidas = [
     'taller'
 ];
 
-if (!in_array(
-    $modalidad,
-    $modalidadesPermitidas,
-    true
-)) {
+if (!in_array($modalidad, $modalidadesPermitidas, true)) {
 
     $errores[] =
         'La modalidad seleccionada no es válida.';
@@ -190,34 +134,25 @@ $stmt = $conexion->prepare("
     SELECT id
     FROM docentes
     WHERE id = ?
-      AND activo = 1
     LIMIT 1
 ");
 
-if (!$stmt) {
+$stmt->bind_param(
+    "i",
+    $docenteId
+);
+
+$stmt->execute();
+
+$resultado = $stmt->get_result();
+
+if (!$resultado->fetch_assoc()) {
 
     $errores[] =
-        'No fue posible validar el docente.';
-
-} else {
-
-    $stmt->bind_param(
-        "i",
-        $docenteId
-    );
-
-    $stmt->execute();
-
-    $resultado = $stmt->get_result();
-
-    if (!$resultado->fetch_assoc()) {
-
-        $errores[] =
-            'El docente seleccionado no existe o está inactivo.';
-    }
-
-    $stmt->close();
+        'El docente seleccionado no existe.';
 }
+
+$stmt->close();
 
 
 //=====================================================
@@ -269,14 +204,19 @@ if (!$stmt) {
 
 
 //=====================================================
-// VALIDAR ASIGNATURA / TALLER
+// VALIDAR ASIGNATURA
+//=====================================================
 //
-// Debe:
+// La asignatura debe:
 //
 // - Existir.
-// - Estar activa.
-// - Corresponder a la modalidad.
-// - Estar asociado al docente.
+// - Corresponder a la modalidad seleccionada.
+// - Estar asignada al docente seleccionado.
+//
+// En modalidad "taller" también se utiliza asignatura_id.
+// Por ejemplo:
+//
+// Taller → Taller → Taller de IA
 //
 //=====================================================
 
@@ -292,20 +232,22 @@ if ($asignaturaId === null) {
             a.id,
             a.modalidad
         FROM asignaturas a
+
         INNER JOIN docentes_asignaturas da
             ON da.asignatura_id = a.id
+
         WHERE
             a.id = ?
             AND a.modalidad = ?
-            AND a.activo = 1
             AND da.docente_id = ?
+
         LIMIT 1
     ");
 
     if (!$stmt) {
 
         $errores[] =
-            'No fue posible validar la asignatura o taller.';
+            'No fue posible validar la asignatura.';
 
     } else {
 
@@ -325,7 +267,7 @@ if ($asignaturaId === null) {
         if (!$asignatura) {
 
             $errores[] =
-                'La asignatura o taller seleccionado no está activo, no corresponde a la modalidad o no está asignado al docente seleccionado.';
+                'La asignatura seleccionada no corresponde a la modalidad o al docente seleccionado.';
         }
 
         $stmt->close();
@@ -336,6 +278,8 @@ if ($asignaturaId === null) {
 //=====================================================
 // VALIDAR FECHA DE INICIO
 //=====================================================
+
+$fechaInicioObj = null;
 
 if ($fechaInicio === '') {
 
@@ -350,20 +294,57 @@ if ($fechaInicio === '') {
             $fechaInicio
         );
 
+    $erroresFecha = DateTime::getLastErrors();
+
     if (
-        !$fechaInicioObj ||
-        $fechaInicioObj->format('Y-m-d') !== $fechaInicio
+        !$fechaInicioObj
+        ||
+        (
+            $erroresFecha !== false
+            &&
+            (
+                $erroresFecha['warning_count'] > 0
+                ||
+                $erroresFecha['error_count'] > 0
+            )
+        )
     ) {
 
         $errores[] =
             'La fecha de inicio no es válida.';
+
+        $fechaInicioObj = null;
     }
+}
+
+
+//=====================================================
+// GENERAR FECHA DE TÉRMINO AUTOMÁTICA
+//=====================================================
+//
+// Si el usuario no indica una fecha de término,
+// se utiliza el 15 de diciembre del mismo año
+// de la fecha de inicio.
+//
+//=====================================================
+
+if (
+    $fechaInicioObj !== null
+    &&
+    $fechaFin === null
+) {
+
+    $fechaFin =
+        $fechaInicioObj->format('Y')
+        . '-12-15';
 }
 
 
 //=====================================================
 // VALIDAR FECHA DE TÉRMINO
 //=====================================================
+
+$fechaFinObj = null;
 
 if ($fechaFin !== null) {
 
@@ -373,16 +354,30 @@ if ($fechaFin !== null) {
             $fechaFin
         );
 
+    $erroresFecha = DateTime::getLastErrors();
+
     if (
-        !$fechaFinObj ||
-        $fechaFinObj->format('Y-m-d') !== $fechaFin
+        !$fechaFinObj
+        ||
+        (
+            $erroresFecha !== false
+            &&
+            (
+                $erroresFecha['warning_count'] > 0
+                ||
+                $erroresFecha['error_count'] > 0
+            )
+        )
     ) {
 
         $errores[] =
             'La fecha de término no es válida.';
 
+        $fechaFinObj = null;
+
     } elseif (
-        isset($fechaInicioObj) &&
+        $fechaInicioObj !== null
+        &&
         $fechaFinObj < $fechaInicioObj
     ) {
 
@@ -393,23 +388,39 @@ if ($fechaFin !== null) {
 
 
 //=====================================================
+// VALIDAR ERRORES
+//=====================================================
+
+if (!empty($errores)) {
+
+    $_SESSION['error'] =
+        implode('<br>', $errores);
+
+    header('Location: agregar.php');
+
+    exit();
+}
+
+
+//=====================================================
 // VALIDAR CONFLICTO DE HORARIO FIJO
+//=====================================================
 //
-// Se verifica que no exista otro horario fijo activo
-// ocupando el mismo día, bloque y tipo durante un
-// período superpuesto.
+// Dos horarios fijos entran en conflicto cuando:
 //
-// El propio horario que estamos editando se excluye.
+// - tienen el mismo día;
+// - tienen el mismo bloque;
+// - tienen el mismo tipo;
+// - y sus períodos de vigencia se superponen.
 //
 //=====================================================
 
 $sql = "
     SELECT id
     FROM horarios_fijos
-    WHERE
-        id <> ?
 
-        AND dia_semana = ?
+    WHERE
+        dia_semana = ?
         AND bloque_id = ?
         AND tipo = ?
         AND activo = 1
@@ -428,48 +439,38 @@ $stmt = $conexion->prepare($sql);
 
 if (!$stmt) {
 
-    $errores[] =
-        'No fue posible comprobar los conflictos de horario.';
+    $_SESSION['error'] =
+        'No fue posible validar el horario fijo.';
 
-} else {
+    header('Location: agregar.php');
 
-    $stmt->bind_param(
-        "iiisss",
-        $id,
-        $diaSemana,
-        $bloqueId,
-        $tipo,
-        $fechaFin,
-        $fechaInicio
-    );
-
-    $stmt->execute();
-
-    $resultado = $stmt->get_result();
-
-    if ($resultado->fetch_assoc()) {
-
-        $errores[] =
-            'Ya existe otro horario fijo que ocupa el mismo día, bloque y tipo durante el período seleccionado.';
-    }
-
-    $stmt->close();
+    exit();
 }
 
+$stmt->bind_param(
+    "iisss",
+    $diaSemana,
+    $bloqueId,
+    $tipo,
+    $fechaFin,
+    $fechaInicio
+);
 
-//=====================================================
-// VALIDAR ERRORES
-//=====================================================
+$stmt->execute();
 
-if (!empty($errores)) {
+$resultado = $stmt->get_result();
+
+$conflicto = $resultado->fetch_assoc();
+
+$stmt->close();
+
+
+if ($conflicto) {
 
     $_SESSION['error'] =
-        implode('<br>', $errores);
+        'Ya existe un horario fijo activo que ocupa ese día, bloque y tipo durante ese período.';
 
-    header(
-        'Location: editar.php?id='
-        . $id
-    );
+    header('Location: agregar.php');
 
     exit();
 }
@@ -481,147 +482,113 @@ if (!empty($errores)) {
 
 $conexion->begin_transaction();
 
+try {
 
-//=====================================================
-// ACTUALIZAR HORARIO FIJO
-//=====================================================
+    //=================================================
+    // GUARDAR HORARIO FIJO
+    //=================================================
 
-$stmt = $conexion->prepare("
-    UPDATE horarios_fijos
-    SET
-        dia_semana = ?,
-        bloque_id = ?,
-        tipo = ?,
-        modalidad = ?,
-        docente_id = ?,
-        curso_id = ?,
-        asignatura_id = ?,
-        fecha_inicio = ?,
-        fecha_fin = ?,
-        observaciones = ?
-    WHERE id = ?
-");
+    $sql = "
+        INSERT INTO horarios_fijos (
 
-if (!$stmt) {
+            dia_semana,
+            bloque_id,
+            tipo,
+            modalidad,
+            docente_id,
+            curso_id,
+            asignatura_id,
+            fecha_inicio,
+            fecha_fin,
+            activo
 
-    $conexion->rollback();
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+    ";
 
-    $_SESSION['error'] =
-        'No fue posible preparar la actualización del horario fijo.';
+    $stmt = $conexion->prepare($sql);
 
-    header(
-        'Location: editar.php?id=' . $id
+    if (!$stmt) {
+
+        throw new Exception(
+            'No fue posible preparar el guardado del horario fijo.'
+        );
+    }
+
+
+    $stmt->bind_param(
+        "iissiiiss",
+        $diaSemana,
+        $bloqueId,
+        $tipo,
+        $modalidad,
+        $docenteId,
+        $cursoId,
+        $asignaturaId,
+        $fechaInicio,
+        $fechaFin
     );
 
-    exit();
-}
 
-$stmt->bind_param(
-    "iissiiisssi",
-    $diaSemana,
-    $bloqueId,
-    $tipo,
-    $modalidad,
-    $docenteId,
-    $cursoId,
-    $asignaturaId,
-    $fechaInicio,
-    $fechaFin,
-    $observaciones,
-    $id
-);
+    if (!$stmt->execute()) {
 
-if (!$stmt->execute()) {
+        throw new Exception(
+            'No fue posible guardar el horario fijo.'
+        );
+    }
+
+
+    $horarioFijoId =
+        $conexion->insert_id;
 
     $stmt->close();
 
+
+    //=================================================
+    // GENERAR OCURRENCIAS
+    //=================================================
+    //
+    // Se generan todas las ocurrencias correspondientes
+    // al período de vigencia del horario fijo.
+    //
+    //=================================================
+
+    $creadas =
+        crearOcurrenciasHorariosFijos(
+            $conexion,
+            $fechaInicio,
+            $fechaFin
+        );
+
+
+    //=================================================
+    // CONFIRMAR TRANSACCIÓN
+    //=================================================
+
+    $conexion->commit();
+
+
+    $_SESSION['exito'] =
+        'El horario fijo fue creado correctamente.';
+
+
+    header('Location: index.php');
+
+    exit();
+
+} catch (Throwable $e) {
+
+    //=================================================
+    // DESHACER TODO
+    //=================================================
+
     $conexion->rollback();
 
-    $_SESSION['error'] =
-        'No fue posible actualizar el horario fijo.';
 
-    header(
-        'Location: editar.php?id=' . $id
-    );
+    $_SESSION['error'] =
+        'No fue posible guardar el horario fijo.';
+
+    header('Location: agregar.php');
 
     exit();
 }
-
-$stmt->close();
-
-
-//=====================================================
-// FECHA DE SINCRONIZACIÓN
-//
-// Las ocurrencias anteriores a hoy forman parte del
-// historial y no serán modificadas.
-//
-//=====================================================
-
-$fechaSincronizacion =
-    date('Y-m-d');
-
-
-//=====================================================
-// ELIMINAR OCURRENCIAS PENDIENTES FUTURAS
-//=====================================================
-
-if (
-    !eliminarOcurrenciasPendientesFuturas(
-        $conexion,
-        $id,
-        $fechaSincronizacion
-    )
-) {
-
-    $conexion->rollback();
-
-    $_SESSION['error'] =
-        'No fue posible actualizar las ocurrencias futuras del horario fijo.';
-
-    header(
-        'Location: editar.php?id=' . $id
-    );
-
-    exit();
-}
-
-
-//=====================================================
-// GENERAR NUEVAS OCURRENCIAS
-//
-// Se generan únicamente para el horario fijo que
-// acabamos de actualizar.
-//
-//=====================================================
-
-$creadas = crearOcurrenciasHorarioFijo(
-    $conexion,
-    $id,
-    $fechaSincronizacion,
-    $fechaFin
-);
-
-
-//=====================================================
-// CONFIRMAR TRANSACCIÓN
-//=====================================================
-
-$conexion->commit();
-
-
-//=====================================================
-// MENSAJE DE ÉXITO
-//=====================================================
-
-$_SESSION['exito'] =
-    'El horario fijo fue actualizado correctamente.';
-
-
-//=====================================================
-// VOLVER AL LISTADO
-//=====================================================
-
-header('Location: index.php');
-
-exit();

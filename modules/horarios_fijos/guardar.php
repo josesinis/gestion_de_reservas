@@ -134,6 +134,7 @@ $stmt = $conexion->prepare("
     SELECT id
     FROM docentes
     WHERE id = ?
+      AND activo = 1
     LIMIT 1
 ");
 
@@ -149,7 +150,7 @@ $resultado = $stmt->get_result();
 if (!$resultado->fetch_assoc()) {
 
     $errores[] =
-        'El docente seleccionado no existe.';
+        'El docente seleccionado no existe o está inactivo.';
 }
 
 $stmt->close();
@@ -239,6 +240,7 @@ if ($asignaturaId === null) {
         WHERE
             a.id = ?
             AND a.modalidad = ?
+            AND a.activo = 1
             AND da.docente_id = ?
 
         LIMIT 1
@@ -267,7 +269,7 @@ if ($asignaturaId === null) {
         if (!$asignatura) {
 
             $errores[] =
-                'La asignatura seleccionada no corresponde a la modalidad o al docente seleccionado.';
+                'La asignatura seleccionada no está activa, no corresponde a la modalidad o no está asignada al docente seleccionado.';
         }
 
         $stmt->close();
