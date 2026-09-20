@@ -238,6 +238,18 @@ function claseMenuActivo(
 
                         </a>
 
+                        <a
+                            href="/gestion_de_reservas/modules/entregas/index.php"
+                            class="menu-submenu-enlace<?= $subseccionAdministracion === 'entregas' ? ' menu-submenu-activo' : '' ?>">
+
+                            <i class="fa-solid fa-file-arrow-up"></i>
+
+                            <span>
+                                Entregas
+                            </span>
+
+                        </a>
+
                     </div>
 
                 </div>

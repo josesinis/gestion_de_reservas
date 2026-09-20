@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 10-09-2026 a las 15:20:36
--- Versión del servidor: 10.4.32-MariaDB
--- Versión de PHP: 8.2.12
+-- Tiempo de generación: 20-09-2026 a las 23:34:16
+-- Versión del servidor: 10.4.28-MariaDB
+-- Versión de PHP: 8.0.28
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,8 +18,31 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Base de datos: `db_gestion_de_reservas`
+-- Base de datos: `db_portal_escolar`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `alumnos`
+--
+
+CREATE TABLE `alumnos` (
+  `id` int(11) NOT NULL,
+  `curso_id` int(11) NOT NULL,
+  `nombres` varchar(100) NOT NULL,
+  `apellidos` varchar(100) NOT NULL,
+  `activo` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
+
+--
+-- Volcado de datos para la tabla `alumnos`
+--
+
+INSERT INTO `alumnos` (`id`, `curso_id`, `nombres`, `apellidos`, `activo`) VALUES
+(1, 12, 'Amanda Débora ', 'Fernández Chávez', 1),
+(2, 13, 'Sofía Andrea ', 'Alvarado Pacheco', 1),
+(3, 14, 'Diego Alonso', 'Campos Carrera', 1);
 
 -- --------------------------------------------------------
 
@@ -75,7 +98,6 @@ INSERT INTO `bitacoras` (`id`, `reserva_id`, `objetivo_clase`, `actividad`, `hor
 (6, 40, NULL, NULL, NULL, ''),
 (7, 42, NULL, NULL, NULL, ''),
 (8, 41, NULL, NULL, NULL, ''),
-(9, NULL, NULL, NULL, 2797, ''),
 (10, 45, NULL, NULL, NULL, ''),
 (11, NULL, 'Objetivo 1', 'Actividad 1', 3194, ''),
 (12, 49, 'Comprender que es el acento diacrítico.', 'Buscar monosílabas, con y sin tilde.', NULL, ''),
@@ -114,11 +136,6 @@ INSERT INTO `bitacora_recursos` (`id`, `bitacora_id`, `recurso_id`) VALUES
 (10, 8, 1),
 (11, 8, 2),
 (12, 8, 3),
-(13, 9, 5),
-(14, 9, 1),
-(15, 9, 6),
-(16, 9, 7),
-(17, 9, 2),
 (18, 10, 1),
 (19, 10, 2),
 (20, 10, 3),
@@ -264,16 +281,25 @@ INSERT INTO `docentes_asignaturas` (`id`, `docente_id`, `asignatura_id`) VALUES
 --
 
 CREATE TABLE `entregas` (
-  `id` int(10) UNSIGNED NOT NULL,
+  `id` int(11) NOT NULL,
   `trabajo_id` int(10) UNSIGNED NOT NULL,
   `curso_id` int(11) NOT NULL,
   `asignatura_id` int(11) NOT NULL,
-  `nombre_alumno` varchar(50) NOT NULL,
-  `apellido_alumno` varchar(50) NOT NULL,
+  `alumno_id` int(11) DEFAULT NULL,
   `nombre_archivo` varchar(255) NOT NULL,
   `ruta_archivo` varchar(500) NOT NULL,
   `fecha_hora_entrega` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `entregas`
+--
+
+INSERT INTO `entregas` (`id`, `trabajo_id`, `curso_id`, `asignatura_id`, `alumno_id`, `nombre_archivo`, `ruta_archivo`, `fecha_hora_entrega`) VALUES
+(2, 7, 12, 3, 1, 'ESTANDARES_DESARROLLO.md', 'uploads/entregas/20260916_004658_402b3acc030c0b74.md', '2026-09-15 19:46:58'),
+(3, 8, 14, 3, 3, 'BACKLOG.md', 'uploads/entregas/20260916_005127_514b7bbbdb4be4ff.md', '2026-09-15 19:51:27'),
+(4, 8, 14, 3, 3, 'My Favorite Sport.pptx', 'uploads/entregas/be922d99d4f56ee04c4a731d1398ee2dddc7666f0e5b4c16.bin', '2026-09-16 19:56:38'),
+(5, 8, 14, 3, 3, 'My Favorite Sport.pptx', 'uploads/entregas/7cae10f09e2f5ed296b404b85478d155dc46c48a717bfd4d.bin', '2026-09-16 19:58:31');
 
 -- --------------------------------------------------------
 
@@ -294,7 +320,7 @@ CREATE TABLE `horarios_fijos` (
   `fecha_fin` date DEFAULT NULL,
   `observaciones` text DEFAULT NULL,
   `modalidad` enum('asignatura','taller') DEFAULT NULL
-) ;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
 --
 -- Volcado de datos para la tabla `horarios_fijos`
@@ -844,7 +870,9 @@ INSERT INTO `reservas` (`id`, `docente_id`, `usuario_id`, `curso_id`, `asignatur
 (50, 4, 1, 16, 2, 4, '2026-09-07', 'Sacar conclusiones y hacer inferencias.', 'Buscar significado de, inferir y sacar conclusiones.', 0, NULL, 0, 'utilizada', '2026-09-07 14:19:59', '2026-09-07 14:45:18', 'completo', NULL, NULL),
 (52, 9, 1, 16, 6, 2, '2026-09-10', 'Conocer el vocabulario relacionado con el campo colonial.', 'Buscar información y generan presentación en PowerPoint.', 0, NULL, 0, 'utilizada', '2026-09-09 16:03:51', '2026-09-10 11:51:22', 'completo', NULL, NULL),
 (53, 1, 1, 16, 3, 3, '2026-09-10', 'Presentaciones orales.', 'Generan presentación en PowerPoint y disertan, sobre un viaje.', 0, NULL, 0, 'utilizada', '2026-09-10 12:47:40', '2026-09-10 12:51:21', 'sub2', NULL, NULL),
-(54, 1, 1, 13, 3, 1, '2026-09-11', '', '', 1, '2026-09-24 00:00:00', 0, 'reservada', '2026-09-10 14:36:09', '2026-09-10 14:36:09', 'completo', '2026-09-24 00:00:00', NULL);
+(62, 1, 1, 12, 3, 1, '2026-09-16', '', '', 1, '2026-09-30 00:00:00', 0, 'reservada', '2026-09-15 16:11:43', '2026-09-15 16:12:38', 'completo', '2026-09-30 00:00:00', 7),
+(63, 1, 1, 14, 3, 2, '2026-09-16', '', '', 1, '2026-09-30 00:00:00', 0, 'reservada', '2026-09-15 19:50:02', '2026-09-15 19:50:02', 'completo', '2026-09-30 00:00:00', 8),
+(64, 8, 1, 13, 8, 1, '2026-09-17', '', '', 1, '2026-09-30 00:00:00', 0, 'reservada', '2026-09-16 19:33:07', '2026-09-16 19:33:07', 'completo', '2026-09-30 00:00:00', 9);
 
 -- --------------------------------------------------------
 
@@ -868,7 +896,31 @@ CREATE TABLE `trabajos` (
 --
 
 INSERT INTO `trabajos` (`id`, `reserva_id`, `titulo`, `estado`, `fecha_inicio`, `fecha_limite`, `fecha_creacion`, `fecha_actualizacion`) VALUES
-(1, 54, '', 'en_proceso', '2026-09-11 00:00:00', '2026-09-24 16:15:00', '2026-09-10 14:36:09', '2026-09-10 14:36:09');
+(7, 62, 'My Favorite Food', 'en_proceso', '2026-09-16 00:00:00', '2026-09-30 16:15:00', '2026-09-15 16:11:43', '2026-09-15 16:11:43'),
+(8, 63, 'My Favorite Sport', 'en_proceso', '2026-09-16 00:00:00', '2026-09-30 16:15:00', '2026-09-15 19:50:02', '2026-09-15 19:50:02'),
+(9, 64, 'Mi Objeto tecnológico', 'en_proceso', '2026-09-17 00:00:00', '2026-09-30 16:15:00', '2026-09-16 19:33:07', '2026-09-16 19:33:07');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `trabajo_prorrogas`
+--
+
+CREATE TABLE `trabajo_prorrogas` (
+  `id` int(11) NOT NULL,
+  `trabajo_id` int(10) UNSIGNED NOT NULL,
+  `curso_id` int(11) NOT NULL,
+  `alumno_id` int(11) NOT NULL,
+  `fecha_inicio` datetime NOT NULL,
+  `fecha_fin` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
+
+--
+-- Volcado de datos para la tabla `trabajo_prorrogas`
+--
+
+INSERT INTO `trabajo_prorrogas` (`id`, `trabajo_id`, `curso_id`, `alumno_id`, `fecha_inicio`, `fecha_fin`) VALUES
+(3, 7, 12, 1, '2026-09-30 16:15:00', '2026-10-07 15:15:00');
 
 -- --------------------------------------------------------
 
@@ -893,12 +945,19 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id`, `nombres`, `apellidos`, `correo`, `usuario`, `password`, `rol`, `acceso`, `ultimo_acceso`) VALUES
-(1, 'José A.', 'Fernández Concha', 'jfernandezconcha@gmail.com', 'Josesinis', '$2y$10$6/4FA8ny1xObuxbWtzI6J.6fY/2rc.KaITAU2aCXk4gTSFu/tEQ/2', 'superadmin', 1, '2026-09-10 08:53:20'),
+(1, 'José A.', 'Fernández Concha', 'jfernandezconcha@gmail.com', 'Josesinis', '$2y$10$6/4FA8ny1xObuxbWtzI6J.6fY/2rc.KaITAU2aCXk4gTSFu/tEQ/2', 'superadmin', 1, '2026-09-16 19:32:17'),
 (2, 'Esmeralda Jacqueline', 'Cabrera Saavedra', 'kellycabrera1@gmail.com', 'Esmeralda', '$2y$10$1pJ3/AsvJtI6dXSbX63FxOgPyXTSx50/p1GR47wGdu62NgFX7rMV6', 'usuario', 1, NULL);
 
 --
 -- Índices para tablas volcadas
 --
+
+--
+-- Indices de la tabla `alumnos`
+--
+ALTER TABLE `alumnos`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_alumnos_curso` (`curso_id`);
 
 --
 -- Indices de la tabla `asignaturas`
@@ -955,7 +1014,8 @@ ALTER TABLE `entregas`
   ADD PRIMARY KEY (`id`),
   ADD KEY `fk_entregas_trabajo` (`trabajo_id`),
   ADD KEY `fk_entregas_curso` (`curso_id`),
-  ADD KEY `fk_entregas_asignatura` (`asignatura_id`);
+  ADD KEY `fk_entregas_asignatura` (`asignatura_id`),
+  ADD KEY `fk_entregas_alumno` (`alumno_id`);
 
 --
 -- Indices de la tabla `horarios_fijos`
@@ -1005,6 +1065,15 @@ ALTER TABLE `trabajos`
   ADD KEY `fk_trabajos_reserva` (`reserva_id`);
 
 --
+-- Indices de la tabla `trabajo_prorrogas`
+--
+ALTER TABLE `trabajo_prorrogas`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_trabajo_prorrogas_trabajo` (`trabajo_id`),
+  ADD KEY `fk_trabajo_prorrogas_curso` (`curso_id`),
+  ADD KEY `fk_trabajo_prorrogas_alumno` (`alumno_id`);
+
+--
 -- Indices de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
@@ -1015,6 +1084,12 @@ ALTER TABLE `usuarios`
 --
 -- AUTO_INCREMENT de las tablas volcadas
 --
+
+--
+-- AUTO_INCREMENT de la tabla `alumnos`
+--
+ALTER TABLE `alumnos`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `asignaturas`
@@ -1062,13 +1137,13 @@ ALTER TABLE `docentes_asignaturas`
 -- AUTO_INCREMENT de la tabla `entregas`
 --
 ALTER TABLE `entregas`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de la tabla `horarios_fijos`
 --
 ALTER TABLE `horarios_fijos`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT de la tabla `horarios_fijos_ocurrencias`
@@ -1086,13 +1161,19 @@ ALTER TABLE `recursos`
 -- AUTO_INCREMENT de la tabla `reservas`
 --
 ALTER TABLE `reservas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65;
 
 --
 -- AUTO_INCREMENT de la tabla `trabajos`
 --
 ALTER TABLE `trabajos`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+
+--
+-- AUTO_INCREMENT de la tabla `trabajo_prorrogas`
+--
+ALTER TABLE `trabajo_prorrogas`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `usuarios`
@@ -1103,6 +1184,12 @@ ALTER TABLE `usuarios`
 --
 -- Restricciones para tablas volcadas
 --
+
+--
+-- Filtros para la tabla `alumnos`
+--
+ALTER TABLE `alumnos`
+  ADD CONSTRAINT `fk_alumnos_curso` FOREIGN KEY (`curso_id`) REFERENCES `cursos` (`id`) ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `bitacoras`
@@ -1129,6 +1216,7 @@ ALTER TABLE `docentes_asignaturas`
 -- Filtros para la tabla `entregas`
 --
 ALTER TABLE `entregas`
+  ADD CONSTRAINT `fk_entregas_alumno` FOREIGN KEY (`alumno_id`) REFERENCES `alumnos` (`id`) ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_entregas_asignatura` FOREIGN KEY (`asignatura_id`) REFERENCES `asignaturas` (`id`) ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_entregas_curso` FOREIGN KEY (`curso_id`) REFERENCES `cursos` (`id`) ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_entregas_trabajo` FOREIGN KEY (`trabajo_id`) REFERENCES `trabajos` (`id`) ON UPDATE CASCADE;
@@ -1169,6 +1257,14 @@ ALTER TABLE `reservas`
 --
 ALTER TABLE `trabajos`
   ADD CONSTRAINT `fk_trabajos_reserva` FOREIGN KEY (`reserva_id`) REFERENCES `reservas` (`id`) ON UPDATE CASCADE;
+
+--
+-- Filtros para la tabla `trabajo_prorrogas`
+--
+ALTER TABLE `trabajo_prorrogas`
+  ADD CONSTRAINT `fk_trabajo_prorrogas_alumno` FOREIGN KEY (`alumno_id`) REFERENCES `alumnos` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_trabajo_prorrogas_curso` FOREIGN KEY (`curso_id`) REFERENCES `cursos` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_trabajo_prorrogas_trabajo` FOREIGN KEY (`trabajo_id`) REFERENCES `trabajos` (`id`) ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

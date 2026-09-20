@@ -147,6 +147,7 @@ function cargarAsignaturas() {
                 throw new Error(
                     'Error al consultar las asignaturas.'
                 );
+
             }
 
             return response.json();
@@ -258,46 +259,396 @@ function cargarAsignaturas() {
             asignaturaSelect.disabled = true;
 
         });
+
 }
+
+
 //=====================================================
 // MOSTRAR U OCULTAR OPCIONES DE ENTREGA
 //=====================================================
-document.addEventListener('DOMContentLoaded', function () {
 
-    const permiteEntrega = document.getElementById('permite_entrega');
-    const opcionesEntrega = document.getElementById('opciones_entrega');
-    const fechaEntregaOficial = document.getElementById('fecha_entrega_oficial');
+document.addEventListener(
+    'DOMContentLoaded',
+    function () {
 
-    if (!permiteEntrega || !opcionesEntrega) {
-        return;
-    }
 
-    function actualizarOpcionesEntrega() {
+        const permiteEntrega =
+            document.getElementById(
+                'permite_entrega'
+            );
 
-        if (permiteEntrega.checked) {
 
-            opcionesEntrega.style.display = 'block';
+        const opcionesEntrega =
+            document.getElementById(
+                'opciones_entrega'
+            );
 
-            if (fechaEntregaOficial) {
-                fechaEntregaOficial.required = true;
-            }
 
-        } else {
+        const fechaEntregaOficial =
+            document.getElementById(
+                'fecha_entrega_oficial'
+            );
 
-            opcionesEntrega.style.display = 'none';
 
-            if (fechaEntregaOficial) {
-                fechaEntregaOficial.required = false;
-                fechaEntregaOficial.value = '';
-            }
+        const tituloTrabajo =
+            document.getElementById(
+                'titulo_trabajo'
+            );
+
+
+        if (
+            !permiteEntrega ||
+            !opcionesEntrega
+        ) {
+
+            return;
+
         }
+
+
+        function actualizarOpcionesEntrega() {
+
+            if (permiteEntrega.checked) {
+
+                opcionesEntrega.style.display =
+                    'block';
+
+
+                if (fechaEntregaOficial) {
+
+                    fechaEntregaOficial.required =
+                        true;
+
+                }
+
+
+                if (tituloTrabajo) {
+
+                    tituloTrabajo.required =
+                        true;
+
+                }
+
+            } else {
+
+                opcionesEntrega.style.display =
+                    'none';
+
+
+                if (fechaEntregaOficial) {
+
+                    fechaEntregaOficial.required =
+                        false;
+
+                    fechaEntregaOficial.value =
+                        '';
+
+                }
+
+
+                if (tituloTrabajo) {
+
+                    tituloTrabajo.required =
+                        false;
+
+                    tituloTrabajo.value =
+                        '';
+
+                }
+
+            }
+
+        }
+
+
+        permiteEntrega.addEventListener(
+            'change',
+            actualizarOpcionesEntrega
+        );
+
+
+        //=================================================
+        // ESTADO INICIAL
+        //=================================================
+
+        actualizarOpcionesEntrega();
+
+
+        //=====================================================
+        // TIPO DE ACTIVIDAD
+        //=====================================================
+
+        const tipoActividad =
+            document.getElementById(
+                'tipo_actividad'
+            );
+
+
+        const grupoTrabajoContinuacion =
+            document.getElementById(
+                'grupo_trabajo_continuacion'
+            );
+
+
+        const trabajoId =
+            document.getElementById(
+                'trabajo_id'
+            );
+
+
+        if (
+            tipoActividad &&
+            grupoTrabajoContinuacion &&
+            trabajoId
+        ) {
+
+
+            function actualizarTipoActividad() {
+
+                if (
+                    tipoActividad.value ===
+                    'continuacion'
+                ) {
+
+
+                    //=========================================
+                    // MOSTRAR TRABAJO A CONTINUAR
+                    //=========================================
+
+                    grupoTrabajoContinuacion.style.display =
+                        'block';
+
+                    trabajoId.required =
+                        true;
+
+
+                    //=========================================
+                    // DESHABILITAR ENTREGA DE TRABAJOS
+                    //=========================================
+
+                    permiteEntrega.checked =
+                        false;
+
+                    permiteEntrega.disabled =
+                        true;
+
+
+                    if (opcionesEntrega) {
+
+                        opcionesEntrega.style.display =
+                            'none';
+
+                    }
+
+
+                    if (fechaEntregaOficial) {
+
+                        fechaEntregaOficial.required =
+                            false;
+
+                        fechaEntregaOficial.value =
+                            '';
+
+                    }
+
+
+                    if (tituloTrabajo) {
+
+                        tituloTrabajo.required =
+                            false;
+
+                        tituloTrabajo.value =
+                            '';
+
+                    }
+
+
+                } else {
+
+
+                    //=========================================
+                    // OCULTAR TRABAJO A CONTINUAR
+                    //=========================================
+
+                    grupoTrabajoContinuacion.style.display =
+                        'none';
+
+                    trabajoId.required =
+                        false;
+
+                    trabajoId.value =
+                        '';
+
+
+                    //=========================================
+                    // HABILITAR ENTREGA DE TRABAJOS
+                    //=========================================
+
+                    permiteEntrega.disabled =
+                        false;
+
+
+                    // Volver a aplicar el estado
+                    // actual del checkbox.
+
+                    actualizarOpcionesEntrega();
+
+                }
+
+            }
+
+
+            tipoActividad.addEventListener(
+                'change',
+                actualizarTipoActividad
+            );
+
+
+            //=================================================
+            // ESTADO INICIAL
+            //=================================================
+
+            actualizarTipoActividad();
+
+        }
+
+
+        //=====================================================
+        // CONTINUACIÓN DE TRABAJO
+        //=====================================================
+
+        const trabajoSelect =
+            document.getElementById(
+                'trabajo_id'
+            );
+
+
+        const cursoSelect =
+            document.getElementById(
+                'curso_id'
+            );
+
+
+        if (
+            trabajoSelect &&
+            docenteSelect &&
+            cursoSelect &&
+            asignaturaSelect
+        ) {
+
+
+            trabajoSelect.addEventListener(
+                'change',
+                function () {
+
+
+                    const opcion =
+                        trabajoSelect.options[
+                            trabajoSelect.selectedIndex
+                        ];
+
+
+                    if (
+                        !opcion ||
+                        !opcion.value
+                    ) {
+
+                        return;
+
+                    }
+
+
+                    const docenteId =
+                        opcion.dataset.docenteId;
+
+
+                    const cursoId =
+                        opcion.dataset.cursoId;
+
+
+                    const asignaturaId =
+                        opcion.dataset.asignaturaId;
+
+
+                    //=========================================
+                    // SELECCIONAR DOCENTE
+                    //=========================================
+
+                    docenteSelect.value =
+                        docenteId;
+
+
+                    //=========================================
+                    // SELECCIONAR CURSO
+                    //=========================================
+
+                    cursoSelect.value =
+                        cursoId;
+
+
+                    //=========================================
+                    // CARGAR ASIGNATURAS DEL DOCENTE
+                    //=========================================
+
+                    cargarAsignaturas();
+
+
+                    //=========================================
+                    // ESPERAR A QUE SE CARGUE LA ASIGNATURA
+                    //=========================================
+
+                    let intentos = 0;
+
+
+                    const esperarAsignatura =
+                        setInterval(
+                            function () {
+
+
+                                const opcionAsignatura =
+                                    asignaturaSelect.querySelector(
+                                        'option[value="' +
+                                        asignaturaId +
+                                        '"]'
+                                    );
+
+
+                                if (
+                                    opcionAsignatura
+                                ) {
+
+                                    asignaturaSelect.value =
+                                        asignaturaId;
+
+                                    clearInterval(
+                                        esperarAsignatura
+                                    );
+
+                                }
+
+
+                                intentos++;
+
+
+                                if (
+                                    intentos >= 50
+                                ) {
+
+                                    clearInterval(
+                                        esperarAsignatura
+                                    );
+
+                                }
+
+
+                            },
+                            100
+                        );
+
+                }
+            );
+
+        }
+
     }
-
-    permiteEntrega.addEventListener(
-        'change',
-        actualizarOpcionesEntrega
-    );
-
-    // Estado inicial
-    actualizarOpcionesEntrega();
-});
+);

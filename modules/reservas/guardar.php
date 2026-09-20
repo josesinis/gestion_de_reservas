@@ -45,6 +45,10 @@ $tipoReserva = trim($_POST['tipo_reserva'] ?? '');
 
 $actividad = trim($_POST['actividad'] ?? '');
 
+$tituloTrabajo = trim(
+    $_POST['titulo_trabajo'] ?? ''
+);
+
 $objetivo_clase = trim($_POST['objetivo_clase'] ?? '');
 
 $permiteEntrega = isset($_POST['permite_entrega']) ? 1 : 0;
@@ -52,6 +56,12 @@ $permiteEntrega = isset($_POST['permite_entrega']) ? 1 : 0;
 $fechaEntregaOficial = !empty($_POST['fecha_entrega_oficial'])
     ? $_POST['fecha_entrega_oficial']
     : null;
+
+$tipoActividad = trim($_POST['tipo_actividad'] ?? 'nueva');
+
+$trabajoId = isset($_POST['trabajo_id'])
+    ? (int) $_POST['trabajo_id']
+    : 0;
 
 $modo = $_POST['modo'] ?? 'normal';
 
@@ -125,14 +135,142 @@ $cierreManual = 0;
 $fechaCierre = $fechaEntregaOficial;
 
 //=====================================================
-// 5. VALIDAR DATOS
+// 5. VALIDAR TIPO DE ACTIVIDAD
 //=====================================================
 
-$errores = validarReserva(
+$tiposActividadPermitidos = [
+    'nueva',
+    'continuacion'
+];
+
+$errores = [];
+
+if (!in_array($tipoActividad, $tiposActividadPermitidos, true)) {
+
+    $errores[] =
+        'El tipo de actividad no es válido.';
+
+    $tipoActividad = 'nueva';
+    $trabajoId = 0;
+}
+
+
+//=====================================================
+// VALIDAR TÍTULO DEL TRABAJO
+//=====================================================
+
+if (
+    $tipoActividad === 'nueva'
+    && $permiteEntrega === 1
+    && $tituloTrabajo === ''
+) {
+
+    $errores[] =
+        'Debe indicar el título del trabajo.';
+}
+
+
+//=====================================================
+// VALIDAR CONTINUACIÓN DE TRABAJO
+//=====================================================
+
+if ($tipoActividad === 'continuacion') {
+
+    if ($trabajoId <= 0) {
+
+        $errores[] =
+            'Debe seleccionar el trabajo que desea continuar.';
+
+    } else {
+
+        $sqlTrabajo = "
+            SELECT
+                t.id,
+                t.estado,
+                r.docente_id,
+                r.curso_id,
+                r.asignatura_id
+            FROM trabajos t
+            INNER JOIN reservas r
+                ON r.id = t.reserva_id
+            WHERE
+                t.id = ?
+                AND t.estado = 'en_proceso'
+            LIMIT 1
+        ";
+
+        $stmtTrabajo = $conexion->prepare($sqlTrabajo);
+
+        if (!$stmtTrabajo) {
+
+            $errores[] =
+                'No fue posible validar el trabajo seleccionado.';
+
+        } else {
+
+            $stmtTrabajo->bind_param(
+                'i',
+                $trabajoId
+            );
+
+            if (!$stmtTrabajo->execute()) {
+
+                $errores[] =
+                    'No fue posible validar el trabajo seleccionado.';
+
+            } else {
+
+                $resultadoTrabajo =
+                    $stmtTrabajo->get_result();
+
+                $trabajoSeleccionado =
+                    $resultadoTrabajo->fetch_assoc();
+
+                if (!$trabajoSeleccionado) {
+
+                    $errores[] =
+                        'El trabajo seleccionado no existe o ya no está en proceso.';
+
+                } else {
+
+                    // Los datos académicos del trabajo son la fuente
+                    // válida para una continuación.
+                    $docenteId =
+                        (int) $trabajoSeleccionado['docente_id'];
+
+                    $cursoId =
+                        (int) $trabajoSeleccionado['curso_id'];
+
+                    $asignaturaId =
+                        (int) $trabajoSeleccionado['asignatura_id'];
+                }
+            }
+
+            $stmtTrabajo->close();
+        }
+    }
+
+    // Una continuación nunca inicia una nueva entrega.
+    $permiteEntrega = 0;
+    $fechaEntregaOficial = null;
+    $fechaCierre = null;
+}
+
+
+//=====================================================
+// 6. VALIDAR DATOS
+//=====================================================
+
+$erroresReserva = validarReserva(
     $docenteId,
     $cursoId,
     $asignaturaId,
     $actividad
+);
+
+$errores = array_merge(
+    $errores,
+    $erroresReserva
 );
 
 if ($fecha === '') {
@@ -355,10 +493,11 @@ $sql = "INSERT INTO reservas (
     cierre_manual,
     estado,
     tipo_reserva,
-    fecha_entrega_oficial
+    fecha_entrega_oficial,
+    trabajo_id
 
 )
-VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,NULLIF(?, 0))";
 
 $stmt = $conexion->prepare($sql);
 
@@ -373,21 +512,22 @@ if (!$stmt) {
 }
 
 $stmt->bind_param(
-    "iiiiisssisisss",
+    "iiiiisssisisssi",
     $docenteId,
     $usuarioId,
     $cursoId,
     $asignaturaId,
     $bloqueId,
     $fecha,
-    $actividad,
     $objetivo_clase,
+    $actividad,
     $permiteEntrega,
     $fechaCierre,
     $cierreManual,
     $estado,
     $tipoReserva,
-    $fechaEntregaOficial
+    $fechaEntregaOficial,
+    $trabajoId
 );
 
 //=====================================================
@@ -420,9 +560,10 @@ if ($modo !== 'reasignar') {
         // 2. CREAR EL TRABAJO SI CORRESPONDE
         //=================================================
 
-        if ($permiteEntrega === 1) {
-
-            $tituloTrabajo = $actividad;
+        if (
+            $tipoActividad === 'nueva'
+            && $permiteEntrega === 1
+        ) {
 
             $fechaInicioTrabajo =
                 $fecha . ' 00:00:00';
@@ -469,7 +610,50 @@ if ($modo !== 'reasignar') {
                 );
             }
 
+            $trabajoId =
+                $conexion->insert_id;
+
             $stmtTrabajo->close();
+
+
+            //=================================================
+            // 2.1 VINCULAR EL TRABAJO A LA RESERVA
+            //=================================================
+
+            $sqlVincularTrabajo = "
+                UPDATE reservas
+                SET trabajo_id = ?
+                WHERE id = ?
+            ";
+
+            $stmtVincularTrabajo =
+                $conexion->prepare(
+                    $sqlVincularTrabajo
+                );
+
+            if (!$stmtVincularTrabajo) {
+
+                throw new Exception(
+                    'No fue posible vincular el trabajo con la reserva.'
+                );
+            }
+
+            $stmtVincularTrabajo->bind_param(
+                "ii",
+                $trabajoId,
+                $reservaId
+            );
+
+            if (!$stmtVincularTrabajo->execute()) {
+
+                $stmtVincularTrabajo->close();
+
+                throw new Exception(
+                    'No fue posible vincular el trabajo con la reserva.'
+                );
+            }
+
+            $stmtVincularTrabajo->close();
         }
 
 
@@ -479,10 +663,18 @@ if ($modo !== 'reasignar') {
 
         $conexion->commit();
 
-        $_SESSION['exito'] =
-            $permiteEntrega === 1
-            ? 'La reserva y el trabajo fueron creados correctamente.'
-            : 'La reserva fue creada correctamente.';
+        if ($tipoActividad === 'continuacion') {
+
+            $_SESSION['exito'] =
+                'La reserva fue creada y asociada al trabajo correctamente.';
+
+        } else {
+
+            $_SESSION['exito'] =
+                $permiteEntrega === 1
+                ? 'La reserva y el trabajo fueron creados correctamente.'
+                : 'La reserva fue creada correctamente.';
+        }
     } catch (Throwable $e) {
 
         $conexion->rollback();

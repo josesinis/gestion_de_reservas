@@ -1,7 +1,7 @@
 <?php
 
 $host = "localhost";
-$db   = "db_gestion_de_reservas";
+$db   = "db_portal_escolar";
 $user = "root";
 $pass = "";
 

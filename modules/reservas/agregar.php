@@ -171,6 +171,47 @@ $docentes = obtenerDocentes($conexion);
 $cursos = obtenerCursos($conexion);
 
 //-----------------------------------------------------
+// 5.3.1 TRABAJOS EN PROCESO
+//-----------------------------------------------------
+
+$trabajosEnProceso = [];
+
+$sqlTrabajos = "
+    SELECT
+        t.id,
+        t.titulo,
+        t.fecha_inicio,
+        t.fecha_limite,
+        r.docente_id,
+        r.curso_id,
+        r.asignatura_id,
+        CONCAT(d.nombres, ' ', d.apellidos) AS docente,
+        c.nombre_curso,
+        a.asignatura_nombre
+    FROM trabajos t
+    INNER JOIN reservas r
+        ON r.id = t.reserva_id
+    INNER JOIN docentes d
+        ON d.id = r.docente_id
+    INNER JOIN cursos c
+        ON c.id = r.curso_id
+    INNER JOIN asignaturas a
+        ON a.id = r.asignatura_id
+    WHERE t.estado = 'en_proceso'
+    ORDER BY
+        t.fecha_limite,
+        t.titulo
+";
+
+$resultadoTrabajos = $conexion->query($sqlTrabajos);
+
+if ($resultadoTrabajos) {
+
+    $trabajosEnProceso =
+        $resultadoTrabajos->fetch_all(MYSQLI_ASSOC);
+}
+
+//-----------------------------------------------------
 // 5.4 ASIGNATURAS
 //-----------------------------------------------------
 
@@ -411,6 +452,70 @@ $cursos = obtenerCursos($conexion);
 
             </fieldset>
 
+            <div class="grupo-formulario">
+
+                <label for="tipo_actividad">
+                    Tipo de actividad
+                </label>
+
+                <select
+                    id="tipo_actividad"
+                    name="tipo_actividad"
+                    required>
+
+                    <option value="nueva">
+                        Nueva actividad
+                    </option>
+
+                    <option value="continuacion">
+                        Continuación de trabajo
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div
+                class="grupo-formulario"
+                id="grupo_trabajo_continuacion"
+                style="display: none;">
+
+                <label for="trabajo_id">
+                    Trabajo a continuar
+                </label>
+
+                <select
+                    id="trabajo_id"
+                    name="trabajo_id">
+
+                    <option value="">
+                        Seleccione un trabajo
+                    </option>
+
+                    <?php foreach ($trabajosEnProceso as $trabajo): ?>
+
+                        <option
+                            value="<?= (int) $trabajo['id']; ?>"
+                            data-docente-id="<?= (int) $trabajo['docente_id']; ?>"
+                            data-curso-id="<?= (int) $trabajo['curso_id']; ?>"
+                            data-asignatura-id="<?= (int) $trabajo['asignatura_id']; ?>">
+
+                            <?= htmlspecialchars($trabajo['titulo']); ?>
+                            —
+                            <?= htmlspecialchars($trabajo['nombre_curso']); ?>
+                            —
+                            <?= htmlspecialchars($trabajo['asignatura_nombre']); ?>
+
+                        </option>
+
+                    <?php endforeach; ?>
+
+                </select>
+
+            </div>
+
+
             <div class="agenda-form-grid">
 
                 <div class="grupo-formulario">
@@ -516,6 +621,22 @@ $cursos = obtenerCursos($conexion);
 
                     <div class="grupo-formulario">
 
+                        <label for="titulo_trabajo">
+                            Título del trabajo
+                        </label>
+
+                        <input
+                            type="text"
+                            id="titulo_trabajo"
+                            name="titulo_trabajo"
+                            maxlength="150"
+                            placeholder="Ingrese el título del trabajo">
+
+                    </div>
+
+
+                    <div class="grupo-formulario">
+
                         <label for="fecha_entrega_oficial">
                             Fecha oficial de entrega
                         </label>
@@ -577,7 +698,13 @@ $cursos = obtenerCursos($conexion);
                 </button>
 
             </div>
-
             <script src="../../assets/js/reservas.js"></script>
     </form>
 </div>
+
+<?php require_once '../../includes/footer.php'; ?>
+
+<?php
+//=====================================================
+// FIN DEL ARCHIVO
+//=====================================================
